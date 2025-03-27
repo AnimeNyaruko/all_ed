@@ -1,5 +1,5 @@
 "use client";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import Header from "@/ui/Components/Header";
@@ -10,6 +10,7 @@ async function checkForm(formData: FormData) {
 	if (formData.has("Google")) {
 		signIn("google");
 	}
+	return;
 }
 
 export default function Page() {
