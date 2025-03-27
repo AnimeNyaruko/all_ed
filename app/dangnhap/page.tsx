@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import Header from "@/ui/Components/Header";
 import Footer from "@/ui/Components/Footer";
-import { signIn } from "next-auth/react";
+// import { signIn } from "next-auth/react";
 
 async function checkForm(formData: FormData) {
 	if (formData.has("Google")) {
