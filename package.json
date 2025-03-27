@@ -1,0 +1,68 @@
+{
+	"name": "all_ed",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "concurrently \"pnpm:next\" \"pnpm:tailwindcss\" ",
+		"tailwindcss": "pnpm dlx @tailwindcss/cli -i ./ui/Style/index.css -o ./ui/final.css --watch --minify",
+		"next": "next dev --turbopack",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint"
+	},
+	"dependencies": {
+		"@fortawesome/fontawesome-svg-core": "^6.7.2",
+		"@fortawesome/free-brands-svg-icons": "^6.7.2",
+		"@fortawesome/free-regular-svg-icons": "^6.7.2",
+		"@fortawesome/free-solid-svg-icons": "^6.7.2",
+		"@fortawesome/react-fontawesome": "^0.2.2",
+		"@neondatabase/serverless": "^0.10.4",
+		"@react-spring/web": "^9.7.5",
+		"@tailwindcss/cli": "^4.0.15",
+		"bcrypt": "^5.1.1",
+		"bezier-easing": "^2.1.0",
+		"buffer": "^6.0.3",
+		"clsx": "^2.1.1",
+		"concurrently": "^9.1.2",
+		"mathjs": "^14.3.1",
+		"next": "15.2.3",
+		"next-auth": "^4.24.11",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"server-only": "^0.0.1"
+	},
+	"devDependencies": {
+		"@eslint/eslintrc": "^3",
+		"@tailwindcss/postcss": "^4",
+		"@types/bcrypt": "^5.0.2",
+		"@types/node": "^20",
+		"@types/react": "^19",
+		"@types/react-dom": "^19",
+		"eslint": "^9",
+		"eslint-config-next": "15.2.3",
+		"prettier": "^3.5.3",
+		"prettier-plugin-tailwindcss": "^0.6.11",
+		"tailwindcss": "^4",
+		"typescript": "^5"
+	},
+	"optionalDependencies": {
+		"bufferutil": "^4.0.9",
+		"utf-8-validate": "^6.0.5"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"@parcel/watcher",
+			"bcrypt",
+			"bufferutil",
+			"sharp",
+			"utf-8-validate"
+		]
+	},
+	"prettier": {
+		"useTabs": true,
+		"tailwindStylesheet": "./ui/final.css",
+		"plugins": [
+			"prettier-plugin-tailwindcss"
+		]
+	}
+}
