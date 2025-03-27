@@ -9,9 +9,12 @@ export const providers = [
 	}),
 ];
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+const { handlers, signIn, signOut, auth } = NextAuth({
 	providers: providers,
 	pages: {
 		signIn: "/login",
 	},
 });
+
+export { signIn, signOut, auth };
+export { handlers as GET, handlers as POST };
