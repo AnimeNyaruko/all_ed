@@ -3,7 +3,7 @@ import LoginUI from "./(UI)/loginUI";
 import setCookie from "@/utils/setCookie";
 
 async function getCsrfToken() {
-	const response = await fetch(`http://localhost:3000/api/auth/csrf`, {
+	const response = await fetch(`${process.env.NEXTAUTH_URL!}/api/auth/csrf`, {
 		method: "GET",
 		headers: {
 			"Content-Type": "application/json",

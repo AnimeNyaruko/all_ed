@@ -18,7 +18,7 @@ async function googleLogin() {
 
 		if (!email) {
 			const result = await signIn("google", {
-				callbackUrl: "http://localhost:3000",
+				callbackUrl: process.env.NEXTAUTH_URL!,
 				redirect: false,
 			});
 
@@ -29,37 +29,43 @@ async function googleLogin() {
 			return;
 		}
 
-		const res = await fetch("http://localhost:3000/api/auth/check-email", {
-			method: "POST",
-			body: JSON.stringify({ email }),
-			headers: { "Content-Type": "application/json" },
-		});
+		const res = await fetch(
+			`${process.env.NEXTAUTH_URL!}/api/auth/check-email`,
+			{
+				method: "POST",
+				body: JSON.stringify({ email }),
+				headers: { "Content-Type": "application/json" },
+			},
+		);
 
 		const data = await res.json();
 		if (data.exists) {
-			const cookieResponse = await fetch("http://localhost:3000/api/cookie", {
-				method: "POST",
-				body: JSON.stringify({
-					username: data.username,
-					data: data.email,
-					option: {
-						httpOnly: true,
-						secure: true,
-						sameSite: "lax",
-						maxAge: 30 * 24 * 60 * 60,
-					},
-				}),
-				headers: { "Content-Type": "application/json" },
-			});
+			const cookieResponse = await fetch(
+				`${process.env.NEXTAUTH_URL!}/api/cookie`,
+				{
+					method: "POST",
+					body: JSON.stringify({
+						username: data.username,
+						data: data.email,
+						option: {
+							httpOnly: true,
+							secure: true,
+							sameSite: "lax",
+							maxAge: 30 * 24 * 60 * 60,
+						},
+					}),
+					headers: { "Content-Type": "application/json" },
+				},
+			);
 
 			if (cookieResponse.ok) {
 				// Wait a small delay to ensure cookie is set
 				await new Promise((resolve) => setTimeout(resolve, 100));
-				window.location.href = "http://localhost:3000";
+				window.location.href = process.env.NEXTAUTH_URL!;
 			}
 		} else {
 			const result = await signIn("google", {
-				callbackUrl: "http://localhost:3000",
+				callbackUrl: process.env.NEXTAUTH_URL!,
 				redirect: false,
 			});
 
@@ -81,10 +87,10 @@ async function checkForm(formData: FormData): Promise<string> {
 		await googleLogin();
 		result = "";
 	} else if (!formData.has("re-password")) {
-		const path = "http://localhost:3000/api/login";
+		const path = `${process.env.NEXTAUTH_URL!}/api/login`;
 		result = await login(path, formData);
 	} else if (formData.has("re-password")) {
-		const path = "http://localhost:3000/api/register";
+		const path = `${process.env.NEXTAUTH_URL!}/api/register`;
 		result = await register(path, formData);
 	}
 	if (result === "") {

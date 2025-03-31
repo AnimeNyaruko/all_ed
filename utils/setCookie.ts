@@ -7,7 +7,7 @@ export default async function setCookie(
 	formData.append("username", name);
 	formData.append("data", data);
 	formData.append("option", JSON.stringify(option));
-	await fetch("http://localhost:3000/api/cookie", {
+	await fetch(`${process.env.NEXTAUTH_URL!}/api/cookie`, {
 		body: formData,
 		method: "POST",
 	});

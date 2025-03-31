@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 			sameSite: "lax",
 			maxAge: 30 * 24 * 60 * 60, // 30 days
 		});
-		return NextResponse.redirect(new URL("http://localhost:3000", req.url));
+		return NextResponse.redirect(new URL(process.env.NEXTAUTH_URL!, req.url));
 	}
 	return NextResponse.json(false);
 }

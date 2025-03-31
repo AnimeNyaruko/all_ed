@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { User, Account } from "next-auth";
 import Google from "next-auth/providers/google";
 import sql from "@/utils/database";
 import bcrypt from "bcrypt";
@@ -14,18 +14,9 @@ export const authOption = {
 		}),
 	],
 	callbacks: {
-		async signIn({
-			user,
-			account,
-			profile,
-		}: {
-			user: any;
-			account: any;
-			profile?: any;
-		}) {
-			if (account.provider === "google" && account.access_token) {
+		async signIn({ user, account }: { user: User; account: Account | null }) {
+			if (account?.provider === "google" && account?.access_token) {
 				try {
-					// Register new user directly since we already checked existence
 					const username = user.name?.replace(/\s+/g, "").toLowerCase() || "";
 					const randomPassword = Math.random().toString(36).slice(-8);
 					const hashedPassword = await bcrypt.hash(randomPassword, 10);
@@ -38,7 +29,7 @@ export const authOption = {
 
 					// Set session cookie directly using cookies API
 					const cookieStore = await cookies();
-					cookieStore.set("session", user.email, {
+					cookieStore.set("session", username, {
 						httpOnly: true,
 						secure: true,
 						sameSite: "lax",
@@ -54,7 +45,7 @@ export const authOption = {
 			return false;
 		},
 		async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
-			return "http://localhost:3000";
+			return process.env.NEXTAUTH_URL!;
 		},
 	},
 };

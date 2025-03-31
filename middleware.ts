@@ -7,7 +7,7 @@ export default async function middleware(req: NextRequest) {
 	// Allow access to login page only if not logged in
 	if (path === "/dangnhap") {
 		if (cookie) {
-			return NextResponse.redirect(new URL("http://localhost:3000", req.url));
+			return NextResponse.redirect(new URL(process.env.NEXTAUTH_URL!, req.url));
 		}
 		return NextResponse.next();
 	}
