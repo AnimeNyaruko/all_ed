@@ -10,15 +10,13 @@ export async function POST(req: Request) {
 	const username = data.get("username")!.toString();
 	const password = await bcrypt.hash(data.get("password")!.toString(), 10);
 
-	let result;
-
 	try {
-		result = (
+		const result = (
 			await sql`SELECT "Name" from "User Infomation"."Infomation" WHERE "Email" = ${email} LIMIT 1`
 		)[0].Name;
 		return NextResponse.json("Tài khoản đã tồn tại!");
-	} catch (err) {
-		result =
+	} catch (_err) {
+		const result =
 			await sql`INSERT INTO "User Infomation"."Infomation" ("Name", "Username", "Password", "Email") VALUES (${email},${username},${password},${email})`;
 		return NextResponse.json("");
 	}

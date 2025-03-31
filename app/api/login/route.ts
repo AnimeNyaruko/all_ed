@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 		if (result) {
 			return NextResponse.json("");
 		} else return NextResponse.json("Sai mật khẩu");
-	} catch (err) {
+	} catch (_error) {
 		return NextResponse.json("Tài khoản chưa được đăng ký");
 	}
 }

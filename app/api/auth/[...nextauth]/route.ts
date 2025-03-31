@@ -44,7 +44,7 @@ export const authOption = {
 			}
 			return false;
 		},
-		async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
+		async redirect() {
 			return process.env.NEXTAUTH_URL!;
 		},
 	},

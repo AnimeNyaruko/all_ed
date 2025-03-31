@@ -1,25 +1,9 @@
 "use server";
 import LoginUI from "./(UI)/loginUI";
 import setCookie from "@/utils/setCookie";
-
-async function getCsrfToken() {
-	const response = await fetch(`${process.env.NEXTAUTH_URL!}/api/auth/csrf`, {
-		method: "GET",
-		headers: {
-			"Content-Type": "application/json",
-		},
-	});
-
-	if (!response.ok) {
-		throw new Error("Failed to fetch CSRF token");
-	}
-
-	const data = await response.json();
-	return data.csrfToken;
-}
 function parseEmailtoUsername(email: string): string {
 	let substring = 0;
-	for (let i of email) {
+	for (const i of email) {
 		substring++;
 		if (i === "@") {
 			substring--;
