@@ -2,7 +2,6 @@
 
 import bcrypt from "bcrypt";
 import sql from "@/utils/database";
-import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {

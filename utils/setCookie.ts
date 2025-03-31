@@ -1,5 +1,3 @@
-import { cookies } from "next/headers";
-
 export default async function setCookie(
 	name: string,
 	data: string,

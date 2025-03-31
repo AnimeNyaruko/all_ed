@@ -1,10 +1,6 @@
 "use server";
 import LoginUI from "./(UI)/loginUI";
-import { getServerSession } from "next-auth";
-import { authOption } from "../api/auth/[...nextauth]/route";
-import { redirect } from "next/navigation";
 import setCookie from "@/utils/setCookie";
-import { signIn } from "next-auth/react";
 
 async function getCsrfToken() {
 	const response = await fetch(`http://localhost:3000/api/auth/csrf`, {
