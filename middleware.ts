@@ -1,21 +1,25 @@
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcrypt";
-
-function checkPath(path: string, arrayPath: Array<string>) {
-	return arrayPath.includes(path);
-}
 
 export default async function middleware(req: NextRequest) {
 	const path = req.nextUrl.pathname;
-	const cookie = (await cookies()).get("session")?.value;
+	const cookie = req.cookies.get("session");
 
-	const publicRoute = ["/dangnhap", "/"];
-	if (!checkPath(path, publicRoute) && !cookie) {
-		return NextResponse.redirect(new URL("/dangnhap", req.nextUrl));
+	// Allow access to login page only if not logged in
+	if (path === "/dangnhap") {
+		if (cookie) {
+			return NextResponse.redirect(new URL("http://localhost:3000", req.url));
+		}
+		return NextResponse.next();
 	}
-	return;
+
+	// Require authentication for other pages
+	if (!cookie && path !== "/") {
+		return NextResponse.redirect(new URL("/dangnhap", req.url));
+	}
+
+	return NextResponse.next();
 }
+
 export const config = {
 	matcher: ["/((?!api|_next/static|_next/image|.*\\.png$).*)"],
 };
