@@ -22,7 +22,7 @@ export default function Header() {
 							Trang chủ
 						</Link>
 						<Link
-							href="/create"
+							href="/taobai"
 							className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
 						>
 							Tạo bài tập

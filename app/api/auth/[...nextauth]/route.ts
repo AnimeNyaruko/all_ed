@@ -50,7 +50,7 @@ export const authOption = {
 	},
 };
 
-export const { auth, signIn, signOut } = NextAuth(authOption);
 const handler = NextAuth(authOption);
-export const GET = handler;
-export const POST = handler;
+export const { auth, signIn, signOut } = NextAuth(authOption);
+
+export { handler as GET, handler as POST };

@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Header from "@/ui/Components/Header";
 import Footer from "@/ui/Components/Footer";
+import Link from "next/link";
 
 export default function Home() {
 	return (
@@ -20,18 +21,25 @@ export default function Home() {
 							và mọi người đều có cơ hội phát triển bản thân.
 						</p>
 						<div className="sm:flex-row gap-4 flex flex-col justify-center">
-							<button className="bg-indigo-600 text-white px-8 py-4 rounded-lg hover:bg-indigo-700 text-lg font-medium transition-colors">
+							<Link
+								href="/taobai"
+								className="bg-indigo-600 text-white px-8 py-4 rounded-lg hover:bg-indigo-700 text-lg font-medium transition-colors"
+							>
 								Bắt đầu học ngay
-							</button>
-							<button className="border-indigo-600 text-indigo-600 px-8 py-4 rounded-lg hover:bg-indigo-50 text-lg font-medium border-2 transition-colors">
+							</Link>
+							<Link
+								href="#hero"
+								scroll={true}
+								className="border-indigo-600 text-indigo-600 px-8 py-4 rounded-lg hover:bg-indigo-50 text-lg font-medium border-2 transition-colors"
+							>
 								Khám phá khóa học
-							</button>
+							</Link>
 						</div>
 					</div>
 				</section>
 
 				{/* Hero Section */}
-				<section className="pt-32 pb-16 px-6">
+				<section id="hero" className="pt-32 pb-16 px-6">
 					<div className="md:flex-row container mx-auto flex flex-col items-center justify-between">
 						<div className="md:w-1/2 mb-8 md:mb-0">
 							<h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6">

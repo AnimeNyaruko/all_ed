@@ -1,0 +1,3 @@
+{
+	"latex": "\\\\begin{aligned}\n& Ta \\, có:\n\\\\ & \\begin{cases}\n& AB = BE \\\\\n& \\widehat{ABC} = \\widehat{DEB}\n\\\\ & \\Rightarrow \\triangle ABC \\sim \\triangle DEB \\\\\n& \\Rightarrow \\frac{AB}{DE} = \\frac{AC}{DB} \\\\\n& \\Rightarrow AB \\cdot DB + DE \\cdot AC \\ge 0 \\\\\n& Áp \\, dụng \\, BĐT \\, Cauchy \\\\\n& AB \\cdot DB + DE \\cdot AC \\ge 2 \\sqrt{AB \\cdot DB \\cdot DE \\cdot AC} \\\\\n& Dấu \\, \\\"=\\\" \\, xảy \\, ra \\, khi \\\\\n& AB \\cdot DB = DE \\cdot AC\n\\\\ & \\end{cases}\n\\\\end{aligned}"
+}
