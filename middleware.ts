@@ -1,20 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 
 export default async function middleware(req: NextRequest) {
 	const path = req.nextUrl.pathname;
-	const cookie = req.cookies.get("session");
+
+	// Verify the session token
+	const session = await getToken({
+		req,
+		secret: process.env.NEXTAUTH_SECRET,
+	});
 
 	// Allow access to login page only if not logged in
 	if (path === "/dangnhap") {
-		if (cookie) {
-			return NextResponse.redirect(new URL(process.env.NEXTAUTH_URL!, req.url));
+		if (session) {
+			return NextResponse.redirect(new URL("/", req.url));
 		}
 		return NextResponse.next();
 	}
 
 	// Require authentication for other pages
-	if (!cookie && path !== "/") {
-		return NextResponse.redirect(new URL("/dangnhap", req.url));
+	if (!session && path !== "/") {
+		const callbackUrl = encodeURIComponent(path);
+		return NextResponse.redirect(
+			new URL(`/dangnhap?callbackUrl=${callbackUrl}`, req.url),
+		);
 	}
 
 	return NextResponse.next();

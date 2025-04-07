@@ -12,7 +12,7 @@ export async function handler(formData: FormData) {
 
 	const hash = new SHA3(256).update(promptString).digest("hex");
 
-	const res = await fetch(`${process.env.NEXTAUTH_TEST_URL}/api/${hash}/bot`, {
+	const res = await fetch(`${process.env.NEXTAUTH_URL}/api/${hash}/bot`, {
 		method: "POST",
 		body: formData,
 	});
