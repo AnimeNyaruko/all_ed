@@ -17,62 +17,45 @@ async function googleLogin() {
 		const email = emailInput?.value;
 
 		if (!email) {
-			const result = await signIn("google", {
-				callbackUrl: process.env.NEXTAUTH_URL!,
-				redirect: false,
+			console.log("google login");
+			await signIn("google", {
+				callbackUrl: "/",
 			});
-
-			if (result?.error) {
-				console.error("Sign in error:", result.error);
-				return;
-			}
 			return;
 		}
 
-		const res = await fetch(
-			`${process.env.NEXTAUTH_URL!}/api/auth/check-email`,
-			{
-				method: "POST",
-				body: JSON.stringify({ email }),
-				headers: { "Content-Type": "application/json" },
-			},
-		);
+		const res = await fetch(`/api/auth/check-email`, {
+			method: "POST",
+			body: JSON.stringify({ email }),
+			headers: { "Content-Type": "application/json" },
+		});
 
 		const data = await res.json();
 		if (data.exists) {
-			const cookieResponse = await fetch(
-				`${process.env.NEXTAUTH_URL!}/api/cookie`,
-				{
-					method: "POST",
-					body: JSON.stringify({
-						username: data.username,
-						data: data.email,
-						option: {
-							httpOnly: true,
-							secure: true,
-							sameSite: "lax",
-							maxAge: 30 * 24 * 60 * 60,
-						},
-					}),
-					headers: { "Content-Type": "application/json" },
-				},
-			);
+			const cookieResponse = await fetch(`/api/cookie`, {
+				method: "POST",
+				body: JSON.stringify({
+					username: data.username,
+					data: data.email,
+					option: {
+						httpOnly: true,
+						secure: window.location.protocol === "https:",
+						sameSite: "lax",
+						maxAge: 30 * 24 * 60 * 60,
+					},
+				}),
+				headers: { "Content-Type": "application/json" },
+			});
 
 			if (cookieResponse.ok) {
 				// Wait a small delay to ensure cookie is set
 				await new Promise((resolve) => setTimeout(resolve, 100));
-				window.location.href = process.env.NEXTAUTH_URL!;
+				window.location.href = "/";
 			}
 		} else {
-			const result = await signIn("google", {
-				callbackUrl: process.env.NEXTAUTH_URL!,
-				redirect: false,
+			await signIn("google", {
+				callbackUrl: "/",
 			});
-
-			if (result?.error) {
-				console.error("Sign in error:", result.error);
-				return;
-			}
 		}
 	} catch (error) {
 		console.error("Google sign-in error:", error);
@@ -87,10 +70,10 @@ async function checkForm(formData: FormData): Promise<string> {
 		await googleLogin();
 		result = "";
 	} else if (!formData.has("re-password")) {
-		const path = `${process.env.NEXTAUTH_URL!}/api/login`;
+		const path = `/api/login`;
 		result = await login(path, formData);
 	} else if (formData.has("re-password")) {
-		const path = `${process.env.NEXTAUTH_URL!}/api/register`;
+		const path = `/api/register`;
 		result = await register(path, formData);
 	}
 	if (result === "") {

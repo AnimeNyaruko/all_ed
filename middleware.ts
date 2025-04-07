@@ -20,10 +20,7 @@ export default async function middleware(req: NextRequest) {
 
 	// Require authentication for other pages
 	if (!session && path !== "/") {
-		const callbackUrl = encodeURIComponent(path);
-		return NextResponse.redirect(
-			new URL(`/dangnhap?callbackUrl=${callbackUrl}`, req.url),
-		);
+		return NextResponse.redirect(new URL(`/dangnhap`, req.url));
 	}
 
 	return NextResponse.next();
