@@ -1,7 +1,5 @@
 "use server";
 
-import setCookie from "@/utils/setCookie";
-
 function parseEmailtoUsername(email: string): string {
 	let substring = 0;
 	for (const i of email) {
