@@ -9,6 +9,7 @@ import {
 import Header from "@/ui/Components/Header";
 import Footer from "@/ui/Components/Footer";
 import { handler } from "./(data_handler)/handler";
+import { redirect } from "next/navigation";
 interface CardData {
 	id: number;
 	subject: string;
@@ -117,11 +118,13 @@ export default function Page() {
 		<>
 			<Header />
 			<form
-				action={handler}
 				onSubmit={async (e) => {
 					e.preventDefault();
 					const formData = new FormData(e.currentTarget);
-					await handler(formData);
+					const result = await handler(formData);
+					if (!result) {
+						redirect(`/lambai`);
+					}
 				}}
 				className="from-gray-50 to-white min-h-screen bg-gradient-to-b"
 			>

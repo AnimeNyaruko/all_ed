@@ -2,14 +2,13 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-	const { data, option } = await req.json();
+	const { name, data } = await req.json();
 
 	const cookieStore = await cookies();
 	const cookieSession = cookieStore.get("session")?.value;
 
 	if (!cookieSession) {
-		cookieStore.set("session", data, {
-			...option,
+		cookieStore.set(name, data, {
 			httpOnly: true,
 			secure: true,
 			sameSite: "lax",

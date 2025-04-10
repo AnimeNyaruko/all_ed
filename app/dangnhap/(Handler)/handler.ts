@@ -1,3 +1,5 @@
+"use server";
+
 import setCookie from "@/utils/setCookie";
 
 function parseEmailtoUsername(email: string): string {
@@ -26,14 +28,19 @@ export async function login(path: string, formData: FormData) {
 	if (data !== "") {
 		return data;
 	}
+
 	//If returned data does not contain any message -> successfully -> set session
-	setCookie("session", username, {
-		secure: true,
-		maxAge: 30 * 24 * 60 * 60,
+	fetch(`${process.env.NEXTAUTH_URL}/api/cookie`, {
+		method: "POST",
+		body: JSON.stringify({
+			name: "session",
+			data: username,
+		}),
 	});
 	return "";
 }
 export async function register(path: string, formData: FormData) {
+	console.log("register");
 	//parsing email to create username
 	const email = formData.get("email")!.toString();
 	const username = parseEmailtoUsername(email);
@@ -54,9 +61,12 @@ export async function register(path: string, formData: FormData) {
 	}
 
 	//If returned data does not contain any message -> successfully -> set session
-	setCookie("session", username, {
-		secure: true,
-		maxAge: 30 * 24 * 60 * 60,
+	fetch(`${process.env.NEXTAUTH_URL}/api/cookie`, {
+		method: "POST",
+		body: JSON.stringify({
+			name: "session",
+			data: username,
+		}),
 	});
 	return "";
 }

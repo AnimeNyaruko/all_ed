@@ -12,12 +12,27 @@ export async function handler(formData: FormData) {
 
 	const hash = new SHA3(256).update(promptString).digest("hex");
 
-	const res = await fetch(`${process.env.NEXTAUTH_URL}/api/${hash}/bot`, {
-		method: "POST",
-		body: formData,
-	});
+	const res = await fetch(
+		`${process.env.NEXTAUTH_URL}/api/taobai/${hash}/handler`,
+		{
+			method: "GET",
+		},
+	);
+
+	//Create a perfect prompt.
 
 	const data = await res.json();
+	if (!data.status) {
+		return data.message;
+	}
 
-	console.log(data);
+	fetch(`${process.env.NEXTAUTH_URL}/api/cookie`, {
+		method: "POST",
+		body: JSON.stringify({
+			name: "assignment_id",
+			data: data.message,
+		}),
+	});
+
+	return "";
 }
