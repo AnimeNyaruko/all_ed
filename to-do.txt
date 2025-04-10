@@ -1,4 +1,0 @@
-Re-work end router api.
-Problem:
-- Login: Checked whether password is incorrect.
-- Register: Checked whether account already exist.
