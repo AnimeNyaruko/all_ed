@@ -3,7 +3,7 @@ import Google from "next-auth/providers/google";
 import sql from "@/utils/database";
 import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
-
+import { parseEmailtoUsername } from "@/utils/parseEmail";
 export const authOption = {
 	secret: process.env.NEXTAUTH_SECRET!,
 	providers: [
@@ -31,7 +31,7 @@ export const authOption = {
 
 					// Set session cookie directly using cookies API
 					const cookieStore = await cookies();
-					cookieStore.set("session", username, {
+					cookieStore.set("session", parseEmailtoUsername(user.email!), {
 						httpOnly: true,
 						secure: process.env.NODE_ENV === "production",
 						sameSite: "lax",

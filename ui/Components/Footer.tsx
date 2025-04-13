@@ -2,6 +2,7 @@
 import Image from "next/image";
 import LogoPTNK from "@/public/Logo-PTNK-01-xan.webp";
 import LogoTranPhu from "@/public/logo_thpt_tran_phu.webp";
+import icon from "@/public/icon.svg";
 
 export default function Footer() {
 	return (
@@ -11,6 +12,13 @@ export default function Footer() {
 					{/* Logo và Mô tả */}
 					<div className="space-y-4">
 						<div className="space-x-2 flex items-center justify-center">
+							<Image
+								src={icon}
+								alt="Trường 1 Logo"
+								width={100}
+								height={50}
+								className="object-contain"
+							/>
 							<Image
 								src={LogoPTNK}
 								alt="Trường 1 Logo"

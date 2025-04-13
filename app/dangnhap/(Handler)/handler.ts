@@ -1,16 +1,5 @@
 "use server";
-
-function parseEmailtoUsername(email: string): string {
-	let substring = 0;
-	for (const i of email) {
-		substring++;
-		if (i === "@") {
-			substring--;
-			break;
-		}
-	}
-	return email.slice(0, substring);
-}
+import { parseEmailtoUsername } from "@/utils/parseEmail";
 export async function login(path: string, formData: FormData) {
 	//parsing email to create username
 	const email = formData.get("email")!.toString();

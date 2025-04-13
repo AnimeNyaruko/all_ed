@@ -5,6 +5,7 @@ import {
 	faClockRotateLeft,
 	faCircleXmark,
 	faPlus,
+	faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 import Header from "@/ui/Components/Header";
 import Footer from "@/ui/Components/Footer";
@@ -114,6 +115,8 @@ export default function Page() {
 		);
 	};
 
+	const [isLoading, setIsLoading] = useState(false);
+
 	return (
 		<>
 			<Header />
@@ -121,10 +124,13 @@ export default function Page() {
 				onSubmit={async (e) => {
 					e.preventDefault();
 					const formData = new FormData(e.currentTarget);
+					setIsLoading(true);
 					const result = await handler(formData);
+					console.log(result);
 					if (!result) {
 						redirect(`/lambai`);
 					}
+					setIsLoading(false);
 				}}
 				className="from-gray-50 to-white min-h-screen bg-gradient-to-b"
 			>
@@ -170,6 +176,7 @@ export default function Page() {
 
 								<div className="md:grid-cols-2 gap-4 mb-4 grid grid-cols-1">
 									<select
+										autoFocus
 										required
 										className="p-2 border-blue-300 rounded-md bg-white text-gray-800 focus:ring-blue-500 focus:border-blue-500 w-full border focus:ring-2"
 										name="subject"
@@ -181,16 +188,16 @@ export default function Page() {
 										<option value="" className="text-gray-500">
 											Chọn môn học
 										</option>
-										<option value="toan" className="text-gray-800">
+										<option value="Toán học" className="text-gray-800">
 											Toán học
 										</option>
-										<option value="ly" className="text-gray-800">
+										<option value="Vật lí" className="text-gray-800">
 											Vật lí
 										</option>
-										<option value="hoa" className="text-gray-800">
+										<option value="Hóa học" className="text-gray-800">
 											Hóa học
 										</option>
-										<option value="sinh" className="text-gray-800">
+										<option value="Sinh học" className="text-gray-800">
 											Sinh học
 										</option>
 									</select>
@@ -199,7 +206,7 @@ export default function Page() {
 										<select
 											required
 											className="p-2 border-blue-300 rounded-md bg-white text-gray-800 focus:ring-blue-500 focus:border-blue-500 w-full border focus:ring-2"
-											name="grade"
+											name="class"
 											value={card.grade}
 											onChange={(e) =>
 												updateCard(card.id, "grade", e.target.value)
@@ -214,7 +221,7 @@ export default function Page() {
 													value={i + 1}
 													className="text-gray-800"
 												>
-													Lớp {i + 1}
+													{i + 1}
 												</option>
 											))}
 										</select>
@@ -253,7 +260,11 @@ export default function Page() {
 								type="submit"
 								className="from-blue-600 to-purple-600 text-white px-12 py-4 rounded-lg hover:from-blue-700 hover:to-purple-700 text-xl font-medium shadow-lg transform bg-gradient-to-r transition-colors hover:scale-105"
 							>
-								Gửi yêu cầu
+								{isLoading ? (
+									<FontAwesomeIcon icon={faSpinner} className="h-6 w-6" />
+								) : (
+									"Gửi yêu cầu"
+								)}
 							</button>
 						</div>
 					</div>

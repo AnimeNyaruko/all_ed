@@ -16,6 +16,7 @@
 		"@fortawesome/free-regular-svg-icons": "^6.7.2",
 		"@fortawesome/free-solid-svg-icons": "^6.7.2",
 		"@fortawesome/react-fontawesome": "^0.2.2",
+		"@google/genai": "^0.8.0",
 		"@neondatabase/serverless": "^0.10.4",
 		"@react-spring/web": "^9.7.5",
 		"@tailwindcss/cli": "^4.0.15",
