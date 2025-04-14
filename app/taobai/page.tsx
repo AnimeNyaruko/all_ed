@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faClockRotateLeft,
@@ -10,13 +10,14 @@ import {
 import Header from "@/ui/Components/Header";
 import Footer from "@/ui/Components/Footer";
 import { handler } from "./(data_handler)/handler";
-import { redirect } from "next/navigation";
+
 interface CardData {
 	id: number;
 	subject: string;
 	grade: string;
 	description: string;
 	color: string;
+	level: number;
 }
 
 const cardColors = [
@@ -35,13 +36,33 @@ export default function Page() {
 			grade: "",
 			description: "",
 			color: cardColors[0],
+			level: 1,
 		},
 	]);
+	const [isDraggingSlider, setIsDraggingSlider] = useState(false);
+
+	// Đảm bảo isDraggingSlider được reset khi người dùng thả chuột hoặc ngón tay bất cứ đâu
+	useEffect(() => {
+		const handleGlobalMouseUp = () => setIsDraggingSlider(false);
+		const handleGlobalTouchEnd = () => setIsDraggingSlider(false);
+
+		window.addEventListener("mouseup", handleGlobalMouseUp);
+		window.addEventListener("touchend", handleGlobalTouchEnd);
+
+		return () => {
+			window.removeEventListener("mouseup", handleGlobalMouseUp);
+			window.removeEventListener("touchend", handleGlobalTouchEnd);
+		};
+	}, []);
 
 	const handleDragStart = (
 		e: React.DragEvent<HTMLDivElement>,
 		index: number,
 	) => {
+		if (isDraggingSlider) {
+			e.preventDefault();
+			return;
+		}
 		e.dataTransfer.setData("text/plain", index.toString());
 	};
 
@@ -82,6 +103,7 @@ export default function Page() {
 					grade: "",
 					description: "",
 					color: randomColor,
+					level: 1,
 				},
 			]);
 		}
@@ -102,12 +124,17 @@ export default function Page() {
 				subject: previousCard.subject,
 				grade: previousCard.grade,
 				description: previousCard.description,
+				level: previousCard.level,
 			};
 			setCards(newCards);
 		}
 	};
 
-	const updateCard = (id: number, field: keyof CardData, value: string) => {
+	const updateCard = (
+		id: number,
+		field: keyof CardData,
+		value: string | number,
+	) => {
 		setCards(
 			cards.map((card) =>
 				card.id === id ? { ...card, [field]: value } : card,
@@ -126,11 +153,9 @@ export default function Page() {
 					const formData = new FormData(e.currentTarget);
 					setIsLoading(true);
 					const result = await handler(formData);
-					console.log(result);
-					if (!result) {
-						redirect(`/lambai`);
+					if (result) {
+						setIsLoading(false);
 					}
-					setIsLoading(false);
 				}}
 				className="from-gray-50 to-white min-h-screen bg-gradient-to-b"
 			>
@@ -140,8 +165,8 @@ export default function Page() {
 						{cards.map((card, index) => (
 							<div
 								key={card.id}
-								className={`mb-8 p-6 rounded-lg shadow-lg bg-gradient-to-br ${card.color} border-blue-200 relative cursor-move border`}
-								draggable
+								className={`mb-8 p-6 rounded-lg shadow-lg bg-gradient-to-br ${card.color} border-blue-200 relative ${!isDraggingSlider ? "cursor-move" : "cursor-default"} border`}
+								draggable={!isDraggingSlider}
 								onDragStart={(e) => handleDragStart(e, index)}
 								onDragOver={handleDragOver}
 								onDrop={(e) => handleDrop(e, index)}
@@ -237,8 +262,91 @@ export default function Page() {
 									onChange={(e) =>
 										updateCard(card.id, "description", e.target.value)
 									}
-									placeholder="Mô tả chi tiết kiến thức bạn muốn học..."
+									placeholder="Điền yêu cầu/chủ đề/kiến thức cần vận dụng..."
 								/>
+
+								{/* Thanh kéo thả mức độ - Thiết kế mới */}
+								<div className="mt-3 p-2 bg-white rounded-lg border-blue-200 shadow-sm border">
+									<div className="mb-1 flex items-center justify-between">
+										<div className="flex items-center">
+											<span className="text-sm font-medium text-gray-700 mr-2">
+												Mức độ:
+											</span>
+											<span className="text-sm font-medium text-blue-600">
+												{card.level === 1 || card.level === 2
+													? "Nhận biết"
+													: card.level === 3 || card.level === 4
+														? "Thông hiểu"
+														: card.level === 5 || card.level === 6
+															? "Vận dụng"
+															: "Vận dụng cao"}
+											</span>
+										</div>
+										<span className="text-sm font-medium text-gray-700">
+											{card.level}/8
+										</span>
+									</div>
+
+									<div className="relative">
+										{/* Thanh kéo thả với 8 mức */}
+										<input
+											type="range"
+											min="1"
+											max="8"
+											step="1"
+											value={card.level}
+											onChange={(e) =>
+												updateCard(card.id, "level", parseInt(e.target.value))
+											}
+											onMouseDown={(e) => {
+												e.stopPropagation();
+												setIsDraggingSlider(true);
+											}}
+											onTouchStart={(e) => {
+												e.stopPropagation();
+												setIsDraggingSlider(true);
+											}}
+											onMouseUp={() => setIsDraggingSlider(false)}
+											onTouchEnd={() => setIsDraggingSlider(false)}
+											onMouseLeave={() => setIsDraggingSlider(false)}
+											className="h-1.5 bg-gray-200 rounded-lg accent-blue-500 w-full cursor-pointer appearance-none"
+											name="level"
+											style={{
+												backgroundImage: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(card.level - 1) * 14.28}%, #e5e7eb ${(card.level - 1) * 14.28}%, #e5e7eb 100%)`,
+											}}
+										/>
+
+										{/* Điểm đánh dấu 8 mức và số tương ứng */}
+										<div className="mt-0.5 flex justify-between">
+											{[1, 2, 3, 4, 5, 6, 7, 8].map((mark) => (
+												<div key={mark} className="flex flex-col items-center">
+													<div
+														className={`w-1 h-2 rounded-full ${card.level >= mark ? "bg-blue-500" : "bg-gray-300"}`}
+													></div>
+													<span className="text-xs text-gray-500 mt-0.5">
+														{mark}
+													</span>
+												</div>
+											))}
+										</div>
+									</div>
+
+									{/* Chú thích các mức độ */}
+									<div className="mt-1 text-xs text-gray-500 flex justify-between">
+										<div className="flex w-1/4 flex-col items-center">
+											<span className="text-center">Nhận biết</span>
+										</div>
+										<div className="flex w-1/4 flex-col items-center">
+											<span className="text-center">Thông hiểu</span>
+										</div>
+										<div className="flex w-1/4 flex-col items-center">
+											<span className="text-center">Vận dụng</span>
+										</div>
+										<div className="flex w-1/4 flex-col items-center">
+											<span className="text-center">Vận dụng cao</span>
+										</div>
+									</div>
+								</div>
 							</div>
 						))}
 

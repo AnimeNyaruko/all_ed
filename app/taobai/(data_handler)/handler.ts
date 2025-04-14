@@ -1,13 +1,13 @@
 "use server";
 import { SHA3 } from "sha3";
-import { cookies } from "next/headers";
-
+import { redirect } from "next/navigation";
+import { getCookie, setCookie } from "@/utils/cookie";
 export async function handler(formData: FormData) {
 	const prompt = formData.getAll("prompt");
 	const _class = formData.getAll("class");
 	const subject = formData.getAll("subject");
-	const cookieStore = await cookies();
-	const session = cookieStore.get("session")?.value;
+	const level = formData.getAll("level");
+	const session = await getCookie("session");
 
 	if (!session) {
 		return "User not authenticated";
@@ -19,13 +19,21 @@ export async function handler(formData: FormData) {
 		return prev + curr;
 	}, "") as string;
 
-	const hash = new SHA3(256).update(promptString).digest("hex");
+	const hash = new SHA3(256)
+		.update(`${promptString}${Math.random() * 1000000 + 1}`)
+		.digest("hex");
+	const hashName = prompt.reduce((prev, curr, index: number) => {
+		return `${prev.toString()}${index === 0 ? "" : "\\n"}Lớp: ${_class[index]} - Môn: ${subject[index]} - Bài tập: ${curr.toString()} - Cấp độ: ${level[index]}`;
+	}, "") as string;
 
 	try {
 		const res = await fetch(
 			`${process.env.NEXTAUTH_URL}/api/taobai/${hash}/handler`,
 			{
-				method: "GET",
+				method: "POST",
+				body: JSON.stringify({
+					name: hashName,
+				}),
 				headers: {
 					Cookie: `session=${session}`,
 				},
@@ -38,30 +46,24 @@ export async function handler(formData: FormData) {
 		}
 
 		// Set assignment_id cookie
-		await Promise.all([
+		Promise.all([
+			setCookie("assignment_id", data.message),
 			fetch(`${process.env.NEXTAUTH_URL}/api/taobai/${hash}/bot`, {
 				method: "POST",
 				body: JSON.stringify({
-					_class: _class,
-					subject: subject,
-					prompt: prompt,
+					_class,
+					subject,
+					prompt,
+					level,
+					username: session,
+					assignmentId: data.message,
 				}),
 			}),
-			// fetch(`${process.env.NEXTAUTH_URL}/api/cookie`, {
-			// 	method: "POST",
-			// 	headers: {
-			// 		"Content-Type": "application/json",
-			// 	},
-			// 	body: JSON.stringify({
-			// 		name: "assignment_id",
-			// 		data: data.message,
-			// 	}),
-			// }),
 		]);
-
-		return "";
+		// Only redirect if cookie was successfully set and verified
 	} catch (error) {
 		console.error("Error in handler:", error);
 		return "Internal server error";
 	}
+	redirect(`/lambai`);
 }

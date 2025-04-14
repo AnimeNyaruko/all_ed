@@ -8,7 +8,7 @@ export default function EmailLoginForm() {
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		const formData = new FormData(event.currentTarget);
-		const result = await login("/api/login", formData);
+		const result = await login(formData);
 
 		if (result === "") {
 			redirect("/");

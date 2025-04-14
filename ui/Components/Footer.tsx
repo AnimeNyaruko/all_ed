@@ -2,7 +2,7 @@
 import Image from "next/image";
 import LogoPTNK from "@/public/Logo-PTNK-01-xan.webp";
 import LogoTranPhu from "@/public/logo_thpt_tran_phu.webp";
-import icon from "@/public/icon.svg";
+import icon from "@/public/pageIcon.svg";
 
 export default function Footer() {
 	return (

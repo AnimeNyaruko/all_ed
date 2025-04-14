@@ -1,12 +1,14 @@
 "use server";
 import { parseEmailtoUsername } from "@/utils/parseEmail";
-export async function login(path: string, formData: FormData) {
+import { setCookie } from "@/utils/cookie";
+
+export async function login(formData: FormData) {
 	//parsing email to create username
 	const email = formData.get("email")!.toString();
 	const username = parseEmailtoUsername(email);
 
 	//fetching to /api/login to make login request
-	const response = await fetch(path, {
+	const response = await fetch(`${process.env.NEXTAUTH_URL!}/api/login`, {
 		body: formData,
 		method: "POST",
 	});
@@ -17,17 +19,12 @@ export async function login(path: string, formData: FormData) {
 	}
 
 	//If returned data does not contain any message -> successfully -> set session
-	fetch(`${process.env.NEXTAUTH_URL}/api/cookie`, {
-		method: "POST",
-		body: JSON.stringify({
-			name: "session",
-			data: username,
-		}),
-	});
+	await setCookie("session", username);
+
 	return "";
 }
-export async function register(path: string, formData: FormData) {
-	console.log("register");
+
+export async function register(formData: FormData) {
 	//parsing email to create username
 	const email = formData.get("email")!.toString();
 	const username = parseEmailtoUsername(email);
@@ -36,7 +33,7 @@ export async function register(path: string, formData: FormData) {
 	formData.append("username", username);
 
 	//fetching to /api/register to make register request
-	const response = await fetch(path, {
+	const response = await fetch(`${process.env.NEXTAUTH_URL}/api/register`, {
 		body: formData,
 		method: "POST",
 	});
@@ -48,12 +45,7 @@ export async function register(path: string, formData: FormData) {
 	}
 
 	//If returned data does not contain any message -> successfully -> set session
-	fetch(`${process.env.NEXTAUTH_URL}/api/cookie`, {
-		method: "POST",
-		body: JSON.stringify({
-			name: "session",
-			data: username,
-		}),
-	});
+	await setCookie("session", username);
+
 	return "";
 }

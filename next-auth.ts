@@ -2,8 +2,9 @@ import NextAuth, { User, Account } from "next-auth";
 import Google from "next-auth/providers/google";
 import sql from "@/utils/database";
 import bcrypt from "bcrypt";
-import { cookies } from "next/headers";
 import { parseEmailtoUsername } from "@/utils/parseEmail";
+import { setCookie } from "@/utils/cookie";
+
 export const authOption = {
 	secret: process.env.NEXTAUTH_SECRET!,
 	providers: [
@@ -20,23 +21,15 @@ export const authOption = {
 			if (account?.provider === "google" && account?.access_token) {
 				try {
 					const username = user.name?.replace(/\s+/g, "").toLowerCase() || "";
-					const randomPassword = Math.random().toString(36).slice(-8);
-					const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
 					await sql`
 						INSERT INTO "User Infomation"."Infomation" 
-						("Name", "Username", "Password", "Email") 
-						VALUES (${user.email}, ${username}, ${hashedPassword}, ${user.email})
+						("Name", "Username", "Email") 
+						VALUES (${user.email}, ${username}, ${user.email})
 					`;
 
 					// Set session cookie directly using cookies API
-					const cookieStore = await cookies();
-					cookieStore.set("session", parseEmailtoUsername(user.email!), {
-						httpOnly: true,
-						secure: process.env.NODE_ENV === "production",
-						sameSite: "lax",
-						maxAge: 30 * 24 * 60 * 60, // 30 days
-					});
+					await setCookie("session", parseEmailtoUsername(user.email!));
 
 					return true;
 				} catch (error) {

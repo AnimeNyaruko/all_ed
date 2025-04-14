@@ -1,18 +1,19 @@
 import { neon } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
-
+import { getCookie } from "@/utils/cookie";
 const sql = neon(process.env.DATABASE_URL!);
 
-export async function GET(
-	req: NextRequest,
+export async function POST(
+	_req: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const { id } = await params;
+		const data = await _req.json();
 
 		// Get session from cookie header
-		const session = req.cookies.get("session")?.value;
+		const session = await getCookie("session");
 
 		if (!session) {
 			return NextResponse.json(
@@ -33,6 +34,9 @@ export async function GET(
 			CREATE TABLE IF NOT EXISTS ${fullTableName} (
 				id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
 				assignment_id text,
+				name text,
+				task text,
+				work text,
 				PRIMARY KEY (id)
 			)
 		`;
@@ -49,8 +53,7 @@ export async function GET(
 				const verifyQuery = `SELECT 1 FROM ${fullTableName} LIMIT 1`;
 				await sql(verifyQuery);
 				tableExists = true;
-			} catch (error) {
-				console.error(error);
+			} catch {
 				attempts++;
 				// Wait for 500ms before trying again
 				await new Promise((resolve) => setTimeout(resolve, 500));
@@ -65,8 +68,8 @@ export async function GET(
 		}
 
 		// Insert data using parameterized query
-		const insertQuery = `INSERT INTO ${fullTableName} (assignment_id) VALUES ($1) RETURNING id`;
-		const insertResult = await sql(insertQuery, [id]);
+		const insertQuery = `INSERT INTO ${fullTableName} (assignment_id,name) VALUES ($1,$2) RETURNING id`;
+		const insertResult = await sql(insertQuery, [id, data.name]);
 
 		if (!insertResult || insertResult.length === 0) {
 			return NextResponse.json({

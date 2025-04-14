@@ -34,7 +34,7 @@ export default function EmailRegisterForm() {
 			return;
 		}
 
-		const result = await register("/api/register", formData);
+		const result = await register(formData);
 
 		if (result === "") {
 			redirect("/");
