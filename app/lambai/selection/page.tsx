@@ -16,8 +16,10 @@ export default async function Page() {
 		redirect("/");
 	}
 
-	const data =
-		await sql`SELECT "name", "assignment_id" FROM "User Infomation"."${sanitizeUsername(username)}"`;
+	const sanitizedTableName: string = sanitizeUsername(username);
+	const data = await sql(
+		`SELECT "name","assignment_id" FROM "User Infomation"."${sanitizedTableName}"`,
+	);
 	const formattedData: DataItem[] = data.map(
 		(item: { name?: string; assignment_id?: string }) => ({
 			name: item.name || "",

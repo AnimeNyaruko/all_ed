@@ -65,7 +65,6 @@ ${_class.reduce((acc: string, curr: string, index: number) => {
 
 **AI Task:** Proceed with generation based *strictly* on the directives above. Generate the pure Markdown exercise string with integrated LaTeX now.`;
 	const result = await generateText(fixedPrompt);
-	// console.log();
 	const sanitizedUsername = sanitizeUsername(username);
 	const query = `UPDATE "User Infomation"."${sanitizedUsername}" SET "task" = $1 WHERE "assignment_id" = $2`;
 	await sql(query, [
