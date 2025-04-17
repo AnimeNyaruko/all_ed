@@ -5,7 +5,12 @@ import sanitizeUsername from "@/utils/sanitizeUsername";
 export async function POST(request: NextRequest) {
 	const { _class, subject, prompt, level, username, assignmentId } =
 		await request.json();
-	const fixedPrompt = `**[SYSTEM PROMPT - STRICT ADHERENCE REQUIRED]**
+	const fixedPrompt = `
+**Thông tin đầu vào (Do người dùng cuối cung cấp):**
+---
+Set 1: Class 12 - Subject: Toán học - Level: 8 - Prompt: Chủ đề mặt phẳng Oxyz
+---`;
+	const systemInstruction = `**[SYSTEM PROMPT - STRICT ADHERENCE REQUIRED]**
 
 **Objective:** Generate a **single, coherently integrated interdisciplinary exercise** (Math, Physics, Chemistry, Biology) formatted as a **pure, raw Markdown string**. This string must be directly usable as a value within a JSON object (e.g., '{"markdown_content": "OUTPUT_STRING_HERE"'}). The exercise will consist of a potential introductory context followed by numbered/lettered sub-questions (a, b, c,...). **Crucially, all mathematical formulas, equations, symbols, AND specific chemical notations MUST be formatted using appropriate LaTeX syntax.**
 
@@ -51,20 +56,9 @@ export async function POST(request: NextRequest) {
 *   **Content:** Only include exercise context (optional) and sub-questions. Sub-questions start *only* with the letter/number (e.g., 'a. ', 'b. ') followed directly by the question text. If needed, the '**Thông tin/Kiến thức tham khảo:**' section appears last.
 *   **Structure:** Basic Markdown syntax. Embed math **strictly** using '$inline$' and '$$display$$' LaTeX. Use '\\xrightarrow{conditions}' for reaction conditions above arrows.
 *   **Forbidden Content:** **NO** introductory/concluding remarks, **NO** titles, **NO** JSON syntax, **NO** HTML tags, **NO** hidden notes. **ABSOLUTELY NO METADATA ANNOTATIONS**. **NO** improperly formatted chemical reactions (e.g., conditions not above the arrow). The output must be *only* the clean exercise text, ready for JSON injection. Ensure no unnecessary leading/trailing whitespace.
-
-**[END SYSTEM PROMPT]**
-
----
-
-**Thông tin đầu vào (Do người dùng cuối cung cấp):**
----
-${_class.reduce((acc: string, curr: string, index: number) => {
-	return `${acc}${index > 0 ? "\n" : ""}Set ${index + 1}: Class ${curr} - Subject: ${subject[index]} - Level: ${level[index]} - Prompt: ${prompt[index]}`;
-}, "")}
----
-
+* 
 **AI Task:** Proceed with generation based *strictly* on the directives above. Generate the pure Markdown exercise string with integrated LaTeX now.`;
-	const result = await generateText(fixedPrompt);
+	const result = await generateText(fixedPrompt, systemInstruction);
 	const sanitizedUsername = sanitizeUsername(username);
 	const query = `UPDATE "User Infomation"."${sanitizedUsername}" SET "task" = $1 WHERE "assignment_id" = $2`;
 	await sql(query, [
