@@ -21,6 +21,7 @@ export async function POST(req: Request) {
 			return NextResponse.json("Tài khoản đã tồn tại!");
 		}
 	} catch (_error) {
+		console.error(_error);
 		await sql`INSERT INTO "User Infomation"."Infomation" ("Name", "Username", "Password", "Email") VALUES (${email},${username},${password},${email})`;
 	}
 	return NextResponse.json("");

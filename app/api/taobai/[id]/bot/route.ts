@@ -5,6 +5,7 @@ import sanitizeUsername from "@/utils/sanitizeUsername";
 export async function POST(request: NextRequest) {
 	const { _class, subject, prompt, level, username, assignmentId } =
 		await request.json();
+	console.log(_class, subject, prompt, level);
 	const fixedPrompt = `
 **Thông tin đầu vào (Do người dùng cuối cung cấp):**
 ---
