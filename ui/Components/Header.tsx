@@ -87,6 +87,12 @@ export default function Header() {
 							>
 								Lịch sử làm bài
 							</Link>
+							<Link
+								href="/logout"
+								className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 block"
+							>
+								Đăng xuất
+							</Link>
 						</div>
 					)}
 				</div>
