@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { checkCookie } from "@/utils/cookie";
+import { deleteCookie } from "@/utils/cookie";
+import { signOut } from "next-auth/react";
 
 export default function Header() {
 	const [hasSession, setHasSession] = useState(false);
@@ -87,12 +89,16 @@ export default function Header() {
 							>
 								Lịch sử làm bài
 							</Link>
-							<Link
-								href="/logout"
-								className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 block"
+							<button
+								onClick={() => {
+									deleteCookie("session");
+									deleteCookie("assignment_id");
+									signOut({ redirect: true, callbackUrl: "/" });
+								}}
+								className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 block cursor-pointer"
 							>
 								Đăng xuất
-							</Link>
+							</button>
 						</div>
 					)}
 				</div>

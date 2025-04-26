@@ -1,0 +1,71 @@
+# LaTeX Math Editor Project Rules
+
+## Project Patterns
+
+### Editor Component Structure (`app/lambai/(UI)/AnswerArea.tsx`)
+
+1.  Uses Lexical (`@lexical/react`) for the core editor framework.
+2.  Manages multiple editor instances, one per question.
+3.  Integrates MathLive (`<math-field>`) as an external component for LaTeX input/editing.
+4.  Custom `LatexNode` represents equations within the Lexical state.
+5.  `LatexComponent` renders the `LatexNode` using `react-katex`.
+6.  `LatexTriggerPlugin` listens for `!!` text input to activate MathLive for new equations.
+7.  `LatexPluginContext` facilitates communication between editor components and the MathLive state managed in `AnswerArea`.
+
+### Content Management
+
+1.  Lexical state is the source of truth.
+2.  `LatexNode` stores LaTeX strings.
+3.  `lexicalStateToAnswerBlocks` function converts editor state to a simplified array structure for parent components.
+4.  Text nodes and `LatexNode`s coexist within paragraphs.
+
+### Event Handling / Interaction Flow
+
+1.  **New Equation (`!!` Trigger):**
+    - `LatexTriggerPlugin` detects `!!` via `registerUpdateListener`.
+    - Calls `triggerMathfield` (passed via context).
+    - `triggerMathfield` in `AnswerArea` updates state to show MathLive input.
+    - User types in MathLive; Enter (`handleMathfieldKeyDown`) captures LaTeX.
+    - `handleMathfieldKeyDown` calls `editor.update()` to `$setSelection` (where `!!` was), `removeText()`, create `$createLatexNode`, and `insertNodes`.
+2.  **Edit Equation (Click - _Needs Verification_):**
+    - `LatexComponent` `onClick` handler should call `triggerMathfield`, passing the node key and current LaTeX.
+    - `triggerMathfield` populates MathLive.
+    - Enter (`handleMathfieldKeyDown`) captures LaTeX.
+    - `handleMathfieldKeyDown` calls `editor.update()` to find node `$getNodeByKey` and call `node.setLatex(newLatex)`.
+
+### Lexical Implementation Notes
+
+1.  **State Updates:** Always use `editor.read()` or `editor.update()`.
+2.  **Selection:** Use `$getSelection()`, `$isRangeSelection()`, and `$setSelection()` within update blocks.
+3.  **Node Modification:** Use node methods (`setLatex`, `remove`) or selection methods (`insertNodes`, `removeText`) within update blocks.
+4.  **Custom Nodes:** Extend `DecoratorNode` for React component rendering.
+5.  **Plugins:** Leverage listeners (`registerUpdateListener`) and commands for interactions.
+
+## User Preferences
+
+### Equation Editing
+
+1.  Type `!!` to start entering a new equation.
+2.  Clicking an existing equation _should_ make it editable (via MathLive).
+3.  Enter key in the MathLive input confirms the equation and closes the input.
+4.  Visual feedback for the separate MathLive input area is present.
+
+## Known Challenges
+
+### DOM Manipulation & State Sync
+
+1.  Coordinating state between Lexical and the external MathLive input.
+2.  Ensuring correct cursor positioning after MathLive interactions.
+3.  Handling asynchronous nature of script loading and state updates (e.g., using `setTimeout` for focus).
+
+### Content Processing
+
+1.  Correctly identifying the insertion point for new nodes triggered by `!!`.
+2.  Robustly converting Lexical state to the required `AnswerBlock[]` format.
+
+## Development Workflow
+
+1.  Implement/Verify click-to-edit functionality.
+2.  Add visual styling for `LatexNode` and MathLive input.
+3.  Thoroughly test cursor positioning and edge cases for `!!` trigger.
+4.  Test state serialization/deserialization.

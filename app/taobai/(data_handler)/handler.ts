@@ -7,6 +7,7 @@ export async function handler(formData: FormData) {
 	const _class = formData.getAll("class");
 	const subject = formData.getAll("subject");
 	const level = formData.getAll("level");
+	const quantity = formData.get("quantity");
 	const session = await getCookie("session");
 
 	if (!session) {
@@ -22,9 +23,9 @@ export async function handler(formData: FormData) {
 	const hash = new SHA3(256)
 		.update(`${promptString}${Math.random() * 1000000 + 1}`)
 		.digest("hex");
-	const hashName = prompt.reduce((prev, curr, index: number) => {
-		return `${prev.toString()}${index === 0 ? "" : "\\n"}Lớp: ${_class[index]} - Môn: ${subject[index]} - Bài tập: ${curr.toString()} - Cấp độ: ${level[index]}`;
-	}, "") as string;
+	const hashName = `${prompt.reduce((prev, curr, index: number) => {
+		return `${prev.toString()}${index === 0 ? "" : "\\n"}Lớp: ${_class[index]} - Môn: ${subject[index]} - Bài tập: ${curr.toString()} - Cấp độ: ${level[index]} - Số lượng: ${quantity}`;
+	}, "")}\\nSố lượng: ${quantity}`;
 
 	try {
 		const res = await fetch(
@@ -55,6 +56,7 @@ export async function handler(formData: FormData) {
 					subject,
 					prompt,
 					level,
+					quantity,
 					username: session,
 					assignmentId: data.message,
 				}),

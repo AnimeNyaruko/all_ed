@@ -62,14 +62,3 @@ export async function submitAssignment(formData: FormData) {
 		return { success: false, error: "An error occurred" };
 	}
 }
-
-interface AnswerBlock {
-	id: string; // Copied from AnswerArea for type consistency
-	type: "text" | "latex";
-	content: string;
-}
-
-export async function submitAnswers(answers: Record<string, AnswerBlock[]>) {
-	console.log("Submitting answers:", answers);
-	// TODO: Implement actual submission logic
-}

@@ -2,92 +2,73 @@
 
 ## Current Focus
 
-The current development focus is on implementing the assignment submission handler and improving the user interface for task viewing and submission.
+The current development focus is on refining the LaTeX editing experience within the Lexical editor, specifically integrating MathLive for equation input and editing.
 
 ## Recent Changes
 
-1. **Handler Implementation**
+1.  **LaTeX/MathLive Integration (`AnswerArea.tsx`)**
 
-   - Added task fetching from database
-   - Implemented session management
-   - Added cookie handling
-   - Improved error handling
+    - Implemented a `LatexTriggerPlugin` to detect `!!` typed by the user.
+    - Typing `!!` now removes the characters and triggers the external MathLive (`<math-field>`) input for creating a new LaTeX node.
+    - Pressing Enter in the MathLive input inserts a new `LatexNode` into the Lexical editor at the trigger location.
+    - Refactored type handling within the plugin (`$isRangeSelection`, `$setSelection`) to resolve TypeScript errors.
+    - The MathLive input appears conditionally below the corresponding Lexical editor instance.
 
-2. **UI Components**
-
-   - Implemented split-pane layout
-   - Added resizable panels
-   - Integrated math content rendering
-   - Improved responsive design
-
-3. **Content Management**
-   - Added Markdown support
-   - Integrated LaTeX math rendering
-   - Improved text formatting
-   - Enhanced file-like interface
+2.  **Previous Timer & UI Updates**
+    - Timer controls (start/pause/stop) functional.
+    - Modern header design implemented.
+    - MathQuill integration (prior approach, now shifting towards MathLive via Lexical nodes).
 
 ## Active Decisions
 
-1. **Server-Side Architecture**
+1.  **LaTeX Editing Flow**
 
-   - Using serverless database
-   - Implementing cookie-based sessions
-   - Using prepared statements
-   - Handling errors gracefully
+    - Using custom Lexical `LatexNode` to represent equations.
+    - Using external MathLive component (`<math-field>`) for actual LaTeX input/editing, triggered by interactions (click on existing node or `!!` trigger).
+    - `LatexTriggerPlugin` handles the `!!` detection and initiation.
+    - `AnswerArea.tsx` manages the state for MathLive visibility and communication between Lexical and MathLive.
 
-2. **Client-Side Architecture**
+2.  **Lexical Implementation**
 
-   - Split-pane layout for better UX
-   - Resizable panels for flexibility
-   - Math content rendering
-   - Responsive design
+    - Using `registerUpdateListener` to monitor text changes for the `!!` trigger.
+    - Using `$isRangeSelection`, `$setSelection`, and `removeText()` within `editor.update()` for safe state modification.
+    - Using `LexicalPluginContext` to pass the `triggerMathfield` function down.
 
-3. **Content Handling**
-   - Markdown for rich text
-   - LaTeX for math content
-   - File-like interface
-   - Proper formatting
+3.  **UI Design**
+    - Conditionally rendering the MathLive input below the relevant editor.
+    - Maintaining split-pane layout.
 
 ## Current Issues
 
-1. **Under Investigation**
+1.  **Under Investigation**
 
-   - Task fetching optimization
-   - Session management improvements
-   - UI responsiveness
-   - Content rendering performance
+    - Click-to-edit functionality for existing `LatexNode`s (needs verification/implementation within `LatexComponent` and `LatexPluginContext`).
+    - Robustness of cursor positioning after inserting/editing LaTeX.
+    - Visual styling/feedback for the `LatexNode` and the active MathLive input.
 
-2. **Known Issues**
-   - Assignment ID cookie handling
-   - Task display formatting
-   - Math content rendering
-   - Panel resizing behavior
+2.  **Known Issues (Carry-over)**
+    - Timer state persistence.
+    - General UI responsiveness optimizations.
 
 ## Next Steps
 
-1. **Immediate Tasks**
+1.  **Immediate Tasks**
 
-   - Optimize task fetching
-   - Improve session handling
-   - Enhance UI responsiveness
-   - Fix content rendering issues
+    - Implement/verify click-to-edit for existing `LatexNode`s using the `triggerMathfield` mechanism.
+    - Add visual styling to `LatexNode` (e.g., background, border) and the MathLive input container.
+    - Test cursor positioning thoroughly after LaTeX interactions.
 
-2. **Upcoming Features**
-   - Advanced math toolbar
-   - Better error handling
-   - Improved session management
-   - Enhanced content formatting
+2.  **Upcoming Features**
+    - Refine error handling for MathLive loading and interaction.
+    - Consider alternatives or improvements to the external MathLive input UX.
 
 ## Recent Feedback
 
-- Need better error messages
-- UI could be more responsive
-- Math content needs improvement
-- Session handling needs work
+- N/A (Focus has been on implementation).
 
 ## Implementation Notes
 
-- Using Next.js App Router
-- Server components for data
-- Client components for UI
-- Database integration
+- Lexical editor setup is within `app/lambai/(UI)/AnswerArea.tsx`.
+- Custom node: `app/lambai/(UI)/editor/nodes/LatexNode.tsx`.
+- Node component: `app/lambai/(UI)/editor/components/LatexComponent.tsx`.
+- Trigger logic: `LatexTriggerPlugin` within `AnswerArea.tsx`.

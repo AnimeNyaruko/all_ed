@@ -14,15 +14,23 @@
 
 ```json
 {
+	"@lexical/react": "^0.30.0",
+	"@neondatabase/serverless": "^0.10.4",
+	"katex": "^0.16.22",
+	"lexical": "^0.30.0",
+	"mathlive": "^0.105.2",
 	"next": "15.2.3",
+	"next-auth": "^4.24.11",
 	"react": "^19.0.0",
 	"react-dom": "^19.0.0",
-	"@neondatabase/serverless": "^0.10.4",
-	"next-auth": "^4.24.11",
+	"react-katex": "^3.0.1",
 	"react-markdown": "^10.1.0",
-	"remark-math": "^6.0.0",
 	"rehype-katex": "^7.0.1",
-	"katex": "^0.16.22"
+	"rehype-raw": "^7.0.0",
+	"remark-math": "^6.0.0",
+	"@fortawesome/free-solid-svg-icons": "^6.5.1",
+	"@fortawesome/react-fontawesome": "^0.2.0",
+	"mathquill": "^0.10.1"
 }
 ```
 
@@ -48,13 +56,15 @@ app/
    - Handler for task fetching
    - Session management
    - Database operations
+   - Time tracking data
 
 2. **Client Components**
 
    - Split-pane layout
    - Content rendering
-   - Math toolbar
-   - Responsive design
+   - Timer controls
+   - Modern header
+   - MathQuill integration
 
 3. **Database Integration**
    ```typescript
@@ -70,6 +80,7 @@ app/
 - Session management
 - Cookie handling
 - Error handling
+- Time tracking data
 
 ### Client-Side
 
@@ -77,6 +88,8 @@ app/
 - Content rendering
 - Responsive design
 - State management
+- Timer functionality
+- Modern UI components
 
 ### Database
 
@@ -84,6 +97,7 @@ app/
 - Connection management
 - Error handling
 - Data validation
+- Time data storage
 
 ## Development Guidelines
 
@@ -108,6 +122,7 @@ app/
    - Handle errors properly
    - Validate input data
    - Manage connections
+   - Store time tracking data
 
 ### Client-Side Development
 
@@ -117,17 +132,29 @@ app/
    - Resizable panels
    - Content rendering
    - Responsive design
+   - Timer controls
+   - Modern header
 
 2. **State Management**
+
    - Panel width state
    - Content state
    - UI state
+   - Timer state
    - Responsive adjustments
+
+3. **Timer Implementation**
+   - Use useState for timer state
+   - Use useRef for interval management
+   - Implement start/pause/stop functionality
+   - Format time display
+   - Handle cleanup properly
 
 ## Testing Considerations
 
 - Server-side handler testing
 - Database operation testing
 - UI component testing
+- Timer functionality testing
 - Integration testing
 - Performance testing

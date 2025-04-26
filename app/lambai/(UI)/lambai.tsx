@@ -1,15 +1,21 @@
 "use client";
-import Image from "next/image";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { ResizableBox } from "react-resizable";
 import "react-resizable/css/styles.css";
-import { faClipboard } from "@fortawesome/free-solid-svg-icons";
+import { faPause, faPlay, faStop } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import "katex/dist/katex.min.css";
+import AnswerArea from "./AnswerArea";
+
+interface AnswerBlock {
+	type: "text" | "latex";
+	content: string;
+}
+
 // Tách phần nội dung MathJax thành component riêng
 const QuestionContent = ({ markdownContent }: { markdownContent: string }) => {
 	const content = useMemo(
@@ -97,173 +103,198 @@ const QuestionContent = ({ markdownContent }: { markdownContent: string }) => {
 
 export default function Home({ markdownContent }: { markdownContent: string }) {
 	const [leftWidth, setLeftWidth] = useState(0);
-	const [showMathToolbar, setShowMathToolbar] = useState(false);
-	const [showFavorites, setShowFavorites] = useState(false);
+	const [answers, setAnswers] = useState<Record<string, AnswerBlock[]>>({});
+	const [isTimerRunning, setIsTimerRunning] = useState(false);
+	const [isTimerPaused, setIsTimerPaused] = useState(false);
+	const [timer, setTimer] = useState(0);
+	const timerRef = useRef<NodeJS.Timeout>(null);
+	const [isClient, setIsClient] = useState(false);
 
-	// Khởi tạo kích thước ban đầu
+	// Parse the JSON content
+	const content = useMemo(() => {
+		try {
+			return JSON.parse(markdownContent);
+		} catch (_e) {
+			console.log(_e);
+			return { de_bai: markdownContent };
+		}
+	}, [markdownContent]);
+
+	// Extract questions (all keys except de_bai)
+	const questions = useMemo(() => {
+		const { de_bai: _de_bai, ...rest } = content;
+		console.log("Extracted (but unused) de_bai:", _de_bai);
+		return rest;
+	}, [content]);
+
+	// Khởi tạo kích thước ban đầu & Set client state
 	useEffect(() => {
 		setLeftWidth(window.innerWidth / 2);
+		setIsClient(true);
 	}, []);
 
 	// Tối ưu hàm resize
 	const handleResize = useCallback(
-		(_e: React.SyntheticEvent, { size }: { size: { width: number } }) => {
+		// The first argument (event) is unused, only take the data object
+		(_: React.SyntheticEvent, data: { size: { width: number } }) => {
+			const { size } = data;
 			setLeftWidth(size.width);
 		},
 		[],
 	);
 
-	// Tính toán chiều cao phù hợp để không bị footer che
-	const toolbarHeight = 64; // Chiều cao của toolbar ở dưới
-	const padding = 1; // Thêm padding để đảm bảo không bị sát footer
+	// Timer effect
+	useEffect(() => {
+		if (isTimerRunning && !isTimerPaused) {
+			timerRef.current = setInterval(() => {
+				setTimer((prev) => prev + 1);
+			}, 1000);
+		} else {
+			if (timerRef.current) {
+				clearInterval(timerRef.current);
+			}
+		}
+
+		return () => {
+			if (timerRef.current) {
+				clearInterval(timerRef.current);
+			}
+		};
+	}, [isTimerRunning, isTimerPaused]);
+
+	const handleTimerClick = () => {
+		if (isTimerRunning) {
+			if (isTimerPaused) {
+				// Resume timer
+				setIsTimerPaused(false);
+			} else {
+				// Pause timer
+				setIsTimerPaused(true);
+			}
+		} else {
+			// Start timer
+			setIsTimerRunning(true);
+			setIsTimerPaused(false);
+		}
+	};
+
+	const handleStopTimer = () => {
+		setIsTimerRunning(false);
+		setIsTimerPaused(false);
+		setTimer(0);
+	};
+
+	const formatTime = (seconds: number) => {
+		const hours = Math.floor(seconds / 3600);
+		const minutes = Math.floor((seconds % 3600) / 60);
+		const secs = seconds % 60;
+		return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+	};
+
+	const handleSubmit = () => {
+		console.log("Submitting answers:", answers);
+	};
 
 	return (
 		<div className="bg-gray-100 flex min-h-screen flex-col">
+			{/* Header */}
+			<header className="bg-gray-100 border-black border-b">
+				<div className="max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto">
+					<div className="py-4 flex items-center justify-between">
+						{/* Logo */}
+						<div className="gap-x-4 flex items-center">
+							<div className="w-10 h-10 from-blue-600 to-purple-600 rounded-lg flex items-center justify-center bg-gradient-to-r">
+								<span className="text-white text-xl font-bold">A</span>
+							</div>
+							<div className="text-2xl font-bold from-blue-600 to-purple-600 bg-gradient-to-r bg-clip-text text-transparent">
+								The AllEd
+							</div>
+						</div>
+
+						{/* Right side buttons */}
+						<div className="space-x-4 flex items-center">
+							{/* Timer Controls */}
+							<div className="space-x-2 flex items-center">
+								<button
+									onClick={handleTimerClick}
+									className={`px-4 py-2 rounded-lg font-medium cursor-pointer transition-colors duration-200 ${
+										isTimerRunning
+											? isTimerPaused
+												? "bg-yellow-500 text-white hover:bg-yellow-600"
+												: "bg-gray-200 text-gray-700 hover:bg-gray-300"
+											: "bg-gray-200 text-gray-700 hover:bg-gray-300"
+									}`}
+								>
+									{isTimerRunning ? (
+										isTimerPaused ? (
+											<FontAwesomeIcon icon={faPlay} className="w-4 h-4" />
+										) : (
+											<FontAwesomeIcon icon={faPause} className="w-4 h-4" />
+										)
+									) : (
+										"Bấm thời gian"
+									)}
+								</button>
+								{isTimerRunning && (
+									<button
+										onClick={handleStopTimer}
+										className="px-4 py-2 rounded-lg font-medium bg-red-500 text-white hover:bg-red-600 cursor-pointer transition-colors duration-200"
+									>
+										<FontAwesomeIcon icon={faStop} className="w-4 h-4" />
+									</button>
+								)}
+								{isTimerRunning && (
+									<span className="text-gray-700 font-medium">
+										{formatTime(timer)}
+									</span>
+								)}
+							</div>
+
+							{/* Submit Button */}
+							<button
+								onClick={handleSubmit}
+								className="px-6 py-2 bg-green-500 hover:bg-green-600 rounded-lg font-semibold text-white transition-colors duration-200"
+							>
+								Nộp bài
+							</button>
+						</div>
+					</div>
+				</div>
+			</header>
+
 			{/* Main Content Area */}
-			<div className="flex h-[calc(100vh-64px-20px)] flex-1">
+			<div className="flex h-[calc(100vh-64px)] flex-1">
 				{/* Left Panel - Question Area */}
 				<div className="relative">
 					<ResizableBox
 						width={leftWidth}
 						height={Infinity}
-						minConstraints={[300, Infinity]}
-						maxConstraints={[800, Infinity]}
 						onResize={handleResize}
 						axis="x"
-						lockAspectRatio={false}
+						minConstraints={[300, Infinity]}
+						maxConstraints={[800, Infinity]}
 						handle={
 							<div className="right-0 top-0 bottom-0 w-2 bg-gray-300 hover:bg-blue-500 absolute cursor-col-resize transition-colors duration-200" />
 						}
 					>
 						<div className="bg-white p-6 flex h-full flex-col">
-							<div className="space-x-2 mb-4 flex items-center">
-								<div className="space-x-2 flex items-center">
-									<FontAwesomeIcon
-										icon={faClipboard}
-										className="text-xl text-blue-500 font-bold"
-									/>
-									<span className="text-base font-semibold text-gray-700">
-										de-bai.txt
-									</span>
-								</div>
-								<span className="text-gray-300">-</span>
-								<span className="text-sm text-gray-500">The AllEd</span>
-							</div>
-							<div
-								className="min-h-0 pb-4 pr-2 flex-1 overflow-auto"
-								style={{
-									maxHeight: `calc(100vh - ${toolbarHeight + padding + 100}px)`,
-								}}
-							>
-								<div className="prose max-w-none overflow-visible">
-									<QuestionContent markdownContent={markdownContent} />
-								</div>
-							</div>
+							<QuestionContent markdownContent={content.de_bai} />
 						</div>
 					</ResizableBox>
 				</div>
 
 				{/* Right Panel - Answer Area */}
 				<div className="bg-white p-6 flex flex-1 flex-col">
-					<div className="space-x-2 mb-4 flex items-center">
-						<div className="space-x-2 flex items-center">
-							<FontAwesomeIcon
-								icon={faClipboard}
-								className="text-xl text-blue-500 font-bold"
+					<div className="pb-4 flex-1 overflow-auto">
+						{isClient && (
+							<AnswerArea
+								questions={questions}
+								onAnswersChange={(newAnswers) =>
+									setAnswers((prev) => ({ ...prev, ...newAnswers }))
+								}
 							/>
-							<span className="text-base font-semibold text-gray-700">
-								bai-lam.txt
-							</span>
-						</div>
-						<span className="text-gray-300">-</span>
-						<span className="text-sm text-gray-500">The AllEd</span>
+						)}
 					</div>
-					<div
-						className="pb-4 flex-1 overflow-auto"
-						style={{
-							maxHeight: `calc(100vh - ${toolbarHeight + padding + 120}px)`,
-						}}
-					>
-						<textarea
-							className="p-4 focus:ring-blue-500 text-gray-900 font-medium h-full w-full resize-none focus:ring-2 focus:outline-none"
-							placeholder="Nhập bài làm của bạn ở đây..."
-						/>
-					</div>
-				</div>
-			</div>
-
-			{/* Math Toolbar */}
-			<div className="bottom-0 left-0 right-0 bg-gray-800 text-white fixed">
-				<div className="px-4 py-2 flex items-center justify-between">
-					<div className="space-x-4 flex items-center">
-						{/* Logo */}
-						<div className="w-8 h-8 ml-2">
-							<Image
-								src="/logo.png"
-								alt="Logo"
-								width={32}
-								height={32}
-								className="rounded"
-							/>
-						</div>
-
-						{/* Search Bar */}
-						<div className="w-[300px]">
-							<input
-								type="text"
-								placeholder="Tìm kiếm công thức toán học..."
-								className="px-4 py-2 rounded bg-gray-700 focus:ring-blue-500 text-white placeholder:text-gray-300 font-medium w-full focus:ring-2 focus:outline-none"
-							/>
-						</div>
-
-						{/* Math Function Display */}
-						<div className="relative">
-							<button
-								onClick={() => setShowMathToolbar(!showMathToolbar)}
-								className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 text-lg font-mono"
-								title="Hiển thị hàm"
-							>
-								f(x)
-							</button>
-							{showMathToolbar && (
-								<div className="left-0 mb-2 bg-gray-700 p-4 rounded shadow-lg absolute bottom-full">
-									{/* Danh sách các hàm toán học */}
-								</div>
-							)}
-						</div>
-
-						{/* Favorites */}
-						<div className="relative">
-							<button
-								onClick={() => setShowFavorites(!showFavorites)}
-								className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
-							>
-								⭐
-							</button>
-							{showFavorites && (
-								<div className="right-0 mb-2 bg-gray-700 p-4 rounded shadow-lg absolute bottom-full">
-									{/* Danh sách các hàm yêu thích */}
-								</div>
-							)}
-						</div>
-					</div>
-
-					{/* Submit Button */}
-					<button className="px-6 py-2 bg-green-500 hover:bg-green-600 rounded-lg font-semibold space-x-2 flex items-center transition-colors duration-200">
-						<span>Nộp bài</span>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							className="h-5 w-5"
-							viewBox="0 0 20 20"
-							fill="currentColor"
-						>
-							<path
-								fillRule="evenodd"
-								d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-								clipRule="evenodd"
-							/>
-						</svg>
-					</button>
 				</div>
 			</div>
 		</div>

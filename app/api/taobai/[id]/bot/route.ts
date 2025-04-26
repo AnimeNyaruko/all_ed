@@ -3,69 +3,101 @@ import { generateText } from "@/utils/googleAI";
 import sql from "@/utils/database";
 import sanitizeUsername from "@/utils/sanitizeUsername";
 export async function POST(request: NextRequest) {
-	const { _class, subject, prompt, level, username, assignmentId } =
+	const { _class, subject, prompt, level, quantity, username, assignmentId } =
 		await request.json();
 	console.log(_class, subject, prompt, level);
-	const fixedPrompt = `
-**Thông tin đầu vào (Do người dùng cuối cung cấp):**
+	const fixedPrompt = _class.reduce(
+		(prev: string, curr: string, index: number) => {
+			return `${prev}Set ${index + 1}: Class: ${curr} - Subject: ${subject[index]} - Level: ${level[index]} - Prompt: ${prompt[index]}\n`;
+		},
+		"",
+	);
+	const systemInstruction = `**Thông tin đầu vào:**
+
+1.  **Danh sách các Set yêu cầu kiến thức:**
+    *   Bạn sẽ nhận được một khối văn bản chứa từ 1 đến 5 dòng, mỗi dòng đại diện cho một "Set" yêu cầu kiến thức.
+    *   Mỗi dòng Set sẽ có định dạng **CHÍNH XÁC** như sau:
+        \`Set [Số thứ tự]: Class: [Lớp] - Subject: [Môn học] - Level: [Mức độ 1-8] - Prompt: [Mô tả kiến thức cần ôn tập/ứng dụng]\`
+    *   Trong đó:
+        *   \`[Số thứ tự]\`: Là số thứ tự của Set (1, 2, 3...).
+        *   \`[Lớp]\`: Lớp học (ví dụ: 9, 10, 11, 12).
+        *   \`[Môn học]\`: Tên môn học (ví dụ: Toán, Lý, Hóa, Sinh).
+        *   \`[Mức độ 1-8]\`: Mức độ phức tạp (1-2: Nhận biết, 3-4: Thông hiểu, 5-6: Vận dụng, 7-8: Vận dụng cao).
+        *   \`[Mô tả kiến thức cần ôn tập/ứng dụng]\` (trong trường \`Prompt:\` của mỗi Set): Đây là phần mô tả **nội dung học thuật cụ thể** mà câu hỏi liên quan đến Set đó cần phải khai thác.
+    *   **Ví dụ về khối văn bản đầu vào:**
+        \`\`\`
+        Set 1: Class: 10 - Subject: Hóa - Level: 4 - Prompt: Tính toán nồng độ mol của dung dịch sau khi pha loãng
+        Set 2: Class: 10 - Subject: Toán - Level: 5 - Prompt: Phương trình đường thẳng trong mặt phẳng Oxy, tính khoảng cách từ điểm đến đường thẳng
+        Set 3: Class: 10 - Subject: Vật Lý - Level: 6 - Prompt: Chuyển động ném ngang: tính thời gian rơi, tầm bay xa
+        \`\`\`
+    *   **Dữ liệu thực tế sẽ được thay thế vào placeholder sau (đây sẽ là một khối text nhiều dòng):**
+        \`<danh_sach_sets_text>\`
+
+2.  **Số lượng câu hỏi con tối đa:**
+    *   Tổng số lượng câu hỏi con (a, b, c, ...) trong bài tập được tạo ra phải ngẫu nhiên nhưng **không được vượt quá** con số này.
+    *   **Dữ liệu thực tế sẽ được thay thế vào placeholder sau:**
+        \`<so_cau_hoi_toi_da>\`
+
+**Yêu cầu đối với bài tập được tạo:**
+
+1.  **Phân tích đầu vào:** Phân tích chính xác thông tin từ **TẤT CẢ** các dòng Set được cung cấp trong \`<danh_sach_sets_text>\`.
+2.  **Tích hợp kiến thức:**
+    *   Bài tập phải được thiết kế để **tích hợp một cách tự nhiên và logic** các kiến thức từ **TẤT CẢ** các "set" đã phân tích được.
+    *   **Ưu tiên hàng đầu là đảm bảo kiến thức từ MỌI set đầu vào đều được tích hợp hoặc kiểm tra một cách có ý nghĩa** trong bài tập cuối cùng, ngay cả khi cần sử dụng đến số lượng câu hỏi con tối đa cho phép.
+3.  **Cấu trúc:** Bài tập phải bao gồm MỘT phần đề bài chung (context) và một số câu hỏi con (a, b, c, ...).
+4.  **Nội dung đề bài chung:**
+    *   Phải xây dựng một tình huống/kịch bản thực tế, logic, mạch lạc và hấp dẫn thành một khối văn bản liền mạch.
+    *   Khi các Set có sự chênh lệch lớn về Lớp, hãy cố gắng xây dựng bối cảnh phù hợp với Lớp cao nhất, nhưng điều chỉnh độ phức tạp của từng câu hỏi con để tương ứng chính xác với Lớp và Mức độ (Level) của Set mà câu hỏi đó kiểm tra.
+    *   Tình huống này phải tạo ra mối liên kết, là cơ sở để đặt ra các câu hỏi con liên quan đến kiến thức từ các set khác nhau. Cố gắng tạo ra các kịch bản có tính liên môn rõ rệt nếu có thể.
+    *   Các thông tin bổ sung, dữ kiện, quy ước, hằng số cần thiết (ví dụ: gia tốc trọng trường g, hằng số Avogadro Nᴀ, khối lượng mol, v.v.) phải được tích hợp một cách tự nhiên vào mô tả tình huống hoặc được liệt kê rõ ràng ở cuối phần đề bài mà **không cần tiêu đề**. Ví dụ: "Coi g = 9.8 m/s². Cho Nᴀ = 6.022 x 10²³ mol⁻¹."
+5.  **Nội dung câu hỏi con (a, b, c, ...):**
+    *   Các câu hỏi phải khai thác kiến thức và kỹ năng được mô tả trong phần \`Prompt:\` của các set khác nhau.
+    *   **Định dạng câu hỏi và câu trả lời mong đợi:** Tất cả các câu hỏi con phải được thiết kế sao cho câu trả lời có thể được diễn đạt hoàn toàn bằng **văn bản (text) và/hoặc công thức toán học/hóa học dạng LaTeX**. **TUYỆT ĐỐI KHÔNG** tạo ra các câu hỏi yêu cầu:
+        *   Vẽ hình, dựng hình, vẽ đồ thị.
+        *   Kẻ bảng biểu.
+        *   Các dạng bài tập trắc nghiệm yêu cầu nối, khoanh tròn trên hình, điền vào chỗ trống trên sơ đồ, hoặc các tương tác đồ họa khác.
+        *   Các thao tác thực hành, thí nghiệm mô tả.
+    *   Việc yêu cầu viết phương trình hóa học (dạng text hoặc LaTeX) là hoàn toàn **chấp nhận được**.
+    *   Mỗi câu hỏi phải có độ khó tương ứng với \`Level:\` của set mà nó kiểm tra.
+    *   Số lượng câu hỏi con được tạo ra phải ngẫu nhiên, nhưng **không được vượt quá** \`<so_cau_hoi_toi_da>\`.
+    *   Tổng thể các câu hỏi con phải **đảm bảo bao quát được** các nội dung chính trong phần \`Prompt:\` của **tất cả các set** đã cung cấp.
+    *   **QUAN TRỌNG:** Các câu hỏi con (a, b, c,...) phải được **sắp xếp theo thứ tự độ khó tăng dần**, dựa trên mức độ phức tạp (\`Level\`) của Set tương ứng và bản chất nội dung câu hỏi.
+    *   Mỗi câu hỏi con chỉ chứa nội dung câu hỏi, bắt đầu bằng ký tự tương ứng (ví dụ: "a) ", "b) ", "c) "). **Tuyệt đối không** thêm bất kỳ thông tin nào khác như tên môn học hay mức độ vào trong câu hỏi con (KHÔNG VIẾT: "a) (Toán - Vận dụng) Tính...", CHỈ VIẾT: "a) Tính...").
+    *   Các câu hỏi con **chỉ bao gồm nội dung câu hỏi**, tuyệt đối không kèm theo bất kỳ gợi ý, lời giải, đáp án hay hướng dẫn giải nào.
+6.  **Định dạng đầu ra:**
+    *   Chỉ trả về **DUY NHẤT** một chuỗi JSON hợp lệ đã được \`JSON.stringify()\`.
+    *   Chuỗi JSON này biểu diễn một object duy nhất.
+    *   Object JSON phải có cấu trúc như sau:
+        *   Key \`"de_bai"\`: Value là một string chứa toàn bộ phần đề bài chung (đã loại bỏ tiêu đề phụ), được định dạng bằng Markdown.
+        *   Các keys tiếp theo là \`"cau_a"\`, \`"cau_b"\`, \`"cau_c"\`, ... tương ứng với mỗi câu hỏi con được tạo ra và đã được sắp xếp theo độ khó.
+        *   Value của mỗi key \`"cau_a"\`, \`"cau_b"\`, ... là một string chứa nội dung câu hỏi con tương ứng (bắt đầu bằng "a) ", "b) ", ...), được định dạng bằng Markdown.
+    *   Ví dụ cấu trúc JSON mong muốn (chỉ là ví dụ cấu trúc, thể hiện việc không có tiêu đề phụ và câu hỏi được sắp xếp giả định):
+        {
+          "de_bai": "Một đội kỹ sư đang khảo sát để xây dựng một cây cầu treo nhỏ bắc qua một con sông. Họ cần tính toán quỹ đạo của một vật nặng thử nghiệm được bắn từ bờ bên này sang bờ bên kia bằng một thiết bị đặc biệt. Vật được bắn lên với vận tốc đầu v₀ hợp với phương ngang một góc α. Đồng thời, họ cần chuẩn bị một dung dịch chống ăn mòn kim loại bằng cách hòa tan m gam muối X vào V lít nước. Chọn hệ trục tọa độ Oxy với gốc O tại vị trí bắn, trục Ox nằm ngang theo chiều bắn, trục Oy thẳng đứng hướng lên. Bỏ qua sức cản không khí.\nCoi gia tốc trọng trường là g = 9.8 m/s². Khối lượng mol của muối X là M.",
+          "cau_a": "a) Tính nồng độ mol của dung dịch chống ăn mòn thu được.",
+          "cau_b": "b) Viết phương trình chuyển động và phương trình quỹ đạo của vật nặng thử nghiệm theo v₀ và α.",
+          "cau_c": "c) Xác định độ cao cực đại mà vật nặng đạt được.",
+          "cau_d": "d) Tính tầm bay xa của vật nặng (khoảng cách từ vị trí bắn đến vị trí vật chạm đất ngang tầm bắn)."
+        }
+7.  **Ngôn ngữ:** Tiếng Việt.
+
+**QUAN TRỌNG:** Chỉ trả về **DUY NHẤT** chuỗi JSON đã được stringified. **KHÔNG** được có bất kỳ văn bản giới thiệu nào (ví dụ: "Đây là JSON bạn yêu cầu:"), văn bản kết luận nào. Toàn bộ phản hồi của bạn phải là chuỗi JSON đó và chỉ có nó. Đảm bảo chuỗi JSON trả về là hợp lệ.
+
 ---
-Set 1: Class 12 - Subject: Toán học - Level: 8 - Prompt: Chủ đề mặt phẳng Oxyz
----`;
-	const systemInstruction = `**[SYSTEM PROMPT - STRICT ADHERENCE REQUIRED]**
 
-**Objective:** Generate a **single, coherently integrated interdisciplinary exercise** (Math, Physics, Chemistry, Biology) formatted as a **pure, raw Markdown string**. This string must be directly usable as a value within a JSON object (e.g., '{"markdown_content": "OUTPUT_STRING_HERE"'}). The exercise will consist of a potential introductory context followed by numbered/lettered sub-questions (a, b, c,...). **Crucially, all mathematical formulas, equations, symbols, AND specific chemical notations MUST be formatted using appropriate LaTeX syntax.**
+**DỮ LIỆU ĐẦU VÀO THỰC TẾ:**
 
-**Input Specification (User Provided):**
-*   Up to 5 'Sets', each defining a component:
-    *   'Set N:'
-        *   'Class:' [Target Grade Level in Vietnam]
-        *   'Subject:' [Math/Physics/Chemistry/Biology]
-        *   'Level:' [Integer 1-8 (Difficulty Mapping: 1-2=Know, 3-4=Understand, 5-6=Apply, 7-8=High Apply)]
-        *   'Prompt:' [Specific knowledge/skill/topic to incorporate]
-*   **Internal Use Only:** The 'Subject' and 'Level' information from each Set is **only** for AI guidance during content generation and difficulty calibration. **It MUST NOT appear anywhere in the final output text.**
+**Danh sách Sets (Định dạng Text):**
+\`${fixedPrompt}\`
 
-**Core Directives & Constraints (Non-Negotiable):**
+**Số câu hỏi tối đa:**
+\`${quantity}\`
 
-1.  **Content Source:** **Strictly adhere** to the current Vietnamese **Ministry of Education and Training (MOET) curriculum and textbooks (SGK)** for the specified 'Class'.
-2.  **Knowledge Integration:** The final exercise **must** logically synthesize and require application of knowledge/skills from **ALL** provided 'Sets'. Every 'Set' must demonstrably contribute to solving at least one sub-question.
-3.  **Difficulty Matching:** The difficulty of sub-questions related to a specific 'Set' **must accurately reflect** the designated 'Level' (1-8) for that 'Set'. (Internal info only).
-4.  **LaTeX Formatting (Mandatory):**
-    *   **General Math:** **All** mathematical formulas, equations, variables (e.g., $x=5$), constants (e.g., $\\pi$), units (e.g., $m/s^2$), and symbols (e.g., $\\alpha, \\sum, \\int$) **must** be enclosed in appropriate LaTeX delimiters ('$...$' for inline, '$$...$$' for display). Ensure valid LaTeX syntax.
-    *   **Chemical Reactions:**
-        *   Use standard chemical formulas (e.g., $H_2O$, $Fe_2(SO_4)_3$).
-        *   Use '\\rightarrow' or '\\rightleftharpoons' for reaction arrows.
-        *   **CRITICAL: Reaction conditions** (temperature $t^\\circ$, catalyst $xt$, pressure $p$, etc.) **must** be placed **directly above** the reaction arrow using the LaTeX command '\\xrightarrow{conditions}'. Example: '2SO_2 + O_2 \\xrightarrow{V_2O_5, t^\\circ} 2SO_3$. **Do NOT** write conditions inline before/after the arrow or below it unless specifically required by chemical convention (rare).
-5.  **Handling External Knowledge:** Only introduce concepts/formulas outside the standard SGK **if absolutely essential**. If used, **mandatorily** include '**Thông tin/Kiến thức tham khảo:**' at the **very end**, containing concise explanations/formulas (using LaTeX as needed). Omit if not needed.
-6.  **Logical Flow:** Ensure context and sub-questions (a, b, c,...) are logically connected.
-
-**Crucial Self-Correction / Final Polish (Mandatory Step Before Output):**
-*   **Review:** Scan for accuracy, clarity, Vietnamese grammar.
-*   **Verify Constraints:**
-    *   Confirm **all** Sets represented.
-    *   Check difficulty aligns with input 'Levels'.
-    *   Ensure SGK adherence (or proper citation).
-    *   **Validate LaTeX (General & Chemistry):**
-        *   Check **all** math uses correct '$..$' or '$$..$$' and valid syntax.
-        *   **Verify Chemical Reaction Formatting:** Confirm conditions are correctly placed *above* the arrow using '\\xrightarrow{conditions}' syntax. Ensure correct arrows ('\\rightarrow', '\\rightleftharpoons') are used.
-    *   **Eliminate Metadata:** **CRITICAL:** Ensure **NO** traces of input Set information (like '(Hóa học - Mức độ 6)') are present next to question numbers or anywhere else.
-    *   Eliminate unintended foreign words, placeholders, non-exercise content.
-    *   Confirm strict compliance with **Output Format**.
-
-**Output Format (ABSOLUTE REQUIREMENT - Pure Markdown String with LaTeX for JSON):**
-
-*   **Deliver ONE single block of text.** Pure, raw Markdown with embedded LaTeX.
-*   **Content:** Only include exercise context (optional) and sub-questions. Sub-questions start *only* with the letter/number (e.g., 'a. ', 'b. ') followed directly by the question text. If needed, the '**Thông tin/Kiến thức tham khảo:**' section appears last.
-*   **Structure:** Basic Markdown syntax. Embed math **strictly** using '$inline$' and '$$display$$' LaTeX. Use '\\xrightarrow{conditions}' for reaction conditions above arrows.
-*   **Forbidden Content:** **NO** introductory/concluding remarks, **NO** titles, **NO** JSON syntax, **NO** HTML tags, **NO** hidden notes. **ABSOLUTELY NO METADATA ANNOTATIONS**. **NO** improperly formatted chemical reactions (e.g., conditions not above the arrow). The output must be *only* the clean exercise text, ready for JSON injection. Ensure no unnecessary leading/trailing whitespace.
-* 
-**AI Task:** Proceed with generation based *strictly* on the directives above. Generate the pure Markdown exercise string with integrated LaTeX now.`;
-	const result = await generateText(fixedPrompt, systemInstruction);
+`;
+	const result = await generateText(systemInstruction);
 	const sanitizedUsername = sanitizeUsername(username);
 	const query = `UPDATE "User Infomation"."${sanitizedUsername}" SET "task" = $1 WHERE "assignment_id" = $2`;
-	await sql(query, [
-		result!.split("markdown")[1].split("```")[0],
-		assignmentId,
-	]);
+	await sql(query, [result!.split("json")[1].split("```")[0], assignmentId]);
 
 	return NextResponse.json(true);
 }

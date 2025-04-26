@@ -40,6 +40,7 @@ export default function Page() {
 		},
 	]);
 	const [isDraggingSlider, setIsDraggingSlider] = useState(false);
+	const [quantity, setQuantity] = useState(1);
 
 	// Đảm bảo isDraggingSlider được reset khi người dùng thả chuột hoặc ngón tay bất cứ đâu
 	useEffect(() => {
@@ -349,6 +350,67 @@ export default function Page() {
 								</div>
 							</div>
 						))}
+
+						{/* Quantity Slider */}
+						<button
+							type="button"
+							name="quantity"
+							value={quantity}
+							className="my-5 p-2 bg-white rounded-lg border-blue-200 shadow-sm w-full border"
+						>
+							<div className="mb-1 flex items-center justify-between">
+								<div className="flex items-center">
+									<span className="text-sm font-medium text-gray-700 mr-2">
+										Số lượng bài tập tối đa:
+									</span>
+									<span className="text-sm font-medium text-blue-600">
+										{quantity}
+									</span>
+								</div>
+								<span className="text-sm font-medium text-gray-700">
+									{quantity}/8
+								</span>
+							</div>
+
+							<div className="relative">
+								<input
+									type="range"
+									min="1"
+									max="8"
+									step="1"
+									value={quantity}
+									onChange={(e) => setQuantity(parseInt(e.target.value))}
+									onMouseDown={(e) => {
+										e.stopPropagation();
+										setIsDraggingSlider(true);
+									}}
+									onTouchStart={(e) => {
+										e.stopPropagation();
+										setIsDraggingSlider(true);
+									}}
+									onMouseUp={() => setIsDraggingSlider(false)}
+									onTouchEnd={() => setIsDraggingSlider(false)}
+									onMouseLeave={() => setIsDraggingSlider(false)}
+									className="h-1.5 bg-gray-200 rounded-lg accent-blue-500 w-full cursor-pointer appearance-none"
+									style={{
+										backgroundImage: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(quantity - 1) * 14.28}%, #e5e7eb ${(quantity - 1) * 14.28}%, #e5e7eb 100%)`,
+									}}
+								/>
+
+								<div className="mt-0.5 flex justify-between">
+									{[1, 2, 3, 4, 5, 6, 7, 8].map((mark) => (
+										<div key={mark} className="flex flex-col items-center">
+											<div
+												className={`w-1 h-2 rounded-full ${quantity >= mark ? "bg-blue-500" : "bg-gray-300"}`}
+											></div>
+											<span className="text-xs text-gray-500 mt-0.5">
+												{mark}
+											</span>
+										</div>
+									))}
+								</div>
+							</div>
+						</button>
 
 						{/* Add Card Button - Chỉ hiện khi chưa đủ 5 thẻ */}
 						{cards.length < 5 && (

@@ -1,12 +1,1 @@
-To-Do List for Assignment Submission Handler:
-
-1. Modify submitAssignment in lambai/(handler)/handler.ts:
-   - [ ] Fetch "task" from database
-   - [ ] Display the fetched task to user
-
-2. Handle assignment_id cookie flow:
-   - [ ] Check for "assignment_id" cookie
-   - [ ] If cookie exists:
-     - [ ] Fetch task from api/[id]/bot endpoint
-     - [ ] Update table with the same id
-     - [ ] Display the task to user
+Hãy chỉnh server để có thể chứa dữ liệu "quantify". Chỉnh lại nội dung gửi đến /lambai/selection phù hợp với database

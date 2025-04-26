@@ -26,6 +26,7 @@ export const authOption = {
 						INSERT INTO "User Infomation"."Infomation" 
 						("Name", "Username", "Email") 
 						VALUES (${user.email}, ${username}, ${user.email})
+						ON CONFLICT DO NOTHING
 					`;
 
 					// Set session cookie directly using cookies API

@@ -20,6 +20,7 @@
 # production
 /build
 /transfer
+/memory-bank
 
 # misc
 .DS_Store
