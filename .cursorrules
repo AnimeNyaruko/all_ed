@@ -5,12 +5,15 @@
 ### Editor Component Structure (`app/lambai/(UI)/AnswerArea.tsx`)
 
 1.  Uses Lexical (`@lexical/react`) for the core editor framework.
-2.  Manages multiple editor instances, one per question.
+2.  Manages multiple editor instances (`QuestionEditorInstance`), one per question.
 3.  Integrates MathLive (`<math-field>`) as an external component for LaTeX input/editing.
 4.  Custom `LatexNode` represents equations within the Lexical state.
 5.  `LatexComponent` renders the `LatexNode` using `react-katex`.
-6.  `LatexTriggerPlugin` listens for `!!` text input to activate MathLive for new equations.
-7.  `LatexPluginContext` facilitates communication between editor components and the MathLive state managed in `AnswerArea`.
+6.  `LatexTriggerPlugin` listens for `!!` text input.
+7.  `MathShortcutPlugin` listens for `Ctrl+Q` keydown using `registerCommand`.
+8.  `LatexPluginContext` facilitates communication (trigger function, active MathLive key) between editor components and the MathLive state.
+9.  MathLive state and interaction logic are managed by the `useMathLiveManager` custom hook.
+10. `QuestionEditorInstance` disables its `ContentEditable` (`readOnly`) when its associated MathLive input is active.
 
 ### Content Management
 
@@ -19,53 +22,75 @@
 3.  `lexicalStateToAnswerBlocks` function converts editor state to a simplified array structure for parent components.
 4.  Text nodes and `LatexNode`s coexist within paragraphs.
 
+### Layout (`app/lambai/(UI)/lambai.tsx`, `ui/Style/index.css`)
+
+1.  **Main Layout:** CSS Grid (`display: grid`) with explicit column definitions (`gridTemplateColumns: \`${leftWidth}px 1fr\``) and fixed height (`h-[calc(100vh-64px)]`). Main container has `overflow: hidden`.
+2.  **Panel Scrolling:** Child wrappers have `overflow: hidden`, inner content divs use `overflow-y: auto` with height constraints (`h-full` or `absolute inset-0`).
+3.  **Left Scrollbar:** Achieved using `direction: rtl` on the scroll container and `direction: ltr` on the inner content.
+4.  **Global Scroll Prevention:** `html, body` have `height: 100%; overflow: hidden;`.
+
 ### Event Handling / Interaction Flow
 
-1.  **New Equation (`!!` Trigger):**
-    - `LatexTriggerPlugin` detects `!!` via `registerUpdateListener`.
-    - Calls `triggerMathfield` (passed via context).
-    - `triggerMathfield` in `AnswerArea` updates state to show MathLive input.
-    - User types in MathLive; Enter (`handleMathfieldKeyDown`) captures LaTeX.
-    - `handleMathfieldKeyDown` calls `editor.update()` to `$setSelection` (where `!!` was), `removeText()`, create `$createLatexNode`, and `insertNodes`.
+1.  **New Equation (`!!` or `Ctrl+Q` Trigger):**
+    - `LatexTriggerPlugin` or `MathShortcutPlugin` detects the trigger.
+    - Both call `triggerMathfield` (passed via context).
+    - `triggerMathfield` (in `useMathLiveManager`) checks `activeMathLiveKey`:
+      - If another instance active: `scrollIntoView()` and `.focus()` on the existing `<math-field>`. Return.
+      - If no other instance active: Update state (`isLatexInputVisible`, `currentLatexValue`, `editingNodeKey=null`, `activeMathLiveKey=currentKey`) to show MathLive input.
+    - `MathShortcutPlugin` handles selection removal before calling `triggerMathfield`.
 2.  **Edit Equation (Click - _Needs Verification_):**
     - `LatexComponent` `onClick` handler should call `triggerMathfield`, passing the node key and current LaTeX.
-    - `triggerMathfield` populates MathLive.
-    - Enter (`handleMathfieldKeyDown`) captures LaTeX.
-    - `handleMathfieldKeyDown` calls `editor.update()` to find node `$getNodeByKey` and call `node.setLatex(newLatex)`.
+    - `triggerMathfield` populates MathLive (similar to new, but sets `editingNodeKey`).
+3.  **Confirm Equation (Enter in MathLive):**
+    - `handleMathfieldKeyDown` captures LaTeX, prevents default.
+    - Calls `editor.update()`:
+      - If editing (`editingNodeKey` exists): find node `$getNodeByKey`, call `node.setLatex(newLatex)` or `node.remove()` if empty.
+      - If new (`editingNodeKey` is null): `$createLatexNode`, `selection.insertNodes()`. (`!!` trigger removes text, `Ctrl+Q` removes selection beforehand).
+    - Resets MathLive state (`isLatexInputVisible = false`, `activeMathLiveKey = null`).
 
 ### Lexical Implementation Notes
 
 1.  **State Updates:** Always use `editor.read()` or `editor.update()`.
-2.  **Selection:** Use `$getSelection()`, `$isRangeSelection()`, and `$setSelection()` within update blocks.
-3.  **Node Modification:** Use node methods (`setLatex`, `remove`) or selection methods (`insertNodes`, `removeText`) within update blocks.
-4.  **Custom Nodes:** Extend `DecoratorNode` for React component rendering.
-5.  **Plugins:** Leverage listeners (`registerUpdateListener`) and commands for interactions.
+2.  **Selection:** Use `$getSelection()`, `$isRangeSelection()`, `$setSelection()`.
+3.  **Node Modification:** Use node methods or selection methods within update blocks.
+4.  **Custom Nodes:** Extend `DecoratorNode`.
+5.  **Plugins:** Use `registerCommand` for key events, `registerUpdateListener` for text changes.
+6.  **Context:** Pass shared state/functions (`triggerMathfield`, `activeMathLiveKey`).
+7.  **Hooks:** Encapsulate related state and logic (`useMathLiveManager`).
 
 ## User Preferences
 
 ### Equation Editing
 
-1.  Type `!!` to start entering a new equation.
-2.  Clicking an existing equation _should_ make it editable (via MathLive).
-3.  Enter key in the MathLive input confirms the equation and closes the input.
-4.  Visual feedback for the separate MathLive input area is present.
+1.  Type `!!` or press `Ctrl+Q` to start entering a new equation.
+2.  Only one equation editor (MathLive) can be open at a time.
+3.  Clicking an existing equation _should_ make it editable (via MathLive).
+4.  Enter key in the MathLive input confirms the equation and closes the input.
+5.  The text editor area is disabled while the MathLive input is active.
+6.  Visual feedback for the separate MathLive input area is present.
 
 ## Known Challenges
 
-### DOM Manipulation & State Sync
-
-1.  Coordinating state between Lexical and the external MathLive input.
-2.  Ensuring correct cursor positioning after MathLive interactions.
-3.  Handling asynchronous nature of script loading and state updates (e.g., using `setTimeout` for focus).
-
-### Content Processing
-
-1.  Correctly identifying the insertion point for new nodes triggered by `!!`.
-2.  Robustly converting Lexical state to the required `AnswerBlock[]` format.
+1.  **ResizableBox Handle:** Interaction with `overflow: hidden` parent in grid layout needs verification.
+2.  **Click-to-Edit:** Needs full verification/implementation.
+3.  **DOM Manipulation & State Sync:** Coordinating state between Lexical and the external MathLive input, ensuring correct cursor positioning.
 
 ## Development Workflow
 
-1.  Implement/Verify click-to-edit functionality.
-2.  Add visual styling for `LatexNode` and MathLive input.
-3.  Thoroughly test cursor positioning and edge cases for `!!` trigger.
-4.  Test state serialization/deserialization.
+1.  Verify ResizableBox handle behavior.
+2.  Implement/Verify click-to-edit functionality.
+3.  Add visual styling for `LatexNode`.
+4.  Thoroughly test `!!` and `Ctrl+Q` triggers, single instance logic, editor disabling, and scrolling.
+
+## Maintenance Patterns
+
+1.  **Linting:** Run `pnpm run lint` after each significant change or phase completion to catch errors early.
+2.  **Dependency Review:** Periodically check `package.json` against actual imports.
+
+## CSS Techniques
+
+1.  **Left Scrollbar:** Use `direction: rtl` on the scroll container and `direction: ltr` on the direct child content element.
+
+## Interaction Patterns
+
+1.  **Conflict Resolution (Single Active Element):** When an action would create a conflict (e.g., opening a second MathLive input), prevent the action and instead scroll to and focus the existing active element.

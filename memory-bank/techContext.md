@@ -14,8 +14,21 @@
 
 ```json
 {
+	"@fortawesome/fontawesome-svg-core": "^6.7.2",
+	"@fortawesome/free-brands-svg-icons": "^6.7.2",
+	"@fortawesome/free-regular-svg-icons": "^6.7.2",
+	"@fortawesome/free-solid-svg-icons": "^6.7.2",
+	"@fortawesome/react-fontawesome": "^0.2.2",
+	"@google/genai": "^0.8.0",
 	"@lexical/react": "^0.30.0",
 	"@neondatabase/serverless": "^0.10.4",
+	"@react-spring/web": "^9.7.5",
+	"@tailwindcss/cli": "^4.0.15",
+	"bcrypt": "^5.1.1",
+	"buffer": "^6.0.3",
+	"clsx": "^2.1.1",
+	"concurrently": "^9.1.2",
+	"equation-editor-react": "^0.0.10",
 	"katex": "^0.16.22",
 	"lexical": "^0.30.0",
 	"mathlive": "^0.105.2",
@@ -25,12 +38,12 @@
 	"react-dom": "^19.0.0",
 	"react-katex": "^3.0.1",
 	"react-markdown": "^10.1.0",
+	"react-resizable": "^3.0.5",
 	"rehype-katex": "^7.0.1",
 	"rehype-raw": "^7.0.0",
 	"remark-math": "^6.0.0",
-	"@fortawesome/free-solid-svg-icons": "^6.5.1",
-	"@fortawesome/react-fontawesome": "^0.2.0",
-	"mathquill": "^0.10.1"
+	"server-only": "^0.0.1",
+	"sha3": "^2.1.4"
 }
 ```
 
@@ -47,6 +60,25 @@ app/
     (UI)/
       lambai.tsx          # UI components
     selection/            # Selection components
+  lambai/
+    (UI)/
+      lambai.tsx              # Main page layout (Grid), Question rendering, Timer
+      AnswerArea.tsx          # Orchestrates QuestionEditorInstances, holds useMathLiveManager
+      editor/
+        components/
+          QuestionEditorInstance.tsx # Renders Q text, LexicalComposer, plugins, MathLive input
+          LatexComponent.tsx         # Renders LatexNode using react-katex
+        hooks/
+          useMathLiveManager.ts    # State & logic for MathLive interaction, single instance
+        nodes/
+          LatexNode.tsx            # Custom Lexical node for LaTeX
+        plugins/
+          LatexPlugin.tsx          # Context definition (LatexPluginContext)
+          LatexTriggerPlugin.tsx   # Handles '!!' trigger
+          MathShortcutPlugin.tsx # Handles Ctrl+Q trigger
+ui/
+  Style/
+    index.css                # Global styles (tailwind import, html/body scroll fix)
 ```
 
 ### Component Architecture
@@ -84,12 +116,15 @@ app/
 
 ### Client-Side
 
-- Split-pane layout
-- Content rendering
-- Responsive design
-- State management
-- Timer functionality
-- Modern UI components
+- CSS Grid for main layout.
+- Independent scrolling panels (`overflow`, `direction`).
+- Lexical editor integration.
+- Custom Lexical nodes.
+- External web component control (MathLive).
+- State management (component state, context, custom hooks).
+- Keyboard command handling.
+- Responsive design basics.
+- Timer functionality.
 
 ### Database
 
@@ -158,3 +193,9 @@ app/
 - Timer functionality testing
 - Integration testing
 - Performance testing
+- Layout/Scrolling robustness (Grid, overflow, direction).
+- ResizableBox handle interaction.
+- Lexical/MathLive interaction (`!!`, `Ctrl+Q`, click-to-edit, focus, disable).
+- Cross-browser testing for layout and editor features.
+- Timer functionality testing.
+- Integration testing.

@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+/* --- PHASE 1.1 START: Add global styles for height and overflow --- */
+html,
+body {
+	height: 100%;
+	overflow: hidden;
+	margin: 0; /* Ensure no default margin */
+	padding: 0; /* Ensure no default padding */
+}

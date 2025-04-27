@@ -22,7 +22,11 @@ const QuestionContent = ({ markdownContent }: { markdownContent: string }) => {
 		() => (
 			<div
 				className="space-y-4 text-gray-900"
-				style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+				style={{
+					overflowWrap: "anywhere",
+					wordBreak: "break-word",
+					direction: "ltr",
+				}}
 			>
 				<div className="mb-4 flex items-center justify-between">
 					<h2 className="text-xl font-bold">Đề bài</h2>
@@ -263,12 +267,14 @@ export default function Home({ markdownContent }: { markdownContent: string }) {
 			</header>
 
 			{/* Main Content Area */}
-			<div className="flex h-[calc(100vh-64px)] flex-1">
+			<div
+				className="grid h-[calc(100vh-64px)] overflow-hidden"
+				style={{ gridTemplateColumns: `${leftWidth}px 1fr` }}
+			>
 				{/* Left Panel - Question Area */}
-				<div className="relative">
+				<div className="relative overflow-hidden">
 					<ResizableBox
 						width={leftWidth}
-						height={Infinity}
 						onResize={handleResize}
 						axis="x"
 						minConstraints={[300, Infinity]}
@@ -277,15 +283,18 @@ export default function Home({ markdownContent }: { markdownContent: string }) {
 							<div className="right-0 top-0 bottom-0 w-2 bg-gray-300 hover:bg-blue-500 absolute cursor-col-resize transition-colors duration-200" />
 						}
 					>
-						<div className="bg-white p-6 flex h-full flex-col">
+						<div
+							className="bg-white p-6 h-full"
+							style={{ overflowY: "auto", direction: "rtl" }}
+						>
 							<QuestionContent markdownContent={content.de_bai} />
 						</div>
 					</ResizableBox>
 				</div>
 
 				{/* Right Panel - Answer Area */}
-				<div className="bg-white p-6 flex flex-1 flex-col">
-					<div className="pb-4 flex-1 overflow-auto">
+				<div className="bg-white p-6 relative overflow-hidden">
+					<div className="inset-0 p-6 absolute overflow-y-auto">
 						{isClient && (
 							<AnswerArea
 								questions={questions}

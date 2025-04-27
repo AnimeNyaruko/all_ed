@@ -2,73 +2,82 @@
 
 ## Current Focus
 
-The current development focus is on refining the LaTeX editing experience within the Lexical editor, specifically integrating MathLive for equation input and editing.
+Refining the user interaction patterns for LaTeX editing and ensuring the layout behaves robustly.
 
 ## Recent Changes
 
-1.  **LaTeX/MathLive Integration (`AnswerArea.tsx`)**
+1.  **LaTeX/MathLive Enhancements (`useMathLiveManager`, `plugins`, `QuestionEditorInstance`)**
 
-    - Implemented a `LatexTriggerPlugin` to detect `!!` typed by the user.
-    - Typing `!!` now removes the characters and triggers the external MathLive (`<math-field>`) input for creating a new LaTeX node.
-    - Pressing Enter in the MathLive input inserts a new `LatexNode` into the Lexical editor at the trigger location.
-    - Refactored type handling within the plugin (`$isRangeSelection`, `$setSelection`) to resolve TypeScript errors.
-    - The MathLive input appears conditionally below the corresponding Lexical editor instance.
+    - Added `Ctrl+Q` keyboard shortcut (via `MathShortcutPlugin`) as an alternative to `!!` for triggering the MathLive input. Handles selection removal like `!!`.
+    - Implemented single MathLive instance logic: Attempting to trigger MathLive (via `!!` or `Ctrl+Q`) when another instance is already active will now scroll to and **focus** the active MathLive input instead of opening a new one. (`useMathLiveManager`)
+    - Disabled the Lexical editor instance (`ContentEditable` set to `readOnly`) while its corresponding MathLive input is visible. (`QuestionEditorInstance`)
+    - Updated editor placeholder text to include both `!!` and `Ctrl+Q` instructions. (`QuestionEditorInstance`)
 
-2.  **Previous Timer & UI Updates**
-    - Timer controls (start/pause/stop) functional.
-    - Modern header design implemented.
-    - MathQuill integration (prior approach, now shifting towards MathLive via Lexical nodes).
+2.  **Layout & Scrolling Fixes (`lambai.tsx`, `ui/Style/index.css`)**
+
+    - Replaced the main content area's Flexbox layout with CSS Grid (`gridTemplateColumns`, explicit grid container height, `overflow: hidden`) to manage panel sizing.
+    - Implemented independent vertical scrolling for the left and right panels.
+    - Applied `direction: rtl` to the left panel's scroll container and `direction: ltr` to its direct child (`QuestionContent`) to achieve a left-aligned scrollbar.
+    - Added global CSS to prevent `html`, `body` scrolling (`overflow: hidden`, `height: 100%`).
+    - Adjusted padding on the right panel's scrollable content area to match the left panel (`p-6`).
+
+3.  **Dependency Cleanup (Previous)**
+    - Removed unused dependencies.
 
 ## Active Decisions
 
 1.  **LaTeX Editing Flow**
 
-    - Using custom Lexical `LatexNode` to represent equations.
-    - Using external MathLive component (`<math-field>`) for actual LaTeX input/editing, triggered by interactions (click on existing node or `!!` trigger).
-    - `LatexTriggerPlugin` handles the `!!` detection and initiation.
-    - `AnswerArea.tsx` manages the state for MathLive visibility and communication between Lexical and MathLive.
+    - Kept `!!` trigger via `LatexTriggerPlugin`.
+    - Added `Ctrl+Q` trigger via `MathShortcutPlugin`.
+    - Both triggers call `triggerMathfield` in `useMathLiveManager`.
+    - `useMathLiveManager` now enforces **single active MathLive instance**, handling focus/scroll redirection.
+    - Editor instance is **disabled** (`readOnly`) when its MathLive input is active.
 
 2.  **Lexical Implementation**
 
-    - Using `registerUpdateListener` to monitor text changes for the `!!` trigger.
-    - Using `$isRangeSelection`, `$setSelection`, and `removeText()` within `editor.update()` for safe state modification.
-    - Using `LexicalPluginContext` to pass the `triggerMathfield` function down.
+    - `registerCommand(KEY_DOWN_COMMAND, ...)` used in `MathShortcutPlugin`.
+    - Context (`LatexPluginContext`) passes `triggerMathfield` and `activeMathLiveKey`.
 
-3.  **UI Design**
-    - Conditionally rendering the MathLive input below the relevant editor.
-    - Maintaining split-pane layout.
+3.  **Layout & Styling**
+    - **CSS Grid** used for the main two-column layout to provide explicit sizing and height boundaries.
+    - **Independent Scrolling** achieved using `overflow: hidden` on wrappers and `overflow-y: auto` on `h-full` or absolutely positioned inner divs.
+    - **Left Scrollbar:** `direction: rtl / ltr` technique applied.
+    - Global styles prevent page-level scrollbars.
 
 ## Current Issues
 
-1.  **Under Investigation**
+1.  **Under Investigation / To Verify**
 
-    - Click-to-edit functionality for existing `LatexNode`s (needs verification/implementation within `LatexComponent` and `LatexPluginContext`).
+    - **ResizableBox Handle:** The resizing handle's appearance/functionality might be affected by the parent `overflow: hidden` in the grid layout. Needs testing.
+    - Click-to-edit functionality for existing `LatexNode`s.
     - Robustness of cursor positioning after inserting/editing LaTeX.
-    - Visual styling/feedback for the `LatexNode` and the active MathLive input.
+    - Visual styling/feedback for the `LatexNode`.
 
 2.  **Known Issues (Carry-over)**
     - Timer state persistence.
-    - General UI responsiveness optimizations.
 
 ## Next Steps
 
 1.  **Immediate Tasks**
 
-    - Implement/verify click-to-edit for existing `LatexNode`s using the `triggerMathfield` mechanism.
-    - Add visual styling to `LatexNode` (e.g., background, border) and the MathLive input container.
-    - Test cursor positioning thoroughly after LaTeX interactions.
+    - **Test thoroughly:** Verify `Ctrl+Q`, single MathLive focus/scroll, editor disabling, and layout scrolling across different content heights and scenarios.
+    - **Test ResizableBox:** Check if the resizing handle works correctly with the grid layout and `overflow: hidden`. Address if necessary.
+    - Implement/verify click-to-edit for existing `LatexNode`s.
+    - Add visual styling to `LatexNode`.
 
 2.  **Upcoming Features**
     - Refine error handling for MathLive loading and interaction.
-    - Consider alternatives or improvements to the external MathLive input UX.
 
 ## Recent Feedback
 
-- N/A (Focus has been on implementation).
+- User reported scrolling issues which led to the CSS Grid refactor.
+- User requested focus behavior for existing MathLive instance.
 
 ## Implementation Notes
 
-- Lexical editor setup is within `app/lambai/(UI)/AnswerArea.tsx`.
-- Custom node: `app/lambai/(UI)/editor/nodes/LatexNode.tsx`.
-- Node component: `app/lambai/(UI)/editor/components/LatexComponent.tsx`.
-- Trigger logic: `LatexTriggerPlugin` within `AnswerArea.tsx`.
+- Layout: `app/lambai/(UI)/lambai.tsx` uses CSS Grid.
+- Global styles: `ui/Style/index.css`.
+- MathLive State/Logic: `app/lambai/(UI)/editor/hooks/useMathLiveManager.ts`.
+- Shortcut Plugin: `app/lambai/(UI)/editor/plugins/MathShortcutPlugin.tsx`.
+- Editor Component: `app/lambai/(UI)/editor/components/QuestionEditorInstance.tsx`.
