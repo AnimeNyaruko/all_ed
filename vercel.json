@@ -4,7 +4,7 @@
 			"maxDuration": 30
 		},
 		"app/lambai/**/*": {
-			"maxDuration": 31
+			"maxDuration": 30
 		}
 	}
 }
