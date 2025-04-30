@@ -5,10 +5,27 @@ import sql from "@/utils/database";
 import sanitizeUsername from "@/utils/sanitizeUsername";
 import type {
 	AnswerBlock,
-	OriginalContent,
-	FormattedOutput,
+	// OriginalContent, // Removed as unused
+	// FormattedOutput, // Removed as unused
 	QuestionStructure,
 } from "../types";
+
+// Hàm helper để chuyển AnswerBlock[] thành chuỗi LaTeX
+function answerBlocksToLatex(blocks: AnswerBlock[] | undefined): string {
+	if (!blocks || blocks.length === 0) {
+		return "";
+	}
+	// Nối nội dung của các block lại
+	return blocks.map((block) => block.content).join("");
+}
+
+// Hàm định dạng thời gian (giây sang HH:MM:SS)
+function formatTime(seconds: number): string {
+	const hours = Math.floor(seconds / 3600);
+	const minutes = Math.floor((seconds % 3600) / 60);
+	const secs = seconds % 60;
+	return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+}
 
 async function fetchTask(assignmentId: string, sanitizedTableName: string) {
 	const query = `SELECT "task","work" FROM "User Infomation"."${sanitizedTableName}" WHERE "assignment_id" = $1`;
@@ -70,67 +87,60 @@ export async function submitAssignment(formData: FormData) {
 }
 
 export async function submitAnswers(
-	originalContent: OriginalContent,
+	timer: number,
+	deBai: string,
+	questions: QuestionStructure,
 	answers: Record<string, AnswerBlock[]>,
 ) {
 	try {
-		const formattedOutput: FormattedOutput = {
-			de_bai: originalContent?.de_bai || "", // Initialize with top-level de_bai
-		};
+		const formattedTime = formatTime(timer);
+		const cauHoiData: Record<string, string> = {};
 
-		// --- REVISED PLAN START: Iterate over originalContent keys ---
-		Object.keys(originalContent).forEach((key) => {
-			// Skip the top-level 'de_bai' key itself, process others (like 'cau_a')
-			if (key === "de_bai") {
-				return;
-			}
+		// Lặp qua các câu hỏi để lấy câu hỏi và câu trả lời tương ứng
+		Object.keys(questions).forEach((questionKey) => {
+			// Explicitly cast questionKey to keyof QuestionStructure if needed,
+			// but Object.keys ensures it's a valid key here.
+			const questionLatex = questions[questionKey as keyof QuestionStructure]; // Nội dung câu hỏi (LaTeX)
+			const answerBlocks = answers[questionKey]; // Mảng AnswerBlock[]
+			const answerLatex = answerBlocksToLatex(answerBlocks); // Chuyển thành chuỗi LaTeX (có thể rỗng)
 
-			// Get the data for the original sub-question (e.g., originalContent['cau_a'])
-			const originalQuestionData = originalContent[key];
-			let originalQuestionText = "";
-
-			// Safely extract the 'de_bai' text for the sub-question
-			if (
-				typeof originalQuestionData === "object" &&
-				originalQuestionData !== null &&
-				"de_bai" in originalQuestionData
-			) {
-				// Assert type to access de_bai safely based on our structure
-				originalQuestionText =
-					(originalQuestionData as QuestionStructure).de_bai || "";
-			} else {
-				// Handle cases where a key exists but doesn't match QuestionStructure
-				console.warn(
-					`Expected structure with 'de_bai' not found for key "${key}" in originalContent.`,
-				);
-				// Decide if we should still include it with empty de_bai or skip
-				// For now, let's skip keys that don't fit the expected pattern
-				return;
-			}
-
-			// Look up the submitted answers for this specific key (e.g., answers['cau_a'])
-			// Default to an empty array if no answer was submitted for this key
-			const answerBlocks = answers?.[key] || []; // Use optional chaining for safety
-
-			// Concatenate the content of the submitted answer blocks.
-			// This will result in an empty string ("") if answerBlocks is empty.
-			const submittedAnswerContent = answerBlocks
-				.map((block) => block.content)
-				.join("");
-
-			// Add the entry to the formatted output, ensuring it exists even if bai_lam is empty
-			formattedOutput[key] = {
-				de_bai: originalQuestionText,
-				bai_lam: submittedAnswerContent,
-			};
+			cauHoiData[questionLatex] = answerLatex;
 		});
-		// --- REVISED PLAN END ---
 
-		const outputJsonString = JSON.stringify(formattedOutput, null, 2);
-		console.log("Formatted output string (server-side):\n", outputJsonString);
-		return { success: true };
+		// Tạo FormData
+		const formData = new FormData();
+		formData.append("time", formattedTime);
+		formData.append("de_bai", deBai);
+		formData.append("cau_hoi", JSON.stringify(cauHoiData)); // Chuyển object thành chuỗi JSON
+
+		// Gửi dữ liệu đến API
+		const apiUrl = `${process.env.NEXTAUTH_URL}/api/nopbai`;
+		const response = await fetch(apiUrl, {
+			method: "POST",
+			body: formData,
+			// Headers không cần thiết cho FormData với fetch mặc định
+		});
+
+		if (!response.ok) {
+			console.error(
+				"Nopbai API error:",
+				response.status,
+				await response.text(),
+			);
+			return {
+				success: false,
+				error: `API request failed with status ${response.status}`,
+			};
+		}
+
+		const result = await response.json();
+		console.log("Nopbai API success:", result);
+		return { success: true, data: result };
 	} catch (error) {
-		console.error("Error processing answers (server-side):", error);
-		return { success: false, error: "Server error during answer processing." };
+		console.error("Error in submitAnswers:", error);
+		return {
+			success: false,
+			error: "An unexpected error occurred during submission.",
+		};
 	}
 }

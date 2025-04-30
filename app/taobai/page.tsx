@@ -352,12 +352,7 @@ export default function Page() {
 						))}
 
 						{/* Quantity Slider */}
-						<button
-							type="button"
-							name="quantity"
-							value={quantity}
-							className="my-5 p-2 bg-white rounded-lg border-blue-200 shadow-sm w-full border"
-						>
+						<div className="my-5 p-2 bg-white rounded-lg border-blue-200 shadow-sm w-full border">
 							<div className="mb-1 flex items-center justify-between">
 								<div className="flex items-center">
 									<span className="text-sm font-medium text-gray-700 mr-2">
@@ -379,6 +374,7 @@ export default function Page() {
 									max="8"
 									step="1"
 									value={quantity}
+									name="quantity"
 									onChange={(e) => setQuantity(parseInt(e.target.value))}
 									onMouseDown={(e) => {
 										e.stopPropagation();
@@ -410,7 +406,7 @@ export default function Page() {
 									))}
 								</div>
 							</div>
-						</button>
+						</div>
 
 						{/* Add Card Button - Chỉ hiện khi chưa đủ 5 thẻ */}
 						{cards.length < 5 && (

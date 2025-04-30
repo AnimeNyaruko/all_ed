@@ -143,9 +143,9 @@ export default function AnswerArea({
 			script.async = true;
 			script.onload = () => {
 				setIsCortexLoaded(true);
-				console.log("CortexJS/MathLive loaded.");
+				// console.log("CortexJS/MathLive loaded.");
 			};
-			script.onerror = () => console.error("Failed to load CortexJS/MathLive.");
+			// script.onerror = () => console.error("Failed to load CortexJS/MathLive.");
 			document.body.appendChild(script);
 		}
 
@@ -155,7 +155,7 @@ export default function AnswerArea({
 			if (script && document.body.contains(script)) {
 				try {
 					document.body.removeChild(script);
-					console.log("MathLive script removed."); // Optional: for debugging
+					//console.log("MathLive script removed."); // Optional: for debugging
 				} catch (e) {
 					console.error("Error removing MathLive script:", e);
 				}
