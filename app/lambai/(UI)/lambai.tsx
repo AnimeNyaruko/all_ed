@@ -10,11 +10,8 @@ import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import "katex/dist/katex.min.css";
 import AnswerArea from "./AnswerArea";
-
-interface AnswerBlock {
-	type: "text" | "latex";
-	content: string;
-}
+import { submitAnswers } from "../(handler)/handler";
+import type { AnswerBlock, FormattedOutput, QuestionStructure } from "../types";
 
 // Tách phần nội dung MathJax thành component riêng
 const QuestionContent = ({ markdownContent }: { markdownContent: string }) => {
@@ -195,8 +192,65 @@ export default function Home({ markdownContent }: { markdownContent: string }) {
 		return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 	};
 
-	const handleSubmit = () => {
-		console.log("Submitting answers:", answers);
+	const handleSubmit = async () => {
+		console.log("Submitting answers (client-side):", answers);
+		console.log("Original content (client-side):", content);
+		try {
+			// --- PHASE 1 START: Pass both content and answers ---
+			const formattedOutput: FormattedOutput = {
+				de_bai: content?.de_bai || "",
+			};
+			Object.keys(content).forEach((key) => {
+				// Skip the top-level 'de_bai' key itself
+				if (key === "de_bai") {
+					return;
+				}
+
+				// Get the data for the original sub-question (e.g., content['cau_a'])
+				const originalQuestionData = content[key];
+				let originalQuestionText = "";
+
+				// Safely extract the 'de_bai' text for the sub-question
+				// Check if it's an object and has the 'de_bai' property
+				if (
+					typeof originalQuestionData === "object" &&
+					originalQuestionData !== null &&
+					"de_bai" in originalQuestionData
+				) {
+					// Type assertion might be needed if TypeScript can't infer QuestionStructure here
+					originalQuestionText =
+						(originalQuestionData as QuestionStructure).de_bai || "";
+				} else {
+					// This case shouldn't happen based on the expected structure, but good to handle
+					console.warn(
+						`Expected structure not found for key "${key}" in content.`,
+					);
+					// Optionally continue to next key or handle differently
+					return;
+				}
+
+				// Look up the submitted answers for this specific key (e.g., answers['cau_a'])
+				// Default to an empty array if no answer was submitted for this key
+				const answerBlocks = answers[key] || [];
+
+				// Concatenate the content of the submitted answer blocks.
+				// This will result in an empty string ("") if answerBlocks is empty.
+				const submittedAnswerContent = answerBlocks
+					.map((block) => block.content)
+					.join("");
+
+				// Add the entry to the formatted output, ensuring it exists even if bai_lam is empty
+				formattedOutput[key] = {
+					de_bai: originalQuestionText,
+					bai_lam: submittedAnswerContent,
+				};
+			});
+			const result = await submitAnswers(formattedOutput, answers);
+			// --- PHASE 1 END ---
+			console.log("Server action result:", result);
+		} catch (error) {
+			console.error("Error calling submitAnswers:", error);
+		}
 	};
 
 	return (

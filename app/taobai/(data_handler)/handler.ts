@@ -21,9 +21,9 @@ export async function handler(formData: FormData) {
 	}, "") as string;
 
 	const hash = new SHA3(256)
-		.update(`${promptString}${Math.random() * 1000000 + 1}`)
+		.update(`${promptString}${Math.random() * 1000000000 + 1}`)
 		.digest("hex");
-	const hashName = `${prompt.reduce((prev, curr, index: number) => {
+	const data_string = `${prompt.reduce((prev, curr, index: number) => {
 		return `${prev.toString()}${index === 0 ? "" : "\\n"}Lớp: ${_class[index]} - Môn: ${subject[index]} - Bài tập: ${curr.toString()} - Cấp độ: ${level[index]} - Số lượng: ${quantity}`;
 	}, "")}\\nSố lượng: ${quantity}`;
 
@@ -33,7 +33,7 @@ export async function handler(formData: FormData) {
 			{
 				method: "POST",
 				body: JSON.stringify({
-					name: hashName,
+					data: data_string,
 				}),
 				headers: {
 					Cookie: `session=${session}`,
