@@ -76,7 +76,7 @@ export default function Home() {
 						<div className="md:grid-cols-3 gap-8 grid grid-cols-1">
 							<div className="bg-white p-6 rounded-lg shadow-sm">
 								<div className="text-indigo-600 text-2xl mb-4">🎓</div>
-								<h3 className="text-xl font-semibold mb-2">
+								<h3 className="text-black! text-xl font-semibold mb-2">
 									Chương trình đa dạng
 								</h3>
 								<p className="text-gray-600">
@@ -85,7 +85,7 @@ export default function Home() {
 							</div>
 							<div className="bg-white p-6 rounded-lg shadow-sm">
 								<div className="text-indigo-600 text-2xl mb-4">⏰</div>
-								<h3 className="text-xl font-semibold mb-2">
+								<h3 className="text-black! text-xl font-semibold mb-2">
 									Học tập linh hoạt
 								</h3>
 								<p className="text-gray-600">
@@ -94,7 +94,7 @@ export default function Home() {
 							</div>
 							<div className="bg-white p-6 rounded-lg shadow-sm">
 								<div className="text-indigo-600 text-2xl mb-4">🤝</div>
-								<h3 className="text-xl font-semibold mb-2">
+								<h3 className="text-black! text-xl font-semibold mb-2">
 									Cộng đồng sôi động
 								</h3>
 								<p className="text-gray-600">

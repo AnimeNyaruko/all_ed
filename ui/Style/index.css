@@ -4,7 +4,26 @@
 html,
 body {
 	height: 100%;
-	overflow: hidden;
 	margin: 0; /* Ensure no default margin */
 	padding: 0; /* Ensure no default padding */
+}
+
+:root {
+	--background: #ffffff;
+	--foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--background: #0a0a0a;
+		--foreground: #ededed;
+	}
+}
+
+body {
+	font-family: Arial, Helvetica, sans-serif;
+}
+/* Style chung cho các trang có header cố định */
+.page-content-with-fixed-header {
+	padding-top: 6rem; /* Điều chỉnh giá trị này tùy theo chiều cao của header */
 }
