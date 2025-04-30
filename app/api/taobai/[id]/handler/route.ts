@@ -34,7 +34,7 @@ export async function POST(
 			CREATE TABLE IF NOT EXISTS ${fullTableName} (
 				id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
 				assignment_id text,
-				name text,
+				data text,
 				task text,
 				work text,
 				PRIMARY KEY (id)
@@ -68,8 +68,8 @@ export async function POST(
 		}
 
 		// Insert data using parameterized query
-		const insertQuery = `INSERT INTO ${fullTableName} (assignment_id,name) VALUES ($1,$2) RETURNING id`;
-		const insertResult = await sql(insertQuery, [id, data.name]);
+		const insertQuery = `INSERT INTO ${fullTableName} (assignment_id,data) VALUES ($1,$2) RETURNING id`;
+		const insertResult = await sql(insertQuery, [id, data.data]);
 
 		if (!insertResult || insertResult.length === 0) {
 			return NextResponse.json({

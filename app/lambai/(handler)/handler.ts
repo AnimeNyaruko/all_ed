@@ -3,6 +3,12 @@
 import { getCookie, setCookie } from "@/utils/cookie";
 import sql from "@/utils/database";
 import sanitizeUsername from "@/utils/sanitizeUsername";
+import type {
+	AnswerBlock,
+	OriginalContent,
+	FormattedOutput,
+	QuestionStructure,
+} from "../types";
 
 async function fetchTask(assignmentId: string, sanitizedTableName: string) {
 	const query = `SELECT "task","work" FROM "User Infomation"."${sanitizedTableName}" WHERE "assignment_id" = $1`;
@@ -63,13 +69,68 @@ export async function submitAssignment(formData: FormData) {
 	}
 }
 
-interface AnswerBlock {
-	id: string; // Copied from AnswerArea for type consistency
-	type: "text" | "latex";
-	content: string;
-}
+export async function submitAnswers(
+	originalContent: OriginalContent,
+	answers: Record<string, AnswerBlock[]>,
+) {
+	try {
+		const formattedOutput: FormattedOutput = {
+			de_bai: originalContent?.de_bai || "", // Initialize with top-level de_bai
+		};
 
-export async function submitAnswers(answers: Record<string, AnswerBlock[]>) {
-	console.log("Submitting answers:", answers);
-	// TODO: Implement actual submission logic
+		// --- REVISED PLAN START: Iterate over originalContent keys ---
+		Object.keys(originalContent).forEach((key) => {
+			// Skip the top-level 'de_bai' key itself, process others (like 'cau_a')
+			if (key === "de_bai") {
+				return;
+			}
+
+			// Get the data for the original sub-question (e.g., originalContent['cau_a'])
+			const originalQuestionData = originalContent[key];
+			let originalQuestionText = "";
+
+			// Safely extract the 'de_bai' text for the sub-question
+			if (
+				typeof originalQuestionData === "object" &&
+				originalQuestionData !== null &&
+				"de_bai" in originalQuestionData
+			) {
+				// Assert type to access de_bai safely based on our structure
+				originalQuestionText =
+					(originalQuestionData as QuestionStructure).de_bai || "";
+			} else {
+				// Handle cases where a key exists but doesn't match QuestionStructure
+				console.warn(
+					`Expected structure with 'de_bai' not found for key "${key}" in originalContent.`,
+				);
+				// Decide if we should still include it with empty de_bai or skip
+				// For now, let's skip keys that don't fit the expected pattern
+				return;
+			}
+
+			// Look up the submitted answers for this specific key (e.g., answers['cau_a'])
+			// Default to an empty array if no answer was submitted for this key
+			const answerBlocks = answers?.[key] || []; // Use optional chaining for safety
+
+			// Concatenate the content of the submitted answer blocks.
+			// This will result in an empty string ("") if answerBlocks is empty.
+			const submittedAnswerContent = answerBlocks
+				.map((block) => block.content)
+				.join("");
+
+			// Add the entry to the formatted output, ensuring it exists even if bai_lam is empty
+			formattedOutput[key] = {
+				de_bai: originalQuestionText,
+				bai_lam: submittedAnswerContent,
+			};
+		});
+		// --- REVISED PLAN END ---
+
+		const outputJsonString = JSON.stringify(formattedOutput, null, 2);
+		console.log("Formatted output string (server-side):\n", outputJsonString);
+		return { success: true };
+	} catch (error) {
+		console.error("Error processing answers (server-side):", error);
+		return { success: false, error: "Server error during answer processing." };
+	}
 }
