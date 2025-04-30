@@ -14,7 +14,6 @@ const compat = new FlatCompat({
 const eslintConfig = [
 	...compat.extends("next/core-web-vitals", "next/typescript"),
 	{
-		files: ["app/lambai/(UI)/AnswerArea.tsx"],
 		rules: {
 			"@typescript-eslint/no-namespace": "off",
 			"@typescript-eslint/no-unused-vars": "off",
