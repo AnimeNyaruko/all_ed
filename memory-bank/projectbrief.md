@@ -1,8 +1,8 @@
-# Assignment Submission Handler Project Brief
+# LaTeX Math Editor Project Brief (within Assignment Handler)
 
 ## Project Overview
 
-A Next.js-based web application that handles assignment submissions with a focus on task management and user interaction. The system includes a CSS Grid-based two-column layout for viewing assignments and submitting work, with support for mathematical content rendering (via Lexical and MathLive) and time tracking.
+A Next.js-based assignment submission application featuring an advanced LaTeX math editor. The core is a CSS Grid-based two-column layout for viewing assignments and submitting work, utilizing Lexical as the rich-text foundation and integrating MathLive for a dedicated LaTeX input/editing experience.
 
 ## Core Requirements
 
@@ -14,40 +14,40 @@ A Next.js-based web application that handles assignment submissions with a focus
    - Task display and submission
    - Time tracking and management
 
-2. User Interface
+2. User Interface & Layout
 
-   - Stable CSS Grid layout (question/answer)
-   - Resizable left panel (handle needs verification)
-   - Independent panel scrolling
-   - Math content rendering
-   - Responsive design basics
-   - Timer controls (start, pause, stop)
-   - Modern header with logo and controls
+   - Stable CSS Grid layout (question/answer) with independent scrolling.
+   - Left panel scrollbar positioned on the left (`direction: rtl/ltr`).
+   - Resizable left panel (`ResizableBox` - needs verification).
+   - Modern header with logo and controls.
+   - Timer controls (start, pause, stop).
 
-3. Content Handling
-   - Markdown support
-   - LaTeX math rendering
-   - Lexical editor for text input
-   - MathLive integration for equation editing (`!!` and `Ctrl+Q` triggers)
-   - Single active MathLive instance enforcement
-   - Editor disabling during math input
+3. **Advanced Math Editor (Lexical + MathLive)**
+   - Rich-text editing via Lexical (`AnswerArea.tsx`, `QuestionEditorInstance.tsx`).
+   - Inline LaTeX rendering using `react-katex` (via custom `LatexNode`).
+   - Dedicated LaTeX input/editing via external MathLive component (`<math-field>`).
+   - **Triggering MathLive:**
+     - Text input: `!!` (`LatexTriggerPlugin`).
+     - Keyboard shortcut: `Ctrl+Q` (`MathShortcutPlugin`).
+     - Click on existing equation (Needs implementation/verification).
+   - **Single Active Instance:** Only one MathLive input can be active; attempts to open another will focus the existing one (`useMathLiveManager`).
+   - **Editor Disabling:** The underlying Lexical editor instance is disabled (`readOnly`) when its associated MathLive input is active.
 
 ## Goals
 
-- Create an efficient assignment submission system
-- Provide a clear interface for task viewing and submission
-- Support mathematical content rendering
-- Ensure secure user authentication
-- Maintain proper session handling
-- Implement effective time tracking
-- Deliver a modern, responsive, and robust UI with independent scrolling panels
+- Create an efficient assignment submission system.
+- Provide a clear UI for task viewing and submission with robust scrolling.
+- **Deliver a powerful and intuitive LaTeX math editing experience.**
+- Ensure secure user authentication and session handling.
+- Implement effective time tracking.
 
 ## Success Criteria
 
-- Users can view and submit assignments
-- Mathematical content renders correctly
-- Session management works reliably
-- Assignment tracking is accurate
-- Interface is intuitive, responsive, and panels scroll independently without page scroll
-- Math input via `!!` and `Ctrl+Q` works reliably, enforcing single instance with focus
-- Editor disables correctly during math input
+- Users can view and submit assignments.
+- **LaTeX equations can be easily created (`!!`, `Ctrl+Q`) and edited (click - TBD).**
+- **MathLive interaction enforces a single active instance with focus redirection.**
+- **Lexical editor correctly disables during MathLive input.**
+- Mathematical content renders correctly within the editor (`react-katex`) and potentially in the question display.
+- Session management works reliably.
+- Interface is intuitive, responsive, and panels scroll independently without page scroll.
+- Left panel is resizable (handle verified).

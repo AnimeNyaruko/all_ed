@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, memo } from "react";
 import "katex/dist/katex.min.css";
 import {
 	$getRoot,
@@ -124,14 +124,13 @@ function lexicalStateToAnswerBlocks(editorState: EditorState): AnswerBlock[] {
 	return blocks;
 }
 
-export default function AnswerArea({
-	questions,
-	onAnswersChange,
-}: AnswerAreaProps) {
+// Wrap the component with React.memo
+const AnswerArea = memo(({ questions, onAnswersChange }: AnswerAreaProps) => {
 	const [isClient, setIsClient] = useState(false);
 	const [isCortexLoaded, setIsCortexLoaded] = useState(false);
 	const editorRefMap = useRef<Record<string, LexicalEditor | null>>({});
 	const mathLiveManager = useMathLiveManager({ editorRefMap });
+	const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref for debounce timeout
 
 	// Load CortexJS script
 	useEffect(() => {
@@ -168,15 +167,33 @@ export default function AnswerArea({
 		setIsClient(true);
 	}, []);
 
-	// Debounced update to parent
-	const debouncedOnAnswersChange = useCallback(
+	// Debounced handler using setTimeout
+	const handleEditorChangeDebounced = useCallback(
 		(key: string, editorState: EditorState, editor: LexicalEditor) => {
-			editorRefMap.current[key] = editor;
-			const blocks = lexicalStateToAnswerBlocks(editorState);
-			onAnswersChange({ [key]: blocks });
+			editorRefMap.current[key] = editor; // Update editor ref immediately
+
+			// Clear previous timeout if exists
+			if (debounceTimeoutRef.current) {
+				clearTimeout(debounceTimeoutRef.current);
+			}
+
+			// Set new timeout
+			debounceTimeoutRef.current = setTimeout(() => {
+				const blocks = lexicalStateToAnswerBlocks(editorState);
+				onAnswersChange({ [key]: blocks });
+			}, 500); // 500ms delay
 		},
-		[onAnswersChange],
+		[onAnswersChange], // Dependency remains the same
 	);
+
+	// Effect to clear timeout on unmount
+	useEffect(() => {
+		return () => {
+			if (debounceTimeoutRef.current) {
+				clearTimeout(debounceTimeoutRef.current);
+			}
+		};
+	}, []);
 
 	if (!isClient) {
 		return null; // Don't render SSR
@@ -193,15 +210,6 @@ export default function AnswerArea({
 					nodes: [LatexNode], // Still need to register the node
 				};
 
-				// Create the trigger function specific to this editor instance's key
-				// This now calls the trigger function from the hook
-				const triggerForThisEditor = (
-					nodeKey: string | null,
-					initialLatex?: string,
-				) => {
-					mathLiveManager.triggerMathfield(key, nodeKey, initialLatex);
-				};
-
 				// Render the QuestionEditorInstance component
 				return (
 					<QuestionEditorInstance
@@ -209,8 +217,8 @@ export default function AnswerArea({
 						questionKey={key}
 						questionContent={question}
 						initialConfig={initialConfig}
-						triggerForThisEditor={triggerForThisEditor}
-						debouncedOnAnswersChange={debouncedOnAnswersChange}
+						triggerMathfieldFunc={mathLiveManager.triggerMathfield}
+						debouncedOnAnswersChange={handleEditorChangeDebounced}
 						// Pass down state and handlers from the hook
 						isLatexInputVisible={mathLiveManager.isLatexInputVisible}
 						currentLatexValue={mathLiveManager.currentLatexValue}
@@ -225,4 +233,8 @@ export default function AnswerArea({
 			})}
 		</div>
 	);
-}
+});
+
+AnswerArea.displayName = "AnswerArea"; // Add display name
+
+export default AnswerArea; // Export the memoized component

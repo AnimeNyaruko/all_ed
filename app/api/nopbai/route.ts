@@ -21,8 +21,7 @@ export async function POST(request: NextRequest) {
 		let cauHoiData: Record<string, string> = {};
 		try {
 			cauHoiData = JSON.parse(cauHoiString as string);
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		} catch (_e) {
+		} catch (e) {
 			return NextResponse.json(
 				{ success: false, error: "Invalid JSON format for cau_hoi." },
 				{ status: 400 },

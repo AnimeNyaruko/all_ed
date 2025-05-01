@@ -1,107 +1,67 @@
-# Product Context: Assignment Submission Handler
+# Product Context: Assignment Handler with Advanced Math Editor
 
 ## Purpose
 
-The Assignment Submission Handler provides a streamlined platform for students to view and submit assignments, with special attention to mathematical content rendering, time tracking, and user experience. It aims to simplify the assignment submission process while maintaining proper tracking and security.
+The platform provides a streamlined interface for students to view and submit assignments. A key feature is its integrated **advanced LaTeX math editor**, built with Lexical and MathLive, designed to offer an intuitive and powerful way to handle mathematical content alongside regular text, complemented by time tracking and a robust user experience.
 
 ## Problems Solved
 
 1. **Assignment Management**
 
-   - Centralized task viewing and submission
-   - Secure assignment tracking
-   - Proper session handling
-   - Mathematical content support
-   - Time tracking and management
+   - Centralized task viewing and submission.
+   - Secure assignment tracking & session handling.
+   - Time tracking and management.
 
-2. **User Experience**
+2. **User Experience & Layout**
 
-   - CSS Grid-based split-pane interface for stable reference
-   - Resizable panels for flexible layout (handle needs verification)
-   - Independent panel scrolling for managing long content
-   - Mathematical content rendering
-   - Timer controls for time management
-   - Modern, intuitive header design
+   - Stable CSS Grid split-pane interface for clear reference and independent scrolling.
+   - Left-aligned scrollbar on the left panel for consistency.
+   - Resizable left panel for layout flexibility (handle needs verification).
+   - Modern, intuitive header and timer controls.
 
-3. **Content Handling**
-
-   - Markdown support for rich text
-   - LaTeX math rendering
-   - Efficient LaTeX input via MathLive using `!!` and `Ctrl+Q` triggers
-   - Editor disabling during math input prevents accidental text changes
-   - Single MathLive instance prevents user confusion
-   - Proper text formatting
-   - Responsive layout basics
+3. **Advanced Content Handling (Focus: Math)**
+   - Mixed text and math content management via Lexical.
+   - **Intuitive LaTeX Input:** Multiple triggers (`!!`, `Ctrl+Q`) for initiating the dedicated MathLive input.
+   - **Seamless Editing:** Display of equations using `react-katex` (`LatexNode`), editing via MathLive.
+   - **Conflict Prevention:** Ensures only one MathLive instance is active at a time, focusing the existing one if needed.
+   - **Focused Editing:** Disables the main text editor (`readOnly`) while the MathLive input is active, preventing accidental text changes.
+   - Markdown support for general text formatting.
 
 ## User Experience Goals
 
-1. **Assignment Viewing**
+1. **Assignment Viewing & Navigation**
 
-   - Clear task display
-   - Mathematical content rendering
-   - Easy navigation
-   - Responsive layout
-   - Time tracking visibility
+   - Clear task display with correctly rendered math.
+   - Easy navigation within panels with independent scrolling.
+   - Responsive layout.
+   - Visible time tracking.
 
-2. **Submission Process**
+2. **Submission & Content Creation**
 
-   - Simple submission interface
-   - Multiple intuitive ways to insert math equations (`!!`, `Ctrl+Q`)
-   - Clear feedback when attempting conflicting actions (e.g., opening second MathLive instance)
-   - Prevent accidental edits while math input is active (editor disabled)
-   - Session persistence
-   - Error handling
-   - Time management controls
+   - Simple submission process.
+   - **Effortless Math Entry:** Quick triggering of MathLive via `!!` or `Ctrl+Q`.
+   - **Intuitive Math Editing:** Clicking an existing equation should seamlessly open it in MathLive (Needs implementation/verification).
+   - **Clear State Feedback:** Visual cues indicating when MathLive is active and the main editor is disabled.
+   - **Non-disruptive Workflow:** Prevent confusion by managing a single active MathLive instance and focusing it when necessary.
+   - Session persistence & error handling.
 
-3. **Content Management**
+3. **Visual Design**
+   - Clean, modern interface.
+   - Stable CSS Grid split-pane layout with independent scrolling and left-aligned scrollbar.
+   - Resizable panels (handle needs verification).
 
-   - Rich text support
-   - Mathematical notation display
-   - Streamlined equation input/editing via MathLive
-   - Format preservation
+## User Workflow (Focus on Math Editing)
 
-4. **Visual Design**
-
-   - Clean, modern interface
-   - Stable CSS Grid split-pane layout
-   - Resizable panels (handle needs verification)
-   - Independent panel scrolling
-   - Responsive design basics
-   - Intuitive timer controls
-   - Professional header design
-
-## User Workflow
-
-1. **Assignment Access**
-
-   - User authenticates
-   - Assignment ID is set
-   - Task is fetched
-   - Content is displayed
-   - Timer is available
-
-2. **Task Viewing**
-
-   - Question is shown in left pane, scrolls independently with left-side scrollbar
-   - Mathematical content renders
-   - Panel is resizable (handle needs verification)
-   - Timer controls are accessible
-
-3. **Submission Process**
-
-   - Answer is entered in right pane (scrolls independently)
-   - Use `!!` or `Ctrl+Q` to open MathLive for equations
-   - Only one MathLive input active at a time (focuses existing on conflict)
-   - Editor is disabled while MathLive is active
-   - Content is formatted
-   - Submission is tracked
-   - Status is updated
-   - Time is recorded
-
-4. **Time Management**
-
-   - Start timer when ready
-   - Pause timer when needed
-   - Stop timer to reset
-   - View elapsed time
-   - Track total time spent
+1. **Assignment Access:** (Standard: Authenticate, fetch task, display, timer available).
+2. **Task Viewing:** Question with rendered math in the left (scrollable, resizable) pane.
+3. **Answering / Content Creation:**
+   - Enter text in the right (scrollable) pane using Lexical.
+   - To insert a **new** equation: Type `!!` or press `Ctrl+Q`.
+     - If no other MathLive input is active: The MathLive input appears, and the Lexical editor instance becomes `readOnly`.
+     - If another MathLive input _is_ active: The application scrolls to and focuses the existing MathLive input.
+   - To edit an **existing** equation: Click on the rendered equation (Needs implementation/verification).
+     - Similar logic: opens MathLive, makes editor `readOnly`, handles single instance focus.
+   - Enter/edit LaTeX in the focused MathLive input.
+   - Press `Enter` in MathLive: The input closes, the LaTeX is saved to the Lexical state (inserted or updated `LatexNode`), and the Lexical editor instance becomes editable again.
+   - Continue adding text or other equations.
+4. **Time Management & Submission:** (Standard: Use timer, submit work).

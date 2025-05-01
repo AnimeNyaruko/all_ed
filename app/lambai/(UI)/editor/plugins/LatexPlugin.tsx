@@ -11,7 +11,6 @@ export interface LatexPluginContextType {
 // Create the context with a default value
 // The default trigger function does nothing, and active key is null
 export const LatexPluginContext = createContext<LatexPluginContextType>({
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	triggerMathfield: (nodeKey: string | null, initialLatex?: string) => {
 		console.error("LatexPluginContext Provider not found");
 	},

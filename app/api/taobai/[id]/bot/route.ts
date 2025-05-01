@@ -52,12 +52,12 @@ export async function POST(request: NextRequest) {
     *   Các thông tin bổ sung, dữ kiện, quy ước, hằng số cần thiết (ví dụ: gia tốc trọng trường g, hằng số Avogadro Nᴀ, khối lượng mol, v.v.) phải được tích hợp một cách tự nhiên vào mô tả tình huống hoặc được liệt kê rõ ràng ở cuối phần đề bài mà **không cần tiêu đề**. Ví dụ: "Coi g = 9.8 m/s². Cho Nᴀ = 6.022 x 10²³ mol⁻¹."
 5.  **Nội dung câu hỏi con (a, b, c, ...):**
     *   Các câu hỏi phải khai thác kiến thức và kỹ năng được mô tả trong phần \`Prompt:\` của các set khác nhau.
-    *   **Định dạng câu hỏi và câu trả lời mong đợi:** Tất cả các câu hỏi con phải được thiết kế sao cho câu trả lời có thể được diễn đạt hoàn toàn bằng **văn bản (text) và/hoặc công thức toán học/hóa học dạng LaTeX**. **TUYỆT ĐỐI KHÔNG** tạo ra các câu hỏi yêu cầu:
+    *   **Định dạng câu hỏi và câu trả lời mong đợi:** Tất cả các câu hỏi con phải được thiết kế sao cho câu trả lời có thể được diễn đạt hoàn toàn bằng **văn bản (text) và công thức toán học/hóa học dạng LaTeX**. **TUYỆT ĐỐI KHÔNG** tạo ra các câu hỏi yêu cầu:
         *   Vẽ hình, dựng hình, vẽ đồ thị.
         *   Kẻ bảng biểu.
         *   Các dạng bài tập trắc nghiệm yêu cầu nối, khoanh tròn trên hình, điền vào chỗ trống trên sơ đồ, hoặc các tương tác đồ họa khác.
         *   Các thao tác thực hành, thí nghiệm mô tả.
-    *   Việc yêu cầu viết phương trình hóa học (dạng text hoặc LaTeX) là hoàn toàn **chấp nhận được**.
+    *   Việc yêu cầu viết phương trình hóa học (LaTeX) là hoàn toàn **chấp nhận được**.
     *   Mỗi câu hỏi phải có độ khó tương ứng với \`Level:\` của set mà nó kiểm tra.
     *   Số lượng câu hỏi con được tạo ra phải ngẫu nhiên, nhưng **không được vượt quá** \`<so_cau_hoi_toi_da>\`.
     *   Tổng thể các câu hỏi con phải **đảm bảo bao quát được** các nội dung chính trong phần \`Prompt:\` của **tất cả các set** đã cung cấp.
@@ -80,6 +80,14 @@ export async function POST(request: NextRequest) {
           "cau_d": "d) Tính tầm bay xa của vật nặng (khoảng cách từ vị trí bắn đến vị trí vật chạm đất ngang tầm bắn)."
         }
 7.  **Ngôn ngữ:** Tiếng Việt.
+8.  **Các ký hiệu toán học, hóa học, vật lí học, sinh học:**
+    *   Các ký hiệu toán học, hóa học, vật lí học, sinh học **BẮT BUỘC** phải được định dạng bằng LaTeX, kể cả nhân, chia, cộng, trừ, nhân tử, mẫu số, căn bậc hai, tích phân, tổng, tích, v.v.
+    *   Ví dụ:
+        *   $x$
+        *   $\frac{1}{2}$
+        *   $\sqrt{2}$
+        *   $\int_0^\infty \frac{1}{x^2} dx$
+        *   $\sum_{i=1}^\infty \frac{1}{i^2}$
 
 **QUAN TRỌNG:** Chỉ trả về **DUY NHẤT** chuỗi JSON đã được stringified. **KHÔNG** được có bất kỳ văn bản giới thiệu nào (ví dụ: "Đây là JSON bạn yêu cầu:"), văn bản kết luận nào. Toàn bộ phản hồi của bạn phải là chuỗi JSON đó và chỉ có nó. Đảm bảo chuỗi JSON trả về là hợp lệ.
 
@@ -95,6 +103,7 @@ export async function POST(request: NextRequest) {
 
 `;
 	const result = await generateText(systemInstruction);
+	console.log(result);
 	const sanitizedUsername = sanitizeUsername(username);
 	const query = `UPDATE "User Infomation"."${sanitizedUsername}" SET "task" = $1 WHERE "assignment_id" = $2`;
 	await sql(query, [result!.split("json")[1].split("```")[0], assignmentId]);

@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
-import { checkCookie } from "@/utils/cookie";
+import { checkCookie, deleteCookie } from "@/utils/cookie";
 import Image from "next/image";
+import { signOut } from "next-auth/react";
 
 // Định nghĩa interface cho cờ
 interface Flag {
@@ -232,10 +233,21 @@ export default function Header() {
 						>
 							<Link
 								href="/lambai/selection"
-								className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 block"
+								className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 block cursor-pointer"
 							>
 								Lịch sử làm bài
 							</Link>
+							<div
+								onClick={async () => {
+									await deleteCookie("session");
+									await deleteCookie("assignment_id");
+									await signOut();
+									window.location.href = "/";
+								}}
+								className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 block cursor-pointer"
+							>
+								Đăng xuất
+							</div>
 						</div>
 					)}
 				</div>

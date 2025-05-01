@@ -28,6 +28,12 @@
 2.  **Panel Scrolling:** Child wrappers have `overflow: hidden`, inner content divs use `overflow-y: auto` with height constraints (`h-full` or `absolute inset-0`).
 3.  **Left Scrollbar:** Achieved using `direction: rtl` on the scroll container and `direction: ltr` on the inner content.
 4.  **Global Scroll Prevention:** `html, body` have `height: 100%; overflow: hidden;`.
+5.  **Resizable Layout (Custom Ghost Drag in `lambai.tsx`):**
+    - Replaces `react-resizable`.
+    - Uses a custom handle `div` and a conditionally rendered ghost `div`.
+    - Drag state managed by `isDragging` (state), `ghostLeft` (state), and refs (`dragStartXRef`, `startLeftWidthRef`, `ghostLeftRef`).
+    - `useEffect` manages global move/end listeners based on `isDragging`.
+    - Layout updates (`gridTemplateColumns`) only on drag end.
 
 ### Event Handling / Interaction Flow
 
@@ -47,6 +53,10 @@
       - If editing (`editingNodeKey` exists): find node `$getNodeByKey`, call `node.setLatex(newLatex)` or `node.remove()` if empty.
       - If new (`editingNodeKey` is null): `$createLatexNode`, `selection.insertNodes()`. (`!!` trigger removes text, `Ctrl+Q` removes selection beforehand).
     - Resets MathLive state (`isLatexInputVisible = false`, `activeMathLiveKey = null`).
+4.  **Panel Resizing (Custom Ghost Drag):**
+    - `mousedown`/`touchstart` on handle -> `handleDragStart` (sets `isDragging=true`, stores start info).
+    - `mousemove`/`touchmove` (global listener added via `useEffect`) -> `handleDragMove` (updates `ghostLeft` state/ref).
+    - `mouseup`/`touchend` (global listener added via `useEffect`) -> `handleDragEnd` (sets `isDragging=false`, updates `leftWidth` from `ghostLeftRef`).
 
 ### Lexical Implementation Notes
 
@@ -71,16 +81,16 @@
 
 ## Known Challenges
 
-1.  **ResizableBox Handle:** Interaction with `overflow: hidden` parent in grid layout needs verification.
+1.  **MathLive Initial Display:** Rendering issue due to parent `overflow: hidden` (Top Priority).
 2.  **Click-to-Edit:** Needs full verification/implementation.
 3.  **DOM Manipulation & State Sync:** Coordinating state between Lexical and the external MathLive input, ensuring correct cursor positioning.
 
 ## Development Workflow
 
-1.  Verify ResizableBox handle behavior.
+1.  Address MathLive initial display issue.
 2.  Implement/Verify click-to-edit functionality.
 3.  Add visual styling for `LatexNode`.
-4.  Thoroughly test `!!` and `Ctrl+Q` triggers, single instance logic, editor disabling, and scrolling.
+4.  Thoroughly test all editor interactions and resizing after fixes.
 
 ## Maintenance Patterns
 
@@ -94,3 +104,4 @@
 ## Interaction Patterns
 
 1.  **Conflict Resolution (Single Active Element):** When an action would create a conflict (e.g., opening a second MathLive input), prevent the action and instead scroll to and focus the existing active element.
+2.  **High-Performance Dragging (Ghost Pattern):** For potentially expensive operations triggered by dragging (like resizing complex layouts), only update a lightweight visual indicator ("ghost") during the drag (`mousemove`/`touchmove`). Apply the actual change only when the drag ends (`mouseup`/`touchend`). This involves managing drag state (`isDragging`), using refs to avoid stale closures in handlers, and potentially using `useEffect` to manage global listeners.

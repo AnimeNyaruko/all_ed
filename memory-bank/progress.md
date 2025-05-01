@@ -11,149 +11,93 @@
    - [x] Cookie handling
    - [x] Basic error handling
 
-2. **Client-Side**
+2. **Client-Side Layout & Base UI**
 
    - [x] Split-pane layout (using CSS Grid)
-   - [x] Resizable panels (handle needs verification)
-   - [x] Content rendering (Markdown, basic KaTeX)
+   - [x] Independent panel scrolling (including left-side scrollbar)
    - [x] Responsive design basics
-   - [x] Timer functionality (Start/Pause/Stop)
+   - [x] Timer functionality (Start/Pause/Stop controls & display)
    - [x] Modern header
-   - [x] Independent panel scrolling (including left-side scrollbar for left panel)
+   - [x] Resizable left panel (using custom ghost drag logic - see System Patterns)
 
-3. **Content Management & Editing**
+3. **Content Management & Math Editor**
 
-   - [x] Markdown support (via `react-markdown`)
-   - [x] Basic LaTeX math rendering (via `rehype-katex`)
+   - [x] Markdown support (`react-markdown` in question view)
+   - [x] Basic LaTeX math rendering (`rehype-katex` in question view)
    - [x] Lexical editor foundation (`AnswerArea.tsx`, `QuestionEditorInstance.tsx`)
    - [x] Custom `LatexNode` for representing LaTeX in Lexical.
-   - [x] External MathLive (`<math-field>`) integration for LaTeX input.
-   - [x] `!!` trigger to open MathLive for inserting _new_ LaTeX nodes.
-   - [x] `Ctrl+Q` shortcut trigger to open MathLive for inserting _new_ LaTeX nodes.
-   - [x] Single MathLive instance enforcement (scrolls & focuses existing if attempt to open another).
-   - [x] Editor instance disabled (`readOnly`) while its MathLive input is active.
+   - [x] Inline rendering of `LatexNode` using `react-katex` (`LatexComponent`).
+   - [x] External MathLive (`<math-field>`) integration for dedicated LaTeX input.
+   - [x] `!!` trigger to open MathLive for inserting _new_ LaTeX nodes (`LatexTriggerPlugin`).
+   - [x] `Ctrl+Q` shortcut trigger to open MathLive for inserting _new_ LaTeX nodes (`MathShortcutPlugin`).
+   - [x] Single MathLive instance enforcement (scrolls & focuses existing if attempt to open another) (`useMathLiveManager`).
+   - [x] Editor instance disabled (`readOnly`) while its MathLive input is active (`QuestionEditorInstance`).
    - [x] Editor placeholder updated with `!!` and `Ctrl+Q` instructions.
-   - [ ] Click-to-edit existing `LatexNode`s (partially implemented, needs verification).
+   - [ ] Click-to-edit existing `LatexNode`s (Needs implementation/verification).
 
-4. **User Interface**
-   - [x] Clean, modern design
-   - [x] Timer controls visible in header
-   - [x] FontAwesome icons
+## Recently Completed (Reflects `activeContext.md`)
 
-## Recently Completed
+1. **Math Editor Interaction Enhancements**
 
-### Server-Side
+   - Added `Ctrl+Q` shortcut trigger.
+   - Implemented single MathLive instance logic (focus/scroll existing).
+   - Implemented editor disabling (`readOnly`) during MathLive input.
+   - Updated editor placeholder text.
 
-1. **Handler Implementation**
+2. **Layout Refactor & Scrolling Fixes**
 
-   - Added task fetching
-   - Implemented session management
-   - Added cookie handling
-   - Improved error handling
+   - Replaced Flexbox with CSS Grid for main layout.
+   - Implemented robust independent panel scrolling.
+   - Implemented left-side scrollbar using `direction: rtl/ltr`.
+   - Fixed page-level scrolling issues with global styles.
 
-2. **Database Integration**
-   - Set up serverless database
-   - Implemented queries
-   - Added error handling
-   - Improved performance
+3. **Dependency Cleanup**
 
-### Client-Side
+   - Removed several unused dependencies (listed in previous `progress.md`).
 
-1. **UI Components**
+4. **Performance Optimization (Resize Lag)**
 
-   - Implemented split-pane layout
-   - Added resizable panels
-   - Integrated math content
-   - Improved responsiveness
+   - [x] Replaced `ResizableBox` with a custom drag handling mechanism.
+   - [x] Implemented a "ghost bar" effect: Handle remains stationary during drag, only a visual indicator moves. Layout updates only on drag end (`mouseup`/`touchend`).
+   - [x] Achieved smooth resizing performance even under heavy load conditions.
 
-2. **Content Management**
-   - Added Markdown support
-   - Integrated LaTeX math
-   - Improved formatting
-   - Enhanced interface
+5. **Code Quality (Linting)**
 
-### Timer Implementation
+   - [x] Removed unnecessary `eslint-disable` directives identified by the linter.
+   - [x] Verified code passes `pnpm run lint` without errors or warnings.
 
-1. **Core Functionality**
+## Known Issues / Items Requiring Verification
 
-   - Added start/pause/stop controls
-   - Implemented time display
-   - Added visual feedback
-   - Integrated FontAwesome icons
-   - Improved UI design
+1. **Click-to-Edit:** The workflow for clicking an existing `LatexNode` to open MathLive needs full implementation and verification.
+2. **Visual Styling:** `LatexNode` currently lacks distinct visual styling within the editor.
+3. **Cursor/Selection:** Robustness of cursor positioning and selection handling around `LatexNode` after insertion/editing needs testing.
+4. **Timer Persistence:** Timer state is not persistent across page reloads/navigation (Lower priority for now).
+5. **MathLive Initial Display:** (From todo.txt) MathLive component (`<math-field>`) doesn't appear initially when triggered (`!!`, `Ctrl+Q`) due to `overflow: hidden` in `lambai.tsx`. Requires a permanent CSS solution (Positioning/Z-index, Portal, or Layout Refactor).
 
-2. **UI Components**
-   - Implemented modern header
-   - Added logo and branding
-   - Improved button styling
-   - Enhanced visual feedback
-   - Optimized responsive design
+## Next Steps (Immediate Tasks)
 
-### Content Management
+1. **Fix MathLive Initial Display:**
 
-1. **Features**
-   - Integrated MathQuill
-   - Improved equation editing
-   - Enhanced formatting
-   - Better user experience
+   - [ ] Investigate and implement a solution for the `overflow: hidden` issue preventing MathLive from showing (See Known Issues #5).
 
-## In Progress
+2. **Verification & Implementation:**
 
-### Current Development
+   - [ ] Implement/verify click-to-edit functionality for existing `LatexNode`s.
 
-1. **Server-Side**
+3. **Refinement:**
 
-   - [ ] Optimize task fetching
-   - [ ] Improve session handling
-   - [ ] Enhance error handling
-   - [ ] Add better logging
+   - [ ] Add visual styling to `LatexNode` (e.g., background, border) to make it distinct.
 
-2. **Client-Side**
-   - [ ] Improve UI responsiveness
-   - [ ] Optimize Lexical editor performance if needed
+4. **Thorough Testing (Post-Fixes):**
+   - [ ] Test MathLive display fix in various scenarios.
+   - [ ] Test click-to-edit functionality.
+   - [ ] Retest core editor interactions (`!!`, `Ctrl+Q`, typing, etc.) to ensure no regressions.
 
-### Timer System
+## Upcoming / Longer Term
 
-- [ ] Optimize state management
-- [ ] Improve visual feedback
-- [ ] Enhance error handling
-- [ ] Add persistence
-
-### Known Issues
-
-1. **Server-Side**
-
-   - Task fetching needs optimization
-   - Session handling needs improvement
-   - Error messages need enhancement
-   - Logging needs implementation
-
-2. **Client-Side**
-
-   - UI responsiveness issues
-   - Timer state persistence needed
-
-## Next Steps
-
-### Planned Features / Verification
-
-1. **Testing & Verification**
-
-   - [ ] Test `Ctrl+Q` shortcut thoroughly.
-   - [ ] Test single MathLive instance focus/scroll behavior.
-   - [ ] Test editor disabling during MathLive input.
-   - [ ] Verify independent scrolling works robustly with various content lengths.
-   - [ ] Test `ResizableBox` handle with the Grid layout. Address if needed.
-   - [ ] Implement/verify click-to-edit for existing `LatexNode`s.
-
-2. **UI/UX Refinements**
-
-   - [ ] Add visual styling to `LatexNode`.
-   - [ ] Refine error handling for MathLive.
-
-3. **Longer Term**
-   - [ ] Timer state persistence.
-   - [ ] Optimize editor performance if needed.
+- [ ] Refine error handling for MathLive loading and interaction.
+- [ ] Address Timer state persistence if required.
+- [ ] Optimize editor performance if necessary with complex content.
 
 ## Testing Status
 
@@ -161,9 +105,4 @@
 - `Ctrl+Q` shortcut implemented, needs testing.
 - Single MathLive focus/scroll logic implemented, needs testing.
 - Editor disabling implemented, needs testing.
-- `!!` trigger functionality tested previously.
-- Click-to-edit needs implementation/testing.
-- Timer functionality partially tested.
-
-5. **Maintenance**
-   - [x] Reviewed dependencies and removed unused packages (`@mui/material`, `better-react-mathjax`, `bezier-easing`, `jquery`, `mathjs`, `@types/jquery`).
+- `!!`

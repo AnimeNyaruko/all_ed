@@ -13,7 +13,6 @@ interface SelectionProps {
 }
 
 export default function Selection({ data }: SelectionProps) {
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [_, setSelectedId] = useState<string>("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -72,7 +71,6 @@ export default function Selection({ data }: SelectionProps) {
 				setError(response.error || "Failed to submit assignment");
 				setIsSubmitting(false);
 			}
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		} catch (_) {
 			setError("An unexpected error occurred");
 			setIsSubmitting(false);

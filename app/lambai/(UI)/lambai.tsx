@@ -1,7 +1,6 @@
 "use client";
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { ResizableBox } from "react-resizable";
-import "react-resizable/css/styles.css";
+import { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
+import { Resplit } from "react-resplit";
 import { faPause, faPlay, faStop } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ReactMarkdown from "react-markdown";
@@ -11,6 +10,8 @@ import rehypeRaw from "rehype-raw";
 import "katex/dist/katex.min.css";
 import AnswerArea from "./AnswerArea";
 import { submitAnswers } from "../(handler)/handler";
+import { useOrientationCheck } from "./OrientationCheck";
+import { RotationOverlay } from "./RotationOverlay";
 import type {
 	AnswerBlock,
 	// FormattedOutput, // Removed as unused
@@ -18,96 +19,104 @@ import type {
 } from "../types";
 
 // Tách phần nội dung MathJax thành component riêng
-const QuestionContent = ({ markdownContent }: { markdownContent: string }) => {
-	const content = useMemo(
-		() => (
-			<div
-				className="space-y-4 text-gray-900"
-				style={{
-					overflowWrap: "anywhere",
-					wordBreak: "break-word",
-					direction: "ltr",
-				}}
-			>
-				<div className="mb-4 flex items-center justify-between">
-					<h2 className="text-xl font-bold">Đề bài</h2>
-				</div>
-
-				<ReactMarkdown
-					components={{
-						div: ({ ...props }) => (
-							<div
-								className="prose max-w-none"
-								style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
-								{...props}
-							/>
-						),
-						p: ({ ...props }) => (
-							<p
-								style={{
-									overflowWrap: "anywhere",
-									whiteSpace: "pre-wrap",
-									wordBreak: "break-word",
-								}}
-								{...props}
-							/>
-						),
-						pre: ({ ...props }) => (
-							<pre
-								style={{
-									whiteSpace: "pre-wrap",
-									overflowWrap: "anywhere",
-									wordBreak: "break-word",
-									maxWidth: "100%",
-								}}
-								{...props}
-							/>
-						),
-						code: ({
-							...props
-						}: {
-							inline?: boolean;
-							children?: React.ReactNode;
-						}) => {
-							const isInline = props.inline;
-							return isInline ? (
-								<code
-									style={{
-										overflowWrap: "anywhere",
-										whiteSpace: "pre-wrap",
-										wordBreak: "break-word",
-									}}
-									{...props}
-								/>
-							) : (
-								<code
-									style={{
-										display: "block",
-										overflowWrap: "anywhere",
-										whiteSpace: "pre-wrap",
-										wordBreak: "break-word",
-									}}
-									{...props}
-								/>
-							);
-						},
-						sub: ({ ...props }) => <sub {...props} />,
+const QuestionContent = memo(
+	({ markdownContent }: { markdownContent: string }) => {
+		const content = useMemo(
+			() => (
+				<div
+					className="space-y-4 text-gray-900"
+					style={{
+						overflowWrap: "anywhere",
+						wordBreak: "break-word",
+						direction: "ltr",
 					}}
-					remarkPlugins={[remarkMath]}
-					rehypePlugins={[rehypeKatex, rehypeRaw]}
 				>
-					{markdownContent}
-				</ReactMarkdown>
-			</div>
-		),
-		[markdownContent],
-	);
+					<div className="mb-4 flex items-center justify-between">
+						<h2 className="text-xl font-bold">Đề bài</h2>
+					</div>
 
-	return content;
-};
+					<ReactMarkdown
+						components={{
+							div: ({ ...props }) => (
+								<div
+									className="prose max-w-none"
+									style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+									{...props}
+								/>
+							),
+							p: ({ ...props }) => (
+								<p
+									style={{
+										overflowWrap: "anywhere",
+										whiteSpace: "pre-wrap",
+										wordBreak: "break-word",
+									}}
+									{...props}
+								/>
+							),
+							pre: ({ ...props }) => (
+								<pre
+									style={{
+										whiteSpace: "pre-wrap",
+										overflowWrap: "anywhere",
+										wordBreak: "break-word",
+										maxWidth: "100%",
+									}}
+									{...props}
+								/>
+							),
+							code: ({
+								...props
+							}: {
+								inline?: boolean;
+								children?: React.ReactNode;
+							}) => {
+								const isInline = props.inline;
+								return isInline ? (
+									<code
+										style={{
+											overflowWrap: "anywhere",
+											whiteSpace: "pre-wrap",
+											wordBreak: "break-word",
+										}}
+										{...props}
+									/>
+								) : (
+									<code
+										style={{
+											display: "block",
+											overflowWrap: "anywhere",
+											whiteSpace: "pre-wrap",
+											wordBreak: "break-word",
+										}}
+										{...props}
+									/>
+								);
+							},
+							sub: ({ ...props }) => <sub {...props} />,
+						}}
+						remarkPlugins={[remarkMath]}
+						rehypePlugins={[rehypeKatex, rehypeRaw]}
+					>
+						{markdownContent}
+					</ReactMarkdown>
+				</div>
+			),
+			[markdownContent],
+		);
+
+		return content;
+	},
+);
+QuestionContent.displayName = "QuestionContent";
 
 export default function Home({ markdownContent }: { markdownContent: string }) {
 	const [leftWidth, setLeftWidth] = useState(0);
+	const [isDragging, setIsDragging] = useState(false);
+	const [ghostLeft, setGhostLeft] = useState<number | null>(null);
+	const dragStartXRef = useRef<number | null>(null);
+	const startLeftWidthRef = useRef<number>(0);
+	const ghostLeftRef = useRef<number | null>(null);
 	const [answers, setAnswers] = useState<Record<string, AnswerBlock[]>>({});
 	const [isTimerRunning, setIsTimerRunning] = useState(false);
 	const [isTimerPaused, setIsTimerPaused] = useState(false);
@@ -115,6 +124,9 @@ export default function Home({ markdownContent }: { markdownContent: string }) {
 	const timerRef = useRef<NodeJS.Timeout>(null);
 	const [isClient, setIsClient] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	// Kiểm tra hướng màn hình
+	const isLandscape = useOrientationCheck();
 
 	// Parse the JSON content
 	const content = useMemo(() => {
@@ -129,24 +141,113 @@ export default function Home({ markdownContent }: { markdownContent: string }) {
 	// Extract questions (all keys except de_bai)
 	const questions = useMemo(() => {
 		const { de_bai: _de_bai, ...rest } = content;
-		console.log("Extracted (but unused) de_bai:", _de_bai);
 		return rest;
 	}, [content]);
 
 	// Khởi tạo kích thước ban đầu & Set client state
 	useEffect(() => {
-		setLeftWidth(window.innerWidth / 2);
+		const initialWidth = window.innerWidth / 2;
+		setLeftWidth(initialWidth);
 		setIsClient(true);
 	}, []);
 
-	// Tối ưu hàm resize
-	const handleResize = useCallback(
-		// The first argument (event) is unused, only take the data object
-		(_: React.SyntheticEvent, data: { size: { width: number } }) => {
-			const { size } = data;
-			setLeftWidth(size.width);
+	// --- Custom Drag Handlers ---
+	const handleDragMove = useCallback((event: MouseEvent | TouchEvent) => {
+		if (dragStartXRef.current === null) return;
+
+		const currentX =
+			"touches" in event ? event.touches[0].clientX : event.clientX;
+		const deltaX = currentX - dragStartXRef.current;
+		const newGhostLeft = startLeftWidthRef.current + deltaX;
+
+		// Apply constraints (e.g., min/max width)
+		const minWidth = 300;
+		const maxWidth = window.innerWidth - 300;
+		const constrainedGhostLeft = Math.max(
+			minWidth,
+			Math.min(maxWidth, newGhostLeft),
+		);
+
+		setGhostLeft(constrainedGhostLeft);
+		ghostLeftRef.current = constrainedGhostLeft;
+
+		// Prevent default text selection during drag
+		if (event.cancelable) {
+			event.preventDefault();
+		}
+	}, []);
+
+	const handleDragEnd = useCallback(
+		(event: MouseEvent | TouchEvent) => {
+			if (!isDragging) return;
+
+			setIsDragging(false);
+
+			if (ghostLeftRef.current !== null) {
+				setLeftWidth(ghostLeftRef.current);
+			}
+
+			setGhostLeft(null);
+			ghostLeftRef.current = null;
+			dragStartXRef.current = null;
+
+			// Re-enable user select is handled by useEffect cleanup
+			if (event.cancelable) {
+				event.preventDefault();
+			}
 		},
-		[],
+		[isDragging],
+	);
+
+	// Effect to add/remove global listeners based on isDragging state
+	useEffect(() => {
+		const moveHandler = (e: MouseEvent | TouchEvent) => handleDragMove(e);
+		const endHandler = (e: MouseEvent | TouchEvent) => handleDragEnd(e);
+
+		if (isDragging) {
+			document.addEventListener("mousemove", moveHandler);
+			document.addEventListener("mouseup", endHandler);
+			document.addEventListener("touchmove", moveHandler, { passive: false });
+			document.addEventListener("touchend", endHandler);
+			// Optional: Disable text selection globally during drag
+			document.body.style.userSelect = "none";
+		} else {
+			document.removeEventListener("mousemove", moveHandler);
+			document.removeEventListener("mouseup", endHandler);
+			document.removeEventListener("touchmove", moveHandler);
+			document.removeEventListener("touchend", endHandler);
+			// Re-enable user select when not dragging
+			document.body.style.userSelect = "";
+		}
+
+		// Cleanup function to remove listeners when component unmounts or before re-running effect
+		return () => {
+			document.removeEventListener("mousemove", moveHandler);
+			document.removeEventListener("mouseup", endHandler);
+			document.removeEventListener("touchmove", moveHandler);
+			document.removeEventListener("touchend", endHandler);
+			// Ensure user select is re-enabled on unmount
+			document.body.style.userSelect = "";
+		};
+	}, [isDragging, handleDragMove, handleDragEnd]);
+
+	const handleDragStart = useCallback(
+		(event: React.MouseEvent | React.TouchEvent) => {
+			if (isDragging) return;
+
+			const currentX =
+				"touches" in event.nativeEvent
+					? event.nativeEvent.touches[0].clientX
+					: event.nativeEvent.clientX;
+			dragStartXRef.current = currentX;
+			startLeftWidthRef.current = leftWidth;
+			ghostLeftRef.current = leftWidth;
+			setGhostLeft(leftWidth);
+			setIsDragging(true);
+
+			event.preventDefault();
+		},
+		[leftWidth, isDragging],
 	);
 
 	// Timer effect
@@ -201,11 +302,6 @@ export default function Home({ markdownContent }: { markdownContent: string }) {
 	const handleSubmit = async () => {
 		if (isSubmitting) return; // Ngăn chặn submit nhiều lần
 		setIsSubmitting(true);
-		console.log("Submitting answers...");
-		console.log("Timer:", timer);
-		console.log("De Bai:", content.de_bai);
-		console.log("Questions:", questions);
-		console.log("Answers:", answers);
 
 		try {
 			const result = await submitAnswers(
@@ -216,7 +312,6 @@ export default function Home({ markdownContent }: { markdownContent: string }) {
 			);
 
 			if (result.success) {
-				console.log("Submission successful:", result.data);
 				// Optional: Chuyển hướng hoặc hiển thị thông báo thành công
 				alert("Nộp bài thành công!");
 			} else {
@@ -232,8 +327,19 @@ export default function Home({ markdownContent }: { markdownContent: string }) {
 		}
 	};
 
+	// Define the answer update handler with useCallback for stable reference
+	const handleAnswersChange = useCallback(
+		(newAnswers: Record<string, AnswerBlock[]>) => {
+			setAnswers((prev) => ({ ...prev, ...newAnswers }));
+		},
+		[], // No dependencies, setAnswers is stable
+	);
+
 	return (
 		<div className="bg-gray-100 flex min-h-screen flex-col">
+			{/* Rotation Overlay */}
+			<RotationOverlay isVisible={isClient && !isLandscape} />
+
 			{/* Header */}
 			<header className="bg-gray-100 border-black border-b">
 				<div className="max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto">
@@ -304,46 +410,63 @@ export default function Home({ markdownContent }: { markdownContent: string }) {
 				</div>
 			</header>
 
-			{/* Main Content Area */}
-			<div
-				className="grid h-[calc(100vh-64px)] overflow-hidden"
-				style={{ gridTemplateColumns: `${leftWidth}px 1fr` }}
-			>
-				{/* Left Panel - Question Area */}
-				<div className="relative overflow-hidden">
-					<ResizableBox
-						width={leftWidth}
-						onResize={handleResize}
-						axis="x"
-						minConstraints={[300, Infinity]}
-						maxConstraints={[800, Infinity]}
-						handle={
-							<div className="right-0 top-0 bottom-0 w-2 bg-gray-300 hover:bg-blue-500 absolute cursor-col-resize transition-colors duration-200" />
-						}
+			{/* Main Content Area using Resplit */}
+			{isClient && (
+				<div
+					className="grid flex-1 overflow-hidden" // Use grid directly
+					style={{
+						gridTemplateColumns: `${leftWidth}px 1fr`, // Control columns via state
+						position: "relative", // Needed for absolute positioning of ghost
+					}}
+				>
+					{/* Left Panel */}
+					<div
+						className="bg-white shadow-md h-full overflow-hidden" // Keep styling
+						style={{ direction: "rtl" }}
 					>
 						<div
-							className="bg-white p-6 h-full"
-							style={{ overflowY: "auto", direction: "rtl" }}
+							className="p-6 h-full overflow-y-auto"
+							style={{ direction: "ltr" }}
 						>
-							<QuestionContent markdownContent={content.de_bai} />
+							<QuestionContent markdownContent={content.de_bai || ""} />
 						</div>
-					</ResizableBox>
-				</div>
+					</div>
 
-				{/* Right Panel - Answer Area */}
-				<div className="bg-white p-6 relative overflow-hidden">
-					<div className="inset-0 p-6 absolute overflow-y-auto">
-						{isClient && (
+					{/* Splitter Handle */}
+					<div
+						onMouseDown={handleDragStart}
+						onTouchStart={handleDragStart}
+						className="top-0 bottom-0 w-2 bg-gray-300 hover:bg-blue-500 absolute cursor-col-resize"
+						style={{
+							left: `${leftWidth}px`, // Position handle based on state
+							transform: "translateX(-50%)", // Center the handle visually
+							zIndex: 20,
+						}}
+					/>
+
+					{/* Ghost Bar - Rendered conditionally during custom drag */}
+					{isDragging && ghostLeft !== null && (
+						<div
+							className="top-0 bottom-0 w-0.5 bg-blue-500 absolute opacity-75"
+							style={{
+								left: `${ghostLeft}px`, // Position ghost based on drag state
+								zIndex: 30, // Ensure ghost is above handle and content
+								pointerEvents: "none", // Prevent ghost from intercepting mouse events
+							}}
+						/>
+					)}
+
+					{/* Right Panel */}
+					<div className="bg-gray-50 shadow-inner relative overflow-hidden">
+						<div className="inset-0 p-6 absolute overflow-y-auto">
 							<AnswerArea
 								questions={questions}
-								onAnswersChange={(newAnswers) =>
-									setAnswers((prev) => ({ ...prev, ...newAnswers }))
-								}
+								onAnswersChange={handleAnswersChange}
 							/>
-						)}
+						</div>
 					</div>
 				</div>
-			</div>
+			)}
 		</div>
 	);
 }

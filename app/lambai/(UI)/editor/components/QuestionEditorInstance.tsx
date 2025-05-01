@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -24,7 +24,11 @@ interface QuestionEditorInstanceProps {
 	questionKey: string;
 	questionContent: string;
 	initialConfig: InitialConfigType;
-	triggerForThisEditor: (nodeKey: string | null, initialLatex?: string) => void;
+	triggerMathfieldFunc: (
+		key: string,
+		nodeKey: string | null,
+		initialLatex?: string,
+	) => void;
 	debouncedOnAnswersChange: (
 		key: string,
 		editorState: EditorState,
@@ -43,106 +47,124 @@ interface QuestionEditorInstanceProps {
 	isCortexLoaded: boolean;
 }
 
-// Ensure the component is exported as default
-export default function QuestionEditorInstance({
-	questionKey,
-	questionContent,
-	initialConfig,
-	triggerForThisEditor,
-	debouncedOnAnswersChange,
-	isLatexInputVisible,
-	currentLatexValue,
-	editingNodeKey,
-	activeEditorKey,
-	activeMathLiveKey,
-	handleMathfieldInput,
-	handleMathfieldKeyDown,
-	isCortexLoaded,
-}: QuestionEditorInstanceProps) {
-	return (
-		<div className="space-y-4">
-			{/* Question Display */}
-			<div className="prose max-w-none">
-				<ReactMarkdown
-					remarkPlugins={[remarkMath]}
-					rehypePlugins={[rehypeKatex, rehypeRaw]}
-				>
-					{questionContent}
-				</ReactMarkdown>
-			</div>
+// Wrap the component with React.memo
+const QuestionEditorInstance = React.memo(
+	({
+		questionKey,
+		questionContent,
+		initialConfig,
+		triggerMathfieldFunc,
+		debouncedOnAnswersChange,
+		isLatexInputVisible,
+		currentLatexValue,
+		editingNodeKey,
+		activeEditorKey,
+		activeMathLiveKey,
+		handleMathfieldInput,
+		handleMathfieldKeyDown,
+		isCortexLoaded,
+	}: QuestionEditorInstanceProps) => {
+		// Create the specific trigger function needed by the context/plugins
+		// This function now has a stable reference if triggerMathfieldFunc is stable
+		const triggerForThisKey = useCallback(
+			(nodeKey: string | null, initialLatex?: string) => {
+				triggerMathfieldFunc(questionKey, nodeKey, initialLatex);
+			},
+			[triggerMathfieldFunc, questionKey], // Dependencies
+		);
 
-			{/* Lexical Editor Setup */}
-			<LexicalComposer initialConfig={initialConfig}>
-				<div className="border-gray-300 rounded-lg relative border">
-					<LatexPluginContext.Provider
-						value={{
-							triggerMathfield: triggerForThisEditor,
-							activeMathLiveKey,
-						}}
+		return (
+			<div className="space-y-4">
+				{/* Question Display */}
+				<div className="prose max-w-none">
+					<ReactMarkdown
+						remarkPlugins={[remarkMath]}
+						rehypePlugins={[rehypeKatex, rehypeRaw]}
 					>
-						<RichTextPlugin
-							contentEditable={
-								<ContentEditable
-									className="p-4 min-h-[150px] resize-none outline-none"
-									readOnly={isLatexInputVisible[questionKey]}
-								/>
-							}
-							placeholder={
-								<div className="top-4 left-4 text-gray-400 pointer-events-none absolute">
-									Nhập câu trả lời... Dùng &apos;!!&apos; hoặc Ctrl+Q để chèn
-									công thức.
-								</div>
-							}
-							ErrorBoundary={LexicalErrorBoundary}
-						/>
-						<HistoryPlugin />
-						<OnChangePlugin
-							onChange={(editorState, editor) =>
-								debouncedOnAnswersChange(questionKey, editorState, editor)
-							}
-						/>
-						<LatexTriggerPlugin trigger={triggerForThisEditor} />
-						<MathShortcutPlugin />
-					</LatexPluginContext.Provider>
+						{questionContent}
+					</ReactMarkdown>
 				</div>
-			</LexicalComposer>
 
-			{/* Conditional MathLive Input Area */}
-			{activeEditorKey === questionKey &&
-				isLatexInputVisible[questionKey] &&
-				isCortexLoaded && (
-					<div className="mt-2 p-2 border-blue-300 rounded bg-blue-50 border">
-						<label
-							htmlFor={`math-input-${questionKey}`}
-							className="text-sm font-medium text-gray-700 mb-1 block"
-						>
-							{editingNodeKey[questionKey] ? "Sửa" : "Nhập"} LaTeX (Enter để
-							hoàn thành):
-						</label>
-						{/* Use the math-field web component */}
-						{/* @ts-expect-error TODO: Improve type definitions for math-field */}
-						<math-field
-							id={`math-input-${questionKey}`}
-							style={{
-								display: "block",
-								width: "100%",
-								border: "1px solid #ccc",
-								padding: "5px",
-								fontSize: "1em",
+				{/* Lexical Editor Setup */}
+				<LexicalComposer initialConfig={initialConfig}>
+					<div className="border-gray-300 rounded-lg relative border">
+						<LatexPluginContext.Provider
+							value={{
+								// Use the newly created stable trigger function
+								triggerMathfield: triggerForThisKey,
+								activeMathLiveKey,
 							}}
-							value={currentLatexValue[questionKey] || ""}
-							onInput={(e: Event) => handleMathfieldInput(questionKey, e)}
-							onKeyDown={(e: React.KeyboardEvent<HTMLElement>) =>
-								handleMathfieldKeyDown(questionKey, e)
-							}
-							virtual-keyboard-mode="manual"
-							// @ts-expect-error TODO: Improve type definitions for math-field
-						></math-field>
+						>
+							<RichTextPlugin
+								contentEditable={
+									<ContentEditable
+										className="p-4 min-h-[150px] resize-none outline-none"
+										readOnly={isLatexInputVisible[questionKey]}
+									/>
+								}
+								placeholder={
+									<div className="top-4 left-4 text-gray-400 pointer-events-none absolute">
+										Nhập câu trả lời... Dùng &apos;!!&apos; hoặc Ctrl+Q để chèn
+										công thức.
+									</div>
+								}
+								ErrorBoundary={LexicalErrorBoundary}
+							/>
+							<HistoryPlugin />
+							<OnChangePlugin
+								onChange={(editorState, editor) =>
+									debouncedOnAnswersChange(questionKey, editorState, editor)
+								}
+							/>
+							{/* Pass the stable trigger function to the plugin */}
+							<LatexTriggerPlugin trigger={triggerForThisKey} />
+							<MathShortcutPlugin />
+						</LatexPluginContext.Provider>
 					</div>
-				)}
+				</LexicalComposer>
 
-			{/* Separator */}
-			<div className="border-gray-200 mt-4 border-t" />
-		</div>
-	);
-}
+				{/* Conditional MathLive Input Area */}
+				{activeEditorKey === questionKey &&
+					isLatexInputVisible[questionKey] &&
+					isCortexLoaded && (
+						<div className="mt-2 p-2 border-blue-300 rounded bg-blue-50 border">
+							<label
+								htmlFor={`math-input-${questionKey}`}
+								className="text-sm font-medium text-gray-700 mb-1 block"
+							>
+								{editingNodeKey[questionKey] ? "Sửa" : "Nhập"} LaTeX (Enter để
+								hoàn thành):
+							</label>
+							{/* Use the math-field web component */}
+							{/* @ts-expect-error TODO: Improve type definitions for math-field */}
+							<math-field
+								id={`math-input-${questionKey}`}
+								style={{
+									display: "block",
+									width: "100%",
+									border: "1px solid #ccc",
+									padding: "5px",
+									fontSize: "1em",
+								}}
+								value={currentLatexValue[questionKey] || ""}
+								onInput={(e: Event) => handleMathfieldInput(questionKey, e)}
+								onKeyDown={(e: React.KeyboardEvent<HTMLElement>) =>
+									handleMathfieldKeyDown(questionKey, e)
+								}
+								virtual-keyboard-mode="manual"
+								// @ts-expect-error TODO: Improve type definitions for math-field
+							></math-field>
+						</div>
+					)}
+
+				{/* Separator */}
+				<div className="border-gray-200 mt-4 border-t" />
+			</div>
+		);
+	},
+);
+
+QuestionEditorInstance.displayName = "QuestionEditorInstance"; // Add display name
+
+// Ensure the component is exported as default
+export default QuestionEditorInstance;

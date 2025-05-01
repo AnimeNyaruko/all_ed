@@ -2,82 +2,77 @@
 
 ## Current Focus
 
-Refining the user interaction patterns for LaTeX editing and ensuring the layout behaves robustly.
+Addressing the remaining functional issues in the LaTeX editor, specifically the initial MathLive display problem and click-to-edit functionality.
 
 ## Recent Changes
 
-1.  **LaTeX/MathLive Enhancements (`useMathLiveManager`, `plugins`, `QuestionEditorInstance`)**
+1.  **Performance Optimization (Resize Lag)**
 
-    - Added `Ctrl+Q` keyboard shortcut (via `MathShortcutPlugin`) as an alternative to `!!` for triggering the MathLive input. Handles selection removal like `!!`.
-    - Implemented single MathLive instance logic: Attempting to trigger MathLive (via `!!` or `Ctrl+Q`) when another instance is already active will now scroll to and **focus** the active MathLive input instead of opening a new one. (`useMathLiveManager`)
-    - Disabled the Lexical editor instance (`ContentEditable` set to `readOnly`) while its corresponding MathLive input is visible. (`QuestionEditorInstance`)
-    - Updated editor placeholder text to include both `!!` and `Ctrl+Q` instructions. (`QuestionEditorInstance`)
+    - Replaced `react-resizable` with a custom drag-handling mechanism built directly into the `lambai.tsx` component.
+    - Implemented a "ghost bar" effect: The visible handle remains stationary during drag, while a visual indicator (`ghostLeft` state) tracks the potential position. The actual layout (`leftWidth` state controlling `gridTemplateColumns`) updates only on drag end (`mouseup`/`touchend`).
+    - Utilized `useRef` (`dragStartXRef`, `startLeftWidthRef`, `ghostLeftRef`) to manage drag state and avoid stale state issues in event handlers.
+    - Employed `useEffect` hook triggered by `isDragging` state to manage the addition and removal of global `mousemove`/`touchmove` and `mouseup`/`touchend` event listeners, ensuring timely listener management and cleanup.
+    - Achieved smooth resizing performance, confirmed via testing under simulated heavy load and on mobile devices.
 
-2.  **Layout & Scrolling Fixes (`lambai.tsx`, `ui/Style/index.css`)**
+2.  **Code Quality (Linting)**
 
-    - Replaced the main content area's Flexbox layout with CSS Grid (`gridTemplateColumns`, explicit grid container height, `overflow: hidden`) to manage panel sizing.
-    - Implemented independent vertical scrolling for the left and right panels.
-    - Applied `direction: rtl` to the left panel's scroll container and `direction: ltr` to its direct child (`QuestionContent`) to achieve a left-aligned scrollbar.
-    - Added global CSS to prevent `html`, `body` scrolling (`overflow: hidden`, `height: 100%`).
-    - Adjusted padding on the right panel's scrollable content area to match the left panel (`p-6`).
+    - Ran `pnpm run lint` and identified several unused `eslint-disable` directives.
+    - Removed these unnecessary directives from `route.ts`, `handler.ts`, `LatexPlugin.tsx`, and `Selection.tsx`.
+    - Confirmed that `pnpm run lint` now passes without warnings or errors.
 
-3.  **Dependency Cleanup (Previous)**
-    - Removed unused dependencies.
+3.  **Previous Changes (Carry-over)**
+    - LaTeX/MathLive enhancements (`Ctrl+Q`, single instance, editor disabling).
+    - Layout refactor to CSS Grid, independent scrolling fixes.
 
 ## Active Decisions
 
-1.  **LaTeX Editing Flow**
+1.  **Resizing Mechanism**
 
-    - Kept `!!` trigger via `LatexTriggerPlugin`.
-    - Added `Ctrl+Q` trigger via `MathShortcutPlugin`.
-    - Both triggers call `triggerMathfield` in `useMathLiveManager`.
-    - `useMathLiveManager` now enforces **single active MathLive instance**, handling focus/scroll redirection.
-    - Editor instance is **disabled** (`readOnly`) when its MathLive input is active.
+    - Abandoned `react-resizable` due to performance issues in the grid layout.
+    - Adopted a custom "ghost drag" implementation for optimal performance and UX.
+    - Event listeners (`mousedown`/`touchstart`) are attached directly to the handle `div`.
+    - Global listeners for move/end events are managed via `useEffect` and `isDragging` state.
 
-2.  **Lexical Implementation**
+2.  **Linting**
 
-    - `registerCommand(KEY_DOWN_COMMAND, ...)` used in `MathShortcutPlugin`.
-    - Context (`LatexPluginContext`) passes `triggerMathfield` and `activeMathLiveKey`.
+    - Removed confirmed unused `eslint-disable` directives.
+    - Continue to run `pnpm run lint` after significant changes.
 
-3.  **Layout & Styling**
-    - **CSS Grid** used for the main two-column layout to provide explicit sizing and height boundaries.
-    - **Independent Scrolling** achieved using `overflow: hidden` on wrappers and `overflow-y: auto` on `h-full` or absolutely positioned inner divs.
-    - **Left Scrollbar:** `direction: rtl / ltr` technique applied.
-    - Global styles prevent page-level scrollbars.
+3.  **Layout & Styling (Unchanged from previous)**
+    - CSS Grid for main layout.
+    - Independent Scrolling patterns.
+    - Left Scrollbar technique.
 
 ## Current Issues
 
-1.  **Under Investigation / To Verify**
+1.  **Under Investigation / To Implement**
 
-    - **ResizableBox Handle:** The resizing handle's appearance/functionality might be affected by the parent `overflow: hidden` in the grid layout. Needs testing.
-    - Click-to-edit functionality for existing `LatexNode`s.
-    - Robustness of cursor positioning after inserting/editing LaTeX.
-    - Visual styling/feedback for the `LatexNode`.
+    - **MathLive Initial Display:** (Top Priority) The `<math-field>` component fails to render initially when triggered due to `overflow: hidden` on parent containers in `lambai.tsx`. Needs CSS solution (Positioning/Z-index, Portal, or Layout Refactor).
+    - **Click-to-Edit:** Functionality for editing existing `LatexNode`s by clicking them.
+    - Visual styling for `LatexNode`.
+    - Robustness of cursor positioning/selection around `LatexNode`s.
 
-2.  **Known Issues (Carry-over)**
+2.  **Known Issues (Lower Priority)**
     - Timer state persistence.
 
 ## Next Steps
 
 1.  **Immediate Tasks**
 
-    - **Test thoroughly:** Verify `Ctrl+Q`, single MathLive focus/scroll, editor disabling, and layout scrolling across different content heights and scenarios.
-    - **Test ResizableBox:** Check if the resizing handle works correctly with the grid layout and `overflow: hidden`. Address if necessary.
-    - Implement/verify click-to-edit for existing `LatexNode`s.
+    - **Fix MathLive Initial Display:** Investigate CSS solutions (Positioning/Z-index, Portal, Layout structure) to allow MathLive to appear correctly despite `overflow: hidden`.
+    - Implement click-to-edit for existing `LatexNode`s.
     - Add visual styling to `LatexNode`.
 
-2.  **Upcoming Features**
-    - Refine error handling for MathLive loading and interaction.
+2.  **Testing**
+    - Thoroughly test the MathLive display fix and click-to-edit functionality.
+    - Perform regression testing on core editor features.
 
 ## Recent Feedback
 
-- User reported scrolling issues which led to the CSS Grid refactor.
-- User requested focus behavior for existing MathLive instance.
+- User confirmed custom ghost drag logic resolved the resize lag effectively.
+- User confirmed the need to address MathLive initial display issue next.
 
 ## Implementation Notes
 
-- Layout: `app/lambai/(UI)/lambai.tsx` uses CSS Grid.
-- Global styles: `ui/Style/index.css`.
-- MathLive State/Logic: `app/lambai/(UI)/editor/hooks/useMathLiveManager.ts`.
-- Shortcut Plugin: `app/lambai/(UI)/editor/plugins/MathShortcutPlugin.tsx`.
-- Editor Component: `app/lambai/(UI)/editor/components/QuestionEditorInstance.tsx`.
+- Resizing Logic: Implemented directly in `app/lambai/(UI)/lambai.tsx` using state, refs, and event listeners.
+- Next focus: CSS issues in `lambai.tsx` related to `overflow: hidden` and potentially `QuestionEditorInstance.tsx` or `useMathLiveManager.ts` for click-to-edit.

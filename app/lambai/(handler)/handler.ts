@@ -53,7 +53,6 @@ export async function handler() {
 			data: task,
 			status: "success",
 		};
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	} catch (_) {
 		return {
 			data: null,
@@ -80,7 +79,6 @@ export async function submitAssignment(formData: FormData) {
 		}
 
 		return { success: true, assignmentId: assignmentId.toString() };
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	} catch (_) {
 		return { success: false, error: "An error occurred" };
 	}

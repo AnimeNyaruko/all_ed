@@ -24,7 +24,7 @@ export async function handler(formData: FormData) {
 		.update(`${promptString}${Math.random() * 1000000000 + 1}`)
 		.digest("hex");
 	const data_string = `${prompt.reduce((prev, curr, index: number) => {
-		return `${prev.toString()}${index === 0 ? "" : "\\n"}Lớp: ${_class[index]} - Môn: ${subject[index]} - Bài tập: ${curr.toString()} - Cấp độ: ${level[index]} - Số lượng: ${quantity}`;
+		return `${prev.toString()}${index === 0 ? "" : "\\n"}Lớp: ${_class[index]} - Môn: ${subject[index]} - Bài tập: ${curr.toString()} - Cấp độ: ${level[index]}`;
 	}, "")}\\nSố lượng: ${quantity}`;
 
 	try {

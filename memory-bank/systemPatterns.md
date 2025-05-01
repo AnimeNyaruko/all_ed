@@ -25,7 +25,7 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
 
 1. **UI Layout (`lambai.tsx`, `ui/Style/index.css`)**
 
-   - **CSS Grid Layout:** Main content area uses `display: grid` with columns defined by `gridTemplateColumns: \`${leftWidth}px 1fr\``. Container has fixed height (`calc(100vh - headerHeight)`) and `overflow: hidden`.\n    - **Independent Scrolling:** Left and right panels achieve independent scrolling.\n        - Wrapper divs (`relative/overflow-hidden`or`bg-white p-6 overflow-hidden relative`) clip overflow within their grid cell.\n        - Inner content divs use `h-full overflow-y-auto`or`absolute inset-0 overflow-y-auto`.\n    - **Left Scrollbar:** Left panel uses `direction: rtl`on the scroll container and`direction: ltr` on the content (`QuestionContent`) to position scrollbar on the left.\n    - **Resizable Panels:** `ResizableBox`used for the left panel (handle functionality needs verification post-grid implementation).\n    - **Global Styles:**`html, body`have`height: 100%`, `overflow: hidden`.\n - Modern header & Timer controls.\n
+   - **CSS Grid Layout:** Main content area uses `display: grid` with columns defined by `gridTemplateColumns: \`${leftWidth}px 1fr\``. Container has fixed height (`calc(100vh - headerHeight)`) and `overflow: hidden`.\n    - **Independent Scrolling:** Left and right panels achieve independent scrolling.\n        - Wrapper divs (`relative/overflow-hidden`or`bg-white p-6 overflow-hidden relative`) clip overflow within their grid cell.\n        - Inner content divs use `h-full overflow-y-auto`or`absolute inset-0 overflow-y-auto`.\n    - **Left Scrollbar:** Left panel uses `direction: rtl`on the scroll container and`direction: ltr` on the content (`QuestionContent`) to position scrollbar on the left.\n    - **Resizable Panels:** Custom Ghost Drag implementation.\n    - **Global Styles:**`html, body`have`height: 100%`, `overflow: hidden`.\n - Modern header & Timer controls.\n
 
 2. **Content Management & Editing (`AnswerArea.tsx`, `editor/`)**
 
@@ -71,7 +71,7 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
 
 2. **Lexical Editor Configuration (`QuestionEditorInstance.tsx`)**
 
-   - Plugins (`RichTextPlugin`, `HistoryPlugin`, `OnChangePlugin`, `LatexTriggerPlugin`, `MathShortcutPlugin`) provide functionality.\n - Context (`LatexPluginContext`) used for cross-component communication (`triggerMathfield`, `activeMathLiveKey`).\n
+   - Plugins (`RichTextPlugin`, `HistoryPlugin`, `OnChangePlugin`, `LatexTriggerPlugin`, `MathShortcutPlugin`) provide functionality.\n - Context (`LatexPluginContext`) used for cross-component communication (`triggerMathfield`, `activeMathLiveKey`).\n - Handles selection removal within `editor.update()` before calling trigger.\n
 
 3. **External UI Interaction (MathLive)**
 
@@ -90,7 +90,23 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
    - Custom methods like `setLatex`.
 
 6. **Keyboard Shortcuts (`MathShortcutPlugin.tsx`)**
+
    - Uses `editor.registerCommand(KEY_DOWN_COMMAND, ...)`.\n - Checks for specific key combination (`Ctrl+Q`).\n - Prevents default browser action (`event.preventDefault()`).\n - Calls context function (`triggerMathfield`) to initiate action.\n - Handles selection removal within `editor.update()` before calling trigger.\n
+
+7. **Custom Resizing: Ghost Drag (`lambai.tsx`)**
+   - Replaces `ResizableBox`.
+   - **State:** Uses `isDragging` (boolean), `ghostLeft` (number | null for ghost position).
+   - **Refs:** Uses `dragStartXRef` (number | null), `startLeftWidthRef` (number), `ghostLeftRef` (number | null for latest position) to manage drag state and avoid stale closure issues.
+   - **Event Handling:**
+     - `onMouseDown`/`onTouchStart` on the handle `div` triggers `handleDragStart`.
+     - `handleDragStart`: Sets `isDragging=true`, records start X and width, initializes ghost state/ref.
+     - `useEffect [isDragging]`: Adds/removes global `mousemove`/`touchmove` and `mouseup`/`touchend` listeners to `document`.
+     - `handleDragMove`: Calculates new ghost position based on delta X, applies constraints, updates `ghostLeft` state (for render) and `ghostLeftRef` (for `handleDragEnd`). Prevents default text selection.
+     - `handleDragEnd`: Sets `isDragging=false` (triggers listener removal via `useEffect`), reads final position from `ghostLeftRef`, updates `leftWidth` state to apply layout change, resets refs and ghost state.
+   - **Rendering:**
+     - Handle `div` is positioned absolutely based on `leftWidth`.
+     - Ghost `div` is rendered conditionally based on `isDragging` and positioned absolutely based on `ghostLeft`.
+   - **Layout Update:** Main layout `div` uses `style={{ gridTemplateColumns: \`${leftWidth}px 1fr\` }}`.
 
 ## Technical Decisions
 
@@ -115,7 +131,7 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
 - **Tailwind CSS** for styling.
 - **CSS Grid** for main two-column layout (replaced Flexbox).
 - CSS `direction: rtl/ltr` for left scrollbar.
-- `react-resizable` for left panel width adjustment.
+- Custom hook/logic for left panel width adjustment (Ghost Drag).
 - FontAwesome icons.
 
 ### Editor: Lexical
@@ -142,24 +158,29 @@ graph TD
     GlobalCSS[ui/Style/index.css]
 
     subgraph App
-        LayoutGrid{Grid Container (h-calc, overflow-hidden)}
+        LayoutGrid{Grid Container (h-calc, overflow-hidden, relative)}
         LeftPanelWrapper{Left Panel Wrapper (overflow-hidden)}
         RightPanelWrapper{Right Panel Wrapper (overflow-hidden)}
         Header[Header]
-        ResizableBox[ResizableBox]
+        DragHandle[Custom Drag Handle (div)]
+        GhostBar[Ghost Bar (div, conditional)]
         QuestionContent[QuestionContent (direction: ltr)]
         AnswerArea[AnswerArea]
 
-        LayoutGrid --> LeftPanelWrapper
-        LayoutGrid --> RightPanelWrapper
+        LayoutGrid -- contains --> LeftPanelWrapper
+        LayoutGrid -- contains --> RightPanelWrapper
+        LayoutGrid -- contains --> DragHandle
+        LayoutGrid -- contains --> GhostBar
         App --> Header
 
-        LeftPanelWrapper --> ResizableBox
-        ResizableBox --> LeftScrollDiv(Scroll Div (h-full, overflow-y:auto, direction:rtl))
+        LeftPanelWrapper --> LeftScrollDiv(Scroll Div (h-full, overflow-y:auto, direction:rtl))
         LeftScrollDiv --> QuestionContent
 
         RightPanelWrapper --> RightScrollDiv(Scroll Div (absolute, inset-0, p-6, overflow-y:auto))
         RightScrollDiv --> AnswerArea
+
+        DragHandle -- interaction triggers --> GhostBar[updates position]
+        DragHandle -- interaction end updates --> LayoutGrid[gridTemplateColumns]
     end
 
     subgraph AnswerArea

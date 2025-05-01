@@ -53,32 +53,33 @@
 
 ```
 app/
-  test/
-    page.tsx              # Main page component
-    (handler)/
-      handler.ts          # Server-side handler
+  lambai/                 # Main route for the assignment/editor view
     (UI)/
-      lambai.tsx          # UI components
-    selection/            # Selection components
-  lambai/
-    (UI)/
-      lambai.tsx              # Main page layout (Grid), Question rendering, Timer
-      AnswerArea.tsx          # Orchestrates QuestionEditorInstances, holds useMathLiveManager
+      lambai.tsx          # Main page layout (CSS Grid), Question rendering (left), Timer, AnswerArea (right)
+      AnswerArea.tsx      # Orchestrates QuestionEditorInstances, holds useMathLiveManager
       editor/
         components/
           QuestionEditorInstance.tsx # Renders Q text, LexicalComposer, plugins, MathLive input
           LatexComponent.tsx         # Renders LatexNode using react-katex
         hooks/
-          useMathLiveManager.ts    # State & logic for MathLive interaction, single instance
+          useMathLiveManager.ts    # State & logic for MathLive interaction, single instance mgmt
         nodes/
           LatexNode.tsx            # Custom Lexical node for LaTeX
         plugins/
           LatexPlugin.tsx          # Context definition (LatexPluginContext)
           LatexTriggerPlugin.tsx   # Handles '!!' trigger
           MathShortcutPlugin.tsx # Handles Ctrl+Q trigger
+    page.tsx              # Entry point for the /lambai route
+public/
+  # Static assets
 ui/
   Style/
-    index.css                # Global styles (tailwind import, html/body scroll fix)
+    index.css             # Global styles (tailwind import, html/body scroll fix)
+utils/
+  # Utility functions
+.cursorrules              # Project intelligence file
+projectbrief.md           # Core Memory Bank file
+# ... other config files (tsconfig, next.config, etc.)
 ```
 
 ### Component Architecture
