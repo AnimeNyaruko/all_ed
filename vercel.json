@@ -1,10 +1,7 @@
 {
 	"functions": {
-		"app/api/**/*": {
-			"maxDuration": 120
-		},
-		"app/lambai/**/*": {
-			"maxDuration": 120
+		"app/**/*": {
+			"maxDuration": 60
 		}
 	}
 }
