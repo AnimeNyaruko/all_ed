@@ -11,12 +11,6 @@ import type {
 } from "@/types";
 import { redirect } from "next/navigation";
 
-// Định nghĩa kiểu dữ liệu cho kết quả trả về của submitAnswers
-type SubmitResult = {
-	success: boolean;
-	message: string;
-};
-
 // Hàm helper để chuyển AnswerBlock[] thành chuỗi LaTeX
 function answerBlocksToLatex(blocks: AnswerBlock[] | undefined): string {
 	if (!blocks || blocks.length === 0) {
@@ -97,7 +91,6 @@ export async function submitAnswers(
 	questions: QuestionStructure,
 	answers: Record<string, AnswerBlock[]>,
 ) {
-	let finalResult: SubmitResult;
 	const username = await getCookie("session");
 	const assignmentID = await getCookie("assignment_id");
 
@@ -152,16 +145,11 @@ export async function submitAnswers(
 				await response.text(),
 			);
 		}
-
-		finalResult = {
-			success: true,
-			message: "Thành công",
-		};
 	} catch (error) {
 		console.error("Error in submitAnswers:", error);
-		finalResult = {
+		return {
 			success: false,
-			message: "Có vấn đề xảy ra, hãy thử lại!",
+			error: error,
 		};
 	}
 	redirect("/ketqua");
