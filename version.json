@@ -1,0 +1,9 @@
+[
+	{
+		"version": "1.0",
+		"final_release_date": "Fri May 2 17:01:20 2025 +0700",
+		"final_git_commit_message": "",
+		"pre_release_date": "Fri May 2 16:53:29 2025 +0700",
+		"pre_git_commit_message": "feat: enhance AI prompt system for question generation and answer evaluation - Update prompt structure in app/api/taobai/[id]/bot/route.ts for better question generation - Modify answer evaluation logic in app/api/nopbai/route.ts for more accurate grading - Add detailed result processing in app/ketqua/page.tsx for comprehensive score calculation"
+	}
+]
