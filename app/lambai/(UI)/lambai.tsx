@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
-import { Resplit } from "react-resplit";
 import { faPause, faPlay, faStop } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ReactMarkdown from "react-markdown";
@@ -16,8 +15,8 @@ import type {
 	AnswerBlock,
 	// FormattedOutput, // Removed as unused
 	// QuestionStructure, // Removed as unused - Let's keep QuestionStructure for now as it might be needed later
-} from "../types";
-
+} from "@/types";
+import { redirect } from "next/navigation";
 // Tách phần nội dung MathJax thành component riêng
 const QuestionContent = memo(
 	({ markdownContent }: { markdownContent: string }) => {
@@ -313,15 +312,15 @@ export default function Home({ markdownContent }: { markdownContent: string }) {
 
 			if (result.success) {
 				// Optional: Chuyển hướng hoặc hiển thị thông báo thành công
-				alert("Nộp bài thành công!");
+				alert("Nộp bài thành công! Đang chuyển tới trang kết quả...");
 			} else {
 				console.error("Submission failed:", result.error);
 				// Optional: Hiển thị thông báo lỗi
-				alert(`Nộp bài thất bại: ${result.error}`);
+				alert(`Nộp bài thất bại, vui lòng thử lại!`);
 			}
 		} catch (error) {
 			console.error("An error occurred during submission:", error);
-			alert("Đã xảy ra lỗi không mong muốn khi nộp bài.");
+			alert("Đã xảy ra lỗi không mong muốn khi nộp bài, vui lòng thử lại!");
 		} finally {
 			setIsSubmitting(false);
 		}

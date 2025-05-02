@@ -8,7 +8,8 @@ import type {
 	// OriginalContent, // Removed as unused
 	// FormattedOutput, // Removed as unused
 	QuestionStructure,
-} from "../types";
+} from "@/types";
+import { redirect } from "next/navigation";
 
 // Hàm helper để chuyển AnswerBlock[] thành chuỗi LaTeX
 function answerBlocksToLatex(blocks: AnswerBlock[] | undefined): string {
@@ -92,9 +93,10 @@ export async function submitAnswers(
 ) {
 	try {
 		const formattedTime = formatTime(timer);
-		const cauHoiData: Record<string, string> = {};
+		const cauHoiArray: string[] = [];
+		const cauTraLoiArray: string[] = [];
 
-		// Lặp qua các câu hỏi để lấy câu hỏi và câu trả lời tương ứng
+		// Lặp qua các câu hỏi để lấy câu hỏi và câu trả lời tương ứng, đưa vào mảng
 		Object.keys(questions).forEach((questionKey) => {
 			// Explicitly cast questionKey to keyof QuestionStructure if needed,
 			// but Object.keys ensures it's a valid key here.
@@ -102,21 +104,26 @@ export async function submitAnswers(
 			const answerBlocks = answers[questionKey]; // Mảng AnswerBlock[]
 			const answerLatex = answerBlocksToLatex(answerBlocks); // Chuyển thành chuỗi LaTeX (có thể rỗng)
 
-			cauHoiData[questionLatex] = answerLatex;
+			cauHoiArray.push(questionLatex);
+			cauTraLoiArray.push(answerLatex);
 		});
 
-		// Tạo FormData
-		const formData = new FormData();
-		formData.append("time", formattedTime);
-		formData.append("de_bai", deBai);
-		formData.append("cau_hoi", JSON.stringify(cauHoiData)); // Chuyển object thành chuỗi JSON
+		// Tạo payload JSON
+		const payload = {
+			time: formattedTime,
+			de_bai: deBai,
+			cau_hoi: cauHoiArray,
+			cau_tra_loi: cauTraLoiArray,
+		};
 
-		// Gửi dữ liệu đến API
+		// Gửi dữ liệu đến API dưới dạng JSON
 		const apiUrl = `${process.env.NEXTAUTH_URL}/api/nopbai`;
 		const response = await fetch(apiUrl, {
 			method: "POST",
-			body: formData,
-			// Headers không cần thiết cho FormData với fetch mặc định
+			headers: {
+				"Content-Type": "application/json", // Chỉ định kiểu nội dung là JSON
+			},
+			body: JSON.stringify(payload), // Chuyển đổi payload thành chuỗi JSON
 		});
 
 		if (!response.ok) {
@@ -131,9 +138,12 @@ export async function submitAnswers(
 			};
 		}
 
-		const result = await response.json();
-		console.log("Nopbai API success:", result);
-		return { success: true, data: result };
+		return {
+			success: true,
+			message: "Answers submitted successfully",
+		};
+
+		// redirect("/ketqua");
 	} catch (error) {
 		console.error("Error in submitAnswers:", error);
 		return {

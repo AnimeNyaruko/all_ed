@@ -27,3 +27,20 @@ export interface FormattedOutput {
 // --- LINT FIX END ---
 
 // Add other shared types here as needed
+
+export interface QuestionDetail {
+	id: number; // Giữ lại id nếu cần, hoặc dùng index
+	subQuestion: string; // Nội dung câu hỏi phụ (a, b, c, d)
+	userAnswer: string;
+	correctAnswer: string; // Đáp án đúng
+	isCorrect: boolean;
+}
+
+export interface ResultData {
+	correctAnswers: number;
+	totalQuestions: number;
+	percentage: number;
+	completionTime: string;
+	de_bai: string; // Đề bài chung
+	questions: QuestionDetail[];
+}
