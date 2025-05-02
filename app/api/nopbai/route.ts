@@ -1,5 +1,7 @@
 import { generateText } from "@/utils/googleAI";
 import { NextRequest, NextResponse } from "next/server";
+import sql from "@/utils/database";
+import sanitizeUsername from "@/utils/sanitizeUsername";
 
 export async function POST(request: NextRequest) {
 	try {
@@ -7,7 +9,7 @@ export async function POST(request: NextRequest) {
 		const body = await request.json();
 
 		// Lấy dữ liệu từ body JSON
-		const { time, de_bai, cau_hoi, cau_tra_loi } = body;
+		const { time, de_bai, cau_hoi, cau_tra_loi, username, assignmentID } = body;
 
 		// Kiểm tra dữ liệu có tồn tại và đúng kiểu không
 		if (
@@ -16,7 +18,9 @@ export async function POST(request: NextRequest) {
 			cau_hoi === undefined ||
 			cau_tra_loi === undefined ||
 			!Array.isArray(cau_hoi) ||
-			!Array.isArray(cau_tra_loi)
+			!Array.isArray(cau_tra_loi) ||
+			!username ||
+			!assignmentID
 		) {
 			return NextResponse.json(
 				{ success: false, error: "Missing or invalid data in request body." },
@@ -36,11 +40,6 @@ export async function POST(request: NextRequest) {
 		}
 
 		// Khai báo các biến riêng theo yêu cầu (bạn sẽ xử lý sau)
-		const extractedTime: string = time as string;
-		const extractedDeBai: string = de_bai as string;
-		const extractedCauHoi: string[] = cau_hoi as string[];
-		const extractedCauTraLoi: string[] = cau_tra_loi as string[];
-		console.log(extractedTime);
 
 		// Xử lý dữ liệu ở đây (ví dụ: lưu vào cơ sở dữ liệu)
 		// ... (logic xử lý của bạn sẽ được thêm vào đây)
@@ -127,10 +126,15 @@ ${JSON.stringify(body)}
 				{ status: 500 },
 			);
 		}
-		const resultJson = JSON.parse(
-			result.replace("{", `${JSON.stringify(body).replace("}", "")},`),
+		const resultFixed = result.replace(
+			"{",
+			`${JSON.stringify(body).replace("}", "")},`,
 		);
-		console.log(resultJson);
+
+		// Cập nhật giá trị cột result.
+
+		const query = `UPDATE "User Infomation"."${sanitizeUsername(username)}" SET "result" = $1 WHERE "assignment_id" = $2`;
+		await sql(query, [resultFixed, assignmentID]);
 		// Trả về phản hồi thành công với cấu trúc dữ liệu mới
 		return NextResponse.json({
 			success: true,

@@ -11,6 +11,12 @@ import type {
 } from "@/types";
 import { redirect } from "next/navigation";
 
+// Định nghĩa kiểu dữ liệu cho kết quả trả về của submitAnswers
+type SubmitResult = {
+	success: boolean;
+	message: string;
+};
+
 // Hàm helper để chuyển AnswerBlock[] thành chuỗi LaTeX
 function answerBlocksToLatex(blocks: AnswerBlock[] | undefined): string {
 	if (!blocks || blocks.length === 0) {
@@ -91,6 +97,17 @@ export async function submitAnswers(
 	questions: QuestionStructure,
 	answers: Record<string, AnswerBlock[]>,
 ) {
+	let finalResult: SubmitResult;
+	const username = await getCookie("session");
+	const assignmentID = await getCookie("assignment_id");
+
+	if (!username) {
+		redirect("/");
+	}
+
+	if (!assignmentID) {
+		redirect("/lambai/selection");
+	}
 	try {
 		const formattedTime = formatTime(timer);
 		const cauHoiArray: string[] = [];
@@ -114,6 +131,8 @@ export async function submitAnswers(
 			de_bai: deBai,
 			cau_hoi: cauHoiArray,
 			cau_tra_loi: cauTraLoiArray,
+			username,
+			assignmentID,
 		};
 
 		// Gửi dữ liệu đến API dưới dạng JSON
@@ -132,23 +151,18 @@ export async function submitAnswers(
 				response.status,
 				await response.text(),
 			);
-			return {
-				success: false,
-				error: `API request failed with status ${response.status}`,
-			};
 		}
 
-		return {
+		finalResult = {
 			success: true,
-			message: "Answers submitted successfully",
+			message: "Thành công",
 		};
-
-		// redirect("/ketqua");
 	} catch (error) {
 		console.error("Error in submitAnswers:", error);
-		return {
+		finalResult = {
 			success: false,
-			error: "An unexpected error occurred during submission.",
+			message: "Có vấn đề xảy ra, hãy thử lại!",
 		};
 	}
+	redirect("/ketqua");
 }

@@ -37,9 +37,7 @@ export async function POST(
 				data text,
 				task text,
 				work text,
-				time text,
-				total integer,
-				result integer,
+				result text,
 				PRIMARY KEY (id)
 			)
 		`;

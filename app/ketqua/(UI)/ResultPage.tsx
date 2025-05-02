@@ -53,7 +53,7 @@ export default function ResultPage({ result }: { result: ResultData }) {
 					{/* Thanh progress */}
 					<div className="bg-gray-200 h-4 mb-6 w-full rounded-full">
 						<div
-							className={`h-4 rounded-full ${result.percentage > 50 ? "bg-green-500" : "bg-red-500"}`}
+							className={`h-4 rounded-full ${result.percentage >= 50 ? "bg-green-500" : "bg-red-500"}`}
 							style={{ width: `${result.percentage}%` }}
 						></div>
 					</div>
