@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         *   Key \`\"de_bai\"\`: Value là một string chứa toàn bộ phần đề bài chung (đã loại bỏ tiêu đề phụ), được định dạng bằng Markdown.
         *   Các keys tiếp theo là \`\"cau_a\"\`, \`\"cau_b\"\`, \`\"cau_c\"\`, ... tương ứng với mỗi câu hỏi con được tạo ra và đã được sắp xếp theo độ khó.
         *   Value của mỗi key \`\"cau_a\"\`, \`\"cau_b\"\`, ... là một string chứa nội dung câu hỏi con tương ứng (bắt đầu bằng \"a) \", \"b) \", ...), có bao gồm yêu cầu về làm tròn và đơn vị nếu là câu hỏi tính toán, được định dạng bằng Markdown.
-    *   Ví dụ cấu trúc JSON mong muốn (chỉ là ví dụ cấu trúc):
+            *   Ví dụ cấu trúc JSON mong muốn (trả về **dưới dạng một chuỗi JSON duy nhất**:
         \`\`\`json
         {
           \"de_bai\": \"Một quả bóng được đá từ mặt đất lên với vận tốc ban đầu 20 m/s theo phương hợp với phương ngang một góc 30°. Đồng thời, một dung dịch X được chuẩn bị bằng cách hòa tan 5.85 gam NaCl vào nước để tạo thành 500 ml dung dịch. Chọn hệ trục tọa độ Oxy với gốc O tại vị trí đá bóng, Ox hướng ngang, Oy thẳng đứng hướng lên. Bỏ qua sức cản của không khí.\\nCoi gia tốc trọng trường g = 9.8 m/s². Cho khối lượng mol của Na = 23 g/mol, Cl = 35.5 g/mol.\",
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
         \`\`\`
 7.  **Ngôn ngữ:** Tiếng Việt.
 
-**QUAN TRỌNG:** Chỉ trả về **DUY NHẤT** chuỗi JSON đã được \`JSON.stringify()\`. **KHÔNG** được có bất kỳ văn bản giới thiệu nào (ví dụ: \"Đây là JSON bạn yêu cầu:\"), văn bản kết luận nào, hoặc dấu \`\`\`json \`\`\` bao quanh chuỗi JSON. Toàn bộ phản hồi của bạn phải là chuỗi JSON đó và chỉ có nó. Đảm bảo chuỗi JSON trả về là hợp lệ.
+**QUAN TRỌNG:** Toàn bộ phản hồi của bạn **PHẢI LÀ MỘT CHUỖI DUY NHẤT** chứa cấu trúc JSON hợp lệ như trên. **KHÔNG** được có bất kỳ văn bản giới thiệu nào (ví dụ: \"Đây là JSON bạn yêu cầu:\"), văn bản kết luận nào, hoặc dấu \`\`\`json \`\`\` bao quanh chuỗi JSON. Đảm bảo chuỗi trả về là hợp lệ.
 
 ---
 
