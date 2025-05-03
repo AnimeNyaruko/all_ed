@@ -68,9 +68,12 @@ export async function handler() {
 			status: "success",
 		};
 	} catch (_) {
-		console.error(_);
+		return {
+			data: null,
+			status: "error",
+			message: "No session found",
+		};
 	}
-	redirect("/lambai/selection");
 }
 
 export async function submitAssignment(formData: FormData) {
