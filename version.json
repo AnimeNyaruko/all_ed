@@ -1,9 +1,16 @@
 [
 	{
-		"version": "1.0",
+		"version": "beta 1.0",
 		"final_release_date": "Fri May 2 17:01:20 2025 +0700",
 		"final_git_commit_message": "",
 		"pre_release_date": "Fri May 2 16:53:29 2025 +0700",
 		"pre_git_commit_message": "feat: enhance AI prompt system for question generation and answer evaluation - Update prompt structure in app/api/taobai/[id]/bot/route.ts for better question generation - Modify answer evaluation logic in app/api/nopbai/route.ts for more accurate grading - Add detailed result processing in app/ketqua/page.tsx for comprehensive score calculation"
+	},
+	{
+		"version": "beta 1.1",
+		"final_release_date": "Sat May 3 15:54:32 2025 +0700",
+		"final_git_commit_message": "hotfix: Fix prompt format",
+		"pre_release_date": "Sat May 3 15:30:02 2025 +0700",
+		"pre_git_commit_message": "fix: Fixed line ending warnings in memory-bank/activeContext.md, ui/final.css, and app/lambai/(UI)/editor/plugins/InitialContentPlugin.tsx"
 	}
 ]

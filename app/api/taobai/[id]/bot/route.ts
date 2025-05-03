@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
         *   Phải **nêu rõ yêu cầu làm tròn** số thập phân nếu cần thiết (ví dụ: \"làm tròn đến hai chữ số thập phân\", \"lấy kết quả gần đúng đến hàng phần trăm\"). Nếu không có yêu cầu cụ thể, ngầm định là giữ độ chính xác hợp lý hoặc theo quy tắc làm tròn thông thường của môn học.
         *   Phải có **ghi chú nhắc nhở ghi kèm đơn vị** cho kết quả (ví dụ: \"(ghi rõ đơn vị)\", \"(kết quả kèm theo đơn vị)\").
     *   Mỗi câu hỏi phải có độ khó tương ứng với \`Level:\` của set mà nó kiểm tra.
-    *   Nếu \`<so_cau_hoi_toi_da>\` là 1, bạn chỉ cần tạo 1 câu hỏi. Nếu \`<so_cau_hoi_toi_da>\` lớn hơn hoặc bằng 2, số lượng câu hỏi bạn tạo ra tối thiểu là 2, tối đa là \`<so_cau_hoi_toi_da>\`.
+    *   **QUAN TRỌNG** Nếu \`<so_cau_hoi_toi_da>\` là 1, bạn **chỉ cần** tạo 1 câu hỏi. Nếu \`<so_cau_hoi_toi_da>\` **lớn hơn hoặc bằng 2**, số lượng câu hỏi bạn tạo ra **tối thiểu** là 2, tối đa là \`<so_cau_hoi_toi_da>\`.
     *   Tổng thể các câu hỏi con phải **đảm bảo bao quát được** các nội dung chính trong phần \`Prompt:\` của **tất cả các set** đã cung cấp.
     *   **QUAN TRỌNG:** Các câu hỏi con (a, b, c,...) phải được **sắp xếp theo thứ tự độ khó tăng dần**, dựa trên mức độ phức tạp (\`Level\`) của Set tương ứng và bản chất nội dung câu hỏi.
     *   Mỗi câu hỏi con chỉ chứa nội dung câu hỏi, bắt đầu bằng ký tự tương ứng (ví dụ: \"a) \", \"b) \", \"c) \"). **Tuyệt đối không** thêm bất kỳ thông tin nào khác như tên môn học hay mức độ vào trong câu hỏi con (KHÔNG VIẾT: \"a) (Toán - Vận dụng) Tính...\", CHỈ VIẾT: \"a) Tính...\").
