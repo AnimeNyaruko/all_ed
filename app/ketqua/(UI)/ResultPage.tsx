@@ -12,11 +12,16 @@ import Link from "next/link";
 import Header from "@/ui/Components/Header";
 import Footer from "@/ui/Components/Footer";
 import { ResultData } from "@/types";
+import { latexParser } from "@/utils/latexParser";
+import MixedContentRenderer from "./MixedContentRenderer";
+import { re_create, re_work } from "../(handler)/handler";
+
 export default function ResultPage({ result }: { result: ResultData }) {
+	const parsedDeBai = latexParser(result.de_bai);
+
 	return (
 		<>
 			<Header />
-
 			<main className="px-4 py-8 max-w-5xl page-content-with-fixed-header container mx-auto">
 				<div className="bg-white shadow-md rounded-lg p-6 mb-8">
 					{/* Kết quả tổng quan */}
@@ -67,44 +72,47 @@ export default function ResultPage({ result }: { result: ResultData }) {
 							<FontAwesomeIcon icon={faHome} />
 							<span>Màn hình chính</span>
 						</Link>
-						<Link
-							href="/taobai"
-							className="px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 gap-2 flex items-center transition"
+						<button
+							onClick={re_create}
+							className="px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 gap-2 flex cursor-pointer items-center transition"
 						>
 							<FontAwesomeIcon icon={faEdit} />
 							<span>Trang tạo bài</span>
-						</Link>
-						<Link
-							href="/lambai"
-							className="px-6 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 gap-2 flex items-center transition"
+						</button>
+						<button
+							onClick={re_work}
+							className="px-6 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 gap-2 flex cursor-pointer items-center transition"
 						>
 							<FontAwesomeIcon icon={faRedo} />
 							<span>Làm lại</span>
-						</Link>
+						</button>
 					</div>
 
 					{/* Hiển thị Đề bài chung */}
 					<div className="mb-6 p-4 border-gray-300 rounded-md bg-gray-50 border">
 						<h2 className="text-xl font-semibold mb-2">Đề bài:</h2>
-						<p className="text-gray-800">{result.de_bai}</p>
+						<MixedContentRenderer
+							data={parsedDeBai}
+							className="text-gray-800"
+						/>
 					</div>
 
 					{/* Danh sách câu hỏi chi tiết */}
 					<h2 className="text-xl font-bold mb-4">Chi tiết kết quả:</h2>
 					<div className="space-y-4">
-						{result.questions.map(
-							(
-								question,
-								index, // Sử dụng index nếu không có id ổn định
-							) => (
+						{result.questions.map((question, index) => {
+							const parsedUserAnswer = latexParser(question.userAnswer);
+							const parsedCorrectAnswer = latexParser(question.correctAnswer);
+							const parsedSubQuestion = latexParser(question.subQuestion);
+
+							return (
 								<div
-									key={question.id || index} // Ưu tiên id, nếu không có thì dùng index
+									key={question.id || index}
 									className={`p-4 rounded-lg border ${question.isCorrect ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}
 								>
 									<div className="mb-2 flex items-start justify-between">
-										{/* Hiển thị câu hỏi phụ (a, b, c, d) */}
 										<h3 className="font-medium text-lg">
-											{question.subQuestion}
+											<MixedContentRenderer data={parsedSubQuestion} />
 										</h3>
 										<div
 											className={`w-6 h-6 flex flex-shrink-0 items-center justify-center rounded-full ${
@@ -118,21 +126,22 @@ export default function ResultPage({ result }: { result: ResultData }) {
 										</div>
 									</div>
 									<div className="mt-2 space-y-1">
-										<p className="text-gray-700">
-											<span className="font-medium">Câu trả lời của bạn:</span>{" "}
-											{question.userAnswer}
-										</p>
-										{/* Hiển thị đáp án đúng */}
-										<p
-											className={`text-gray-700 ${question.isCorrect ? "text-green-700" : "text-red-700"}`}
+										<div className="text-gray-700 flex flex-wrap items-center">
+											<span className="font-medium mr-1">
+												Câu trả lời của bạn:
+											</span>
+											<MixedContentRenderer data={parsedUserAnswer} />
+										</div>
+										<div
+											className={`text-gray-700 flex flex-wrap items-center ${question.isCorrect ? "text-green-700" : "text-red-700"}`}
 										>
-											<span className="font-medium">Đáp án đúng:</span>{" "}
-											{question.correctAnswer}
-										</p>
+											<span className="font-medium mr-1">Đáp án đúng:</span>
+											<MixedContentRenderer data={parsedCorrectAnswer} />
+										</div>
 									</div>
 								</div>
-							),
-						)}
+							);
+						})}
 					</div>
 				</div>
 			</main>

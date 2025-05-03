@@ -16,8 +16,18 @@ function answerBlocksToLatex(blocks: AnswerBlock[] | undefined): string {
 	if (!blocks || blocks.length === 0) {
 		return "";
 	}
-	// Nối nội dung của các block lại
-	return blocks.map((block) => block.content).join("");
+	// Duyệt qua các block và định dạng lại
+	return blocks
+		.map((block) => {
+			if (block.type === "latex") {
+				// Bao bọc nội dung LaTeX bằng dấu $
+				return `$${block.content}$`;
+			} else {
+				// Giữ nguyên nội dung text
+				return block.content;
+			}
+		})
+		.join(""); // Nối các phần đã định dạng lại
 }
 
 // Hàm định dạng thời gian (giây sang HH:MM:SS)
@@ -29,7 +39,7 @@ function formatTime(seconds: number): string {
 }
 
 async function fetchTask(assignmentId: string, sanitizedTableName: string) {
-	const query = `SELECT "task","work" FROM "User Infomation"."${sanitizedTableName}" WHERE "assignment_id" = $1`;
+	const query = `SELECT "task", "work" FROM "User Infomation"."${sanitizedTableName}" WHERE "assignment_id" = $1`;
 	const data = await sql(query, [assignmentId]);
 	return data;
 }
@@ -46,12 +56,15 @@ export async function handler() {
 			};
 		}
 		const sanitizedTableName = sanitizeUsername(username);
-		let task;
+		let taskData;
 		do {
-			task = await fetchTask(assignmentId, sanitizedTableName);
-		} while (!task[0].task);
+			taskData = await fetchTask(assignmentId, sanitizedTableName);
+		} while (!taskData || !taskData[0] || !taskData[0].task);
 		return {
-			data: task,
+			data: {
+				task: taskData[0].task,
+				work: taskData[0].work,
+			},
 			status: "success",
 		};
 	} catch (_) {
@@ -88,7 +101,7 @@ export async function submitAssignment(formData: FormData) {
 export async function submitAnswers(
 	timer: number,
 	deBai: string,
-	questions: QuestionStructure,
+	questions: Record<string, string>,
 	answers: Record<string, AnswerBlock[]>,
 ) {
 	const username = await getCookie("session");
@@ -104,26 +117,24 @@ export async function submitAnswers(
 	try {
 		const formattedTime = formatTime(timer);
 		const cauHoiArray: string[] = [];
-		const cauTraLoiArray: string[] = [];
+		const cauTraLoiLatexArray: string[] = [];
 
-		// Lặp qua các câu hỏi để lấy câu hỏi và câu trả lời tương ứng, đưa vào mảng
+		// Lặp qua các câu hỏi
 		Object.keys(questions).forEach((questionKey) => {
-			// Explicitly cast questionKey to keyof QuestionStructure if needed,
-			// but Object.keys ensures it's a valid key here.
-			const questionLatex = questions[questionKey as keyof QuestionStructure]; // Nội dung câu hỏi (LaTeX)
-			const answerBlocks = answers[questionKey]; // Mảng AnswerBlock[]
-			const answerLatex = answerBlocksToLatex(answerBlocks); // Chuyển thành chuỗi LaTeX (có thể rỗng)
+			const questionLatex = questions[questionKey];
+			const answerBlocks = answers[questionKey] || [];
+			const answerLatex = answerBlocksToLatex(answerBlocks);
 
 			cauHoiArray.push(questionLatex);
-			cauTraLoiArray.push(answerLatex);
+			cauTraLoiLatexArray.push(answerLatex);
 		});
 
-		// Tạo payload JSON
+		// Tạo payload JSON chỉ với LaTeX thuần
 		const payload = {
 			time: formattedTime,
 			de_bai: deBai,
 			cau_hoi: cauHoiArray,
-			cau_tra_loi: cauTraLoiArray,
+			cau_tra_loi: cauTraLoiLatexArray,
 			username,
 			assignmentID,
 		};
@@ -153,4 +164,29 @@ export async function submitAnswers(
 		};
 	}
 	redirect("/ketqua");
+}
+
+export async function saveWorkProgress(
+	jsonData: string,
+): Promise<{ success: boolean; error?: string }> {
+	const username = await getCookie("session");
+	const assignmentID = await getCookie("assignment_id");
+
+	if (!username || !assignmentID) {
+		console.error(
+			"Save progress failed: Missing username or assignmentID cookie.",
+		);
+		return { success: false, error: "Missing session info" };
+	}
+
+	const sanitizedTableName = sanitizeUsername(username);
+
+	try {
+		const query = `UPDATE "User Infomation"."${sanitizedTableName}" SET "work" = $1 WHERE "assignment_id" = $2`;
+		await sql(query, [jsonData, assignmentID]);
+		return { success: true };
+	} catch (error) {
+		console.error("Error saving work progress:", error);
+		return { success: false, error: "Database error saving progress" };
+	}
 }

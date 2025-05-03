@@ -1,6 +1,13 @@
 "use client";
 import { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
-import { faPause, faPlay, faStop } from "@fortawesome/free-solid-svg-icons";
+import {
+	faPause,
+	faPlay,
+	faStop,
+	faSpinner,
+	faCheckCircle,
+	faExclamationCircle,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
@@ -8,7 +15,7 @@ import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import "katex/dist/katex.min.css";
 import AnswerArea from "./AnswerArea";
-import { submitAnswers } from "../(handler)/handler";
+import { submitAnswers, handler, saveWorkProgress } from "../(handler)/handler";
 import { useOrientationCheck } from "./OrientationCheck";
 import { RotationOverlay } from "./RotationOverlay";
 import type {
@@ -109,7 +116,7 @@ const QuestionContent = memo(
 );
 QuestionContent.displayName = "QuestionContent";
 
-export default function Home({ markdownContent }: { markdownContent: string }) {
+export default function Home() {
 	const [leftWidth, setLeftWidth] = useState(0);
 	const [isDragging, setIsDragging] = useState(false);
 	const [ghostLeft, setGhostLeft] = useState<number | null>(null);
@@ -120,34 +127,107 @@ export default function Home({ markdownContent }: { markdownContent: string }) {
 	const [isTimerRunning, setIsTimerRunning] = useState(false);
 	const [isTimerPaused, setIsTimerPaused] = useState(false);
 	const [timer, setTimer] = useState(0);
-	const timerRef = useRef<NodeJS.Timeout>(null);
+	const timerRef = useRef<NodeJS.Timeout | null>(null);
 	const [isClient, setIsClient] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
+	const [taskContent, setTaskContent] = useState<{
+		de_bai: string;
+		[key: string]: string;
+	}>({ de_bai: "" });
+	const answersRef = useRef(answers);
+	const [saveStatus, setSaveStatus] = useState<
+		"idle" | "saving" | "saved" | "error"
+	>("idle");
+	const saveStatusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 	// Kiểm tra hướng màn hình
 	const isLandscape = useOrientationCheck();
 
-	// Parse the JSON content
-	const content = useMemo(() => {
-		try {
-			return JSON.parse(markdownContent);
-		} catch (_e) {
-			console.log(_e);
-			return { de_bai: markdownContent };
-		}
-	}, [markdownContent]);
-
 	// Extract questions (all keys except de_bai)
 	const questions = useMemo(() => {
-		const { de_bai: _de_bai, ...rest } = content;
-		return rest;
-	}, [content]);
+		if (Object.keys(taskContent).length > 1) {
+			const { de_bai: _de_bai, ...rest } = taskContent;
+			return rest;
+		}
+		return {};
+	}, [taskContent]);
 
-	// Khởi tạo kích thước ban đầu & Set client state
+	// Cập nhật ref mỗi khi answers thay đổi
+	useEffect(() => {
+		answersRef.current = answers;
+	}, [answers]);
+
+	// Khởi tạo kích thước ban đầu, fetch dữ liệu và tải lại bài làm
 	useEffect(() => {
 		const initialWidth = window.innerWidth / 2;
 		setLeftWidth(initialWidth);
 		setIsClient(true);
+
+		const fetchData = async () => {
+			setIsLoading(true);
+			let fetchedTaskContent: { de_bai: string; [key: string]: string } = {
+				de_bai: "Đang tải...",
+			}; // Giá trị mặc định
+			let fetchedAnswers: Record<string, AnswerBlock[]> = {};
+
+			try {
+				const response = await handler();
+				if (response.status === "success" && response.data) {
+					const taskData = response.data.task;
+					const workData = response.data.work;
+
+					// Parse task data
+					try {
+						const parsedTask = JSON.parse(taskData);
+						if (
+							typeof parsedTask === "object" &&
+							parsedTask !== null &&
+							parsedTask.de_bai !== undefined
+						) {
+							fetchedTaskContent = parsedTask;
+						} else {
+							console.error("Parsed task data is invalid:", parsedTask);
+							fetchedTaskContent = { de_bai: "Lỗi định dạng đề bài." };
+						}
+					} catch (taskParseError) {
+						console.error("Error parsing task data:", taskParseError);
+						fetchedTaskContent = { de_bai: "Lỗi tải đề bài." };
+					}
+
+					// Tải lại bài làm nếu có
+					if (workData) {
+						try {
+							const savedAnswers = JSON.parse(workData);
+							if (typeof savedAnswers === "object" && savedAnswers !== null) {
+								fetchedAnswers = savedAnswers;
+							} // Không cần else vì mặc định là {}
+						} catch (parseError) {
+							console.error(
+								"Error parsing saved work:",
+								parseError,
+								"Workdata:",
+								workData,
+							);
+							// Giữ fetchedAnswers là {}
+						}
+					}
+				} else {
+					console.error("Failed to fetch task:", response.message);
+					fetchedTaskContent = { de_bai: "Không thể tải đề bài." };
+				}
+			} catch (error) {
+				console.error("Error fetching data:", error);
+				fetchedTaskContent = { de_bai: "Lỗi kết nối." };
+			} finally {
+				setTaskContent(fetchedTaskContent);
+				setAnswers(fetchedAnswers);
+				answersRef.current = fetchedAnswers; // Cập nhật ref sau khi set state
+				setIsLoading(false);
+			}
+		};
+
+		fetchData();
 	}, []);
 
 	// --- Custom Drag Handlers ---
@@ -299,43 +379,108 @@ export default function Home({ markdownContent }: { markdownContent: string }) {
 
 	// Hàm xử lý nộp bài
 	const handleSubmit = async () => {
-		if (isSubmitting) return; // Ngăn chặn submit nhiều lần
+		if (isSubmitting) return;
 		setIsSubmitting(true);
-
+		if (timerRef.current) {
+			clearInterval(timerRef.current);
+		}
+		setIsTimerRunning(false);
 		try {
-			const result = await submitAnswers(
-				timer,
-				content.de_bai || "", // Đảm bảo deBai là string
-				questions,
-				answers,
-			);
-
-			if (result.success) {
-				// Optional: Chuyển hướng hoặc hiển thị thông báo thành công
-				alert("Nộp bài thành công! Đang chuyển tới trang kết quả...");
-			} else {
-				console.error("Submission failed:", result.error);
-				// Optional: Hiển thị thông báo lỗi
-				alert(`Nộp bài thất bại, vui lòng thử lại!`);
-			}
+			await submitAnswers(timer, taskContent.de_bai || "", questions, answers);
 		} catch (error) {
 			console.error("An error occurred during submission:", error);
-			alert("Đã xảy ra lỗi không mong muốn khi nộp bài, vui lòng thử lại!");
-		} finally {
 			setIsSubmitting(false);
 		}
 	};
 
-	// Define the answer update handler with useCallback for stable reference
+	// Define the answer update handler
 	const handleAnswersChange = useCallback(
 		(newAnswers: Record<string, AnswerBlock[]>) => {
 			setAnswers((prev) => ({ ...prev, ...newAnswers }));
 		},
-		[], // No dependencies, setAnswers is stable
+		[],
 	);
 
+	// Hàm Lưu bài làm (cập nhật)
+	const handleSave = useCallback(async () => {
+		if (isLoading || !answersRef.current) return;
+
+		// Xóa timeout cũ nếu đang hiển thị "Đã lưu"
+		if (saveStatusTimeoutRef.current) {
+			clearTimeout(saveStatusTimeoutRef.current);
+			saveStatusTimeoutRef.current = null;
+		}
+
+		setSaveStatus("saving"); // Bắt đầu lưu
+
+		const currentAnswers = answersRef.current;
+		const jsonData = JSON.stringify(currentAnswers);
+
+		try {
+			const result = await saveWorkProgress(jsonData); // <<< Gọi và await server action
+			if (result.success) {
+				setSaveStatus("saved");
+				// Tự động ẩn sau 2 giây
+				saveStatusTimeoutRef.current = setTimeout(() => {
+					setSaveStatus("idle");
+					saveStatusTimeoutRef.current = null;
+				}, 2000);
+			} else {
+				console.error("Save failed (server action):", result.error);
+				setSaveStatus("error");
+				// Tự động ẩn lỗi sau 3 giây
+				saveStatusTimeoutRef.current = setTimeout(() => {
+					setSaveStatus("idle");
+					saveStatusTimeoutRef.current = null;
+				}, 3000);
+			}
+		} catch (error) {
+			console.error("Error calling saveWorkProgress:", error);
+			setSaveStatus("error");
+			// Tự động ẩn lỗi sau 3 giây
+			saveStatusTimeoutRef.current = setTimeout(() => {
+				setSaveStatus("idle");
+				saveStatusTimeoutRef.current = null;
+			}, 3000);
+		}
+	}, [isLoading]); // Dependency vẫn là isLoading
+
+	// Lưu tự động (useEffect giữ nguyên, chỉ gọi handleSave mới)
+	useEffect(() => {
+		const intervalId = setInterval(() => {
+			handleSave();
+		}, 10000);
+		return () => clearInterval(intervalId);
+	}, [handleSave]);
+
+	// Lưu thủ công Ctrl+S (useEffect giữ nguyên, chỉ gọi handleSave mới)
+	useEffect(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.ctrlKey && event.key === "s") {
+				event.preventDefault();
+				handleSave();
+			}
+		};
+		document.addEventListener("keydown", handleKeyDown);
+		return () => document.removeEventListener("keydown", handleKeyDown);
+	}, [handleSave]);
+
+	// Bỏ cảnh báo beforeunload (useEffect giữ nguyên)
+	useEffect(() => {
+		/* ... */
+	}, []);
+
+	// Render loading state
+	if (isLoading) {
+		return (
+			<div className="flex h-screen items-center justify-center">
+				Đang tải đề bài...
+			</div>
+		);
+	}
+
 	return (
-		<div className="bg-gray-100 flex min-h-screen flex-col">
+		<div className="relative flex h-screen flex-col">
 			{/* Rotation Overlay */}
 			<RotationOverlay isVisible={isClient && !isLandscape} />
 
@@ -405,29 +550,54 @@ export default function Home({ markdownContent }: { markdownContent: string }) {
 								{isSubmitting ? "Đang nộp..." : "Nộp bài"}
 							</button>
 						</div>
+
+						{/* <<< THÊM Chỉ báo trạng thái lưu */}
+						<div className="text-sm text-gray-500 absolute left-1/2 -translate-x-1/2 transform">
+							{saveStatus === "saving" && (
+								<span className="animate-pulse flex items-center">
+									<FontAwesomeIcon icon={faSpinner} spin className="mr-1" />{" "}
+									Đang lưu...
+								</span>
+							)}
+							{saveStatus === "saved" && (
+								<span className="text-green-600 flex items-center">
+									<FontAwesomeIcon icon={faCheckCircle} className="mr-1" /> Đã
+									lưu
+								</span>
+							)}
+							{saveStatus === "error" && (
+								<span className="text-red-600 flex items-center">
+									<FontAwesomeIcon
+										icon={faExclamationCircle}
+										className="mr-1"
+									/>{" "}
+									Lỗi lưu bài!
+								</span>
+							)}
+						</div>
 					</div>
 				</div>
 			</header>
 
-			{/* Main Content Area using Resplit */}
+			{/* Main Content Area */}
 			{isClient && (
-				<div
-					className="grid flex-1 overflow-hidden" // Use grid directly
+				<main
+					className="grid flex-1 overflow-hidden"
 					style={{
-						gridTemplateColumns: `${leftWidth}px 1fr`, // Control columns via state
-						position: "relative", // Needed for absolute positioning of ghost
+						gridTemplateColumns: `${leftWidth}px 1fr`,
+						position: "relative",
 					}}
 				>
 					{/* Left Panel */}
 					<div
-						className="bg-white shadow-md h-full overflow-hidden" // Keep styling
+						className="bg-white shadow-md h-full overflow-hidden"
 						style={{ direction: "rtl" }}
 					>
 						<div
 							className="p-6 h-full overflow-y-auto"
 							style={{ direction: "ltr" }}
 						>
-							<QuestionContent markdownContent={content.de_bai || ""} />
+							<QuestionContent markdownContent={taskContent.de_bai || ""} />
 						</div>
 					</div>
 
@@ -459,12 +629,13 @@ export default function Home({ markdownContent }: { markdownContent: string }) {
 					<div className="bg-gray-50 shadow-inner relative overflow-hidden">
 						<div className="inset-0 p-6 absolute overflow-y-auto">
 							<AnswerArea
-								questions={questions}
+								questions={questions ?? {}}
 								onAnswersChange={handleAnswersChange}
+								initialAnswers={answers}
 							/>
 						</div>
 					</div>
-				</div>
+				</main>
 			)}
 		</div>
 	);

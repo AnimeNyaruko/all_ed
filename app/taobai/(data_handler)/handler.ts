@@ -25,7 +25,7 @@ export async function handler(formData: FormData) {
 		.digest("hex");
 	const data_string = `${prompt.reduce((prev, curr, index: number) => {
 		return `${prev.toString()}${index === 0 ? "" : "\\n"}Lớp: ${_class[index]} - Môn: ${subject[index]} - Bài tập: ${curr.toString()} - Cấp độ: ${level[index]}`;
-	}, "")}\\nSố lượng: ${quantity}`;
+	}, "")}\\nSố lượng câu hỏi tối đa: ${quantity}`;
 
 	try {
 		const res = await fetch(

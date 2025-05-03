@@ -32,7 +32,7 @@ export interface QuestionDetail {
 	id: number; // Giữ lại id nếu cần, hoặc dùng index
 	subQuestion: string; // Nội dung câu hỏi phụ (a, b, c, d)
 	userAnswer: string;
-	correctAnswer: string; // Đáp án đúng
+	correctAnswer: string;
 	isCorrect: boolean;
 }
 

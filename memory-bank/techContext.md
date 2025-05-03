@@ -60,7 +60,7 @@ app/
       editor/
         components/
           QuestionEditorInstance.tsx # Renders Q text, LexicalComposer, plugins, MathLive input
-          LatexComponent.tsx         # Renders LatexNode using react-katex
+          LatexComponent.tsx         # Renders LatexNode using react-katex (in editor)
         hooks/
           useMathLiveManager.ts    # State & logic for MathLive interaction, single instance mgmt
         nodes/
@@ -70,12 +70,18 @@ app/
           LatexTriggerPlugin.tsx   # Handles '!!' trigger
           MathShortcutPlugin.tsx # Handles Ctrl+Q trigger
     page.tsx              # Entry point for the /lambai route
+  ketqua/                 # Route for displaying results
+    (UI)/
+      ResultPage.tsx      # Displays overall result and detailed answers
+      MixedContentRenderer.tsx # Renders mixed text/LaTeX using react-katex (results page)
+    page.tsx
 public/
   # Static assets
 ui/
   Style/
     index.css             # Global styles (tailwind import, html/body scroll fix)
 utils/
+  latexParser.ts          # Utility for parsing mixed text/LaTeX strings
   # Utility functions
 .cursorrules              # Project intelligence file
 projectbrief.md           # Core Memory Bank file

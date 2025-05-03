@@ -1,0 +1,2 @@
+- [ ] **Newline Saving:** Việc lưu trữ xuống dòng trong trình soạn thảo Lexical vẫn chưa hoạt động ổn định.
+- [ ] **MathLive Positioning Regression:** Việc sử dụng Portal để sửa lỗi hiển thị MathLive đã di chuyển input ra cuối trang (fixed position), thay đổi vị trí mong muốn (vốn là ngay dưới editor tương ứng). Cần xem xét lại giải pháp hoặc điều chỉnh vị trí Portal. 

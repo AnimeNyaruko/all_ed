@@ -54,6 +54,7 @@ interface AnswerBlock {
 
 interface AnswerAreaProps {
 	questions: Record<string, string>;
+	initialAnswers?: Record<string, AnswerBlock[]>;
 	onAnswersChange: (answers: Record<string, AnswerBlock[]>) => void; // Expect AnswerBlock array
 }
 
@@ -83,7 +84,8 @@ function lexicalStateToAnswerBlocks(editorState: EditorState): AnswerBlock[] {
 	const blocks: AnswerBlock[] = [];
 	editorState.read(() => {
 		const root = $getRoot();
-		root.getChildren().forEach((paragraph: LexicalNode) => {
+		const rootChildren = root.getChildren();
+		rootChildren.forEach((paragraph: LexicalNode, paragraphIndex: number) => {
 			// Ensure it's an element node that can have children (like ParagraphNode)
 			if (paragraph instanceof ElementNode) {
 				let currentText = "";
@@ -118,6 +120,17 @@ function lexicalStateToAnswerBlocks(editorState: EditorState): AnswerBlock[] {
 						content: currentText,
 					});
 				}
+
+				// Add newline block after processing each paragraph, except the last one
+				if (paragraphIndex < rootChildren.length - 1) {
+					// Ensure the paragraph wasn't completely empty (or handle as needed)
+					// Optional: Check if the last added block was already a newline? (Probably not needed)
+					blocks.push({
+						id: `newline-${paragraphIndex}`,
+						type: "text",
+						content: "\n",
+					});
+				}
 			}
 		});
 	});
@@ -125,115 +138,116 @@ function lexicalStateToAnswerBlocks(editorState: EditorState): AnswerBlock[] {
 }
 
 // Wrap the component with React.memo
-const AnswerArea = memo(({ questions, onAnswersChange }: AnswerAreaProps) => {
-	const [isClient, setIsClient] = useState(false);
-	const [isCortexLoaded, setIsCortexLoaded] = useState(false);
-	const editorRefMap = useRef<Record<string, LexicalEditor | null>>({});
-	const mathLiveManager = useMathLiveManager({ editorRefMap });
-	const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref for debounce timeout
+const AnswerArea = memo(
+	({ questions, initialAnswers, onAnswersChange }: AnswerAreaProps) => {
+		const [isClient, setIsClient] = useState(false);
+		const [isCortexLoaded, setIsCortexLoaded] = useState(false);
+		const editorRefMap = useRef<Record<string, LexicalEditor | null>>({});
+		const mathLiveManager = useMathLiveManager({ editorRefMap });
+		const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref for debounce timeout
 
-	// Load CortexJS script
-	useEffect(() => {
-		let script: HTMLScriptElement | null = null;
-		if (typeof window !== "undefined" && !customElements.get("math-field")) {
-			script = document.createElement("script");
-			script.src = "https://unpkg.com/mathlive?module";
-			script.type = "module";
-			script.async = true;
-			script.onload = () => {
-				setIsCortexLoaded(true);
-				// console.log("CortexJS/MathLive loaded.");
+		// Load CortexJS script
+		useEffect(() => {
+			let script: HTMLScriptElement | null = null;
+			if (typeof window !== "undefined" && !customElements.get("math-field")) {
+				script = document.createElement("script");
+				script.src = "https://unpkg.com/mathlive?module";
+				script.type = "module";
+				script.async = true;
+				script.onload = () => {
+					setIsCortexLoaded(true);
+				};
+				// script.onerror = () => console.error("Failed to load CortexJS/MathLive.");
+				document.body.appendChild(script);
+			}
+
+			// Enhanced Cleanup Function
+			return () => {
+				// Check if the script exists and is still a child of the body
+				if (script && document.body.contains(script)) {
+					try {
+						document.body.removeChild(script);
+					} catch (e) {
+						console.error("Error removing MathLive script:", e);
+					}
+				}
 			};
-			// script.onerror = () => console.error("Failed to load CortexJS/MathLive.");
-			document.body.appendChild(script);
+		}, []);
+
+		// Ensure Lexical only renders on the client
+		useEffect(() => {
+			setIsClient(true);
+		}, []);
+
+		// Debounced handler using setTimeout
+		const handleEditorChangeDebounced = useCallback(
+			(key: string, editorState: EditorState, editor: LexicalEditor) => {
+				editorRefMap.current[key] = editor; // Update editor ref immediately
+
+				// Clear previous timeout if exists
+				if (debounceTimeoutRef.current) {
+					clearTimeout(debounceTimeoutRef.current);
+				}
+
+				// Set new timeout
+				debounceTimeoutRef.current = setTimeout(() => {
+					const blocks = lexicalStateToAnswerBlocks(editorState);
+					onAnswersChange({ [key]: blocks });
+				}, 500); // 500ms delay
+			},
+			[onAnswersChange], // Dependency remains the same
+		);
+
+		// Effect to clear timeout on unmount
+		useEffect(() => {
+			return () => {
+				if (debounceTimeoutRef.current) {
+					clearTimeout(debounceTimeoutRef.current);
+				}
+			};
+		}, []);
+
+		if (!isClient) {
+			return null; // Don't render SSR
 		}
 
-		// Enhanced Cleanup Function
-		return () => {
-			// Check if the script exists and is still a child of the body
-			if (script && document.body.contains(script)) {
-				try {
-					document.body.removeChild(script);
-					//console.log("MathLive script removed."); // Optional: for debugging
-				} catch (e) {
-					console.error("Error removing MathLive script:", e);
-				}
-			}
-		};
-	}, []);
+		return (
+			<div className="space-y-6">
+				{Object.entries(questions).map(([key, question]) => {
+					// Define initialConfig for each editor instance
+					const initialConfig = {
+						namespace: `AnswerEditor-${key}`,
+						theme: editorTheme,
+						onError,
+						nodes: [LatexNode], // Still need to register the node
+					};
 
-	// Ensure Lexical only renders on the client
-	useEffect(() => {
-		setIsClient(true);
-	}, []);
-
-	// Debounced handler using setTimeout
-	const handleEditorChangeDebounced = useCallback(
-		(key: string, editorState: EditorState, editor: LexicalEditor) => {
-			editorRefMap.current[key] = editor; // Update editor ref immediately
-
-			// Clear previous timeout if exists
-			if (debounceTimeoutRef.current) {
-				clearTimeout(debounceTimeoutRef.current);
-			}
-
-			// Set new timeout
-			debounceTimeoutRef.current = setTimeout(() => {
-				const blocks = lexicalStateToAnswerBlocks(editorState);
-				onAnswersChange({ [key]: blocks });
-			}, 500); // 500ms delay
-		},
-		[onAnswersChange], // Dependency remains the same
-	);
-
-	// Effect to clear timeout on unmount
-	useEffect(() => {
-		return () => {
-			if (debounceTimeoutRef.current) {
-				clearTimeout(debounceTimeoutRef.current);
-			}
-		};
-	}, []);
-
-	if (!isClient) {
-		return null; // Don't render SSR
-	}
-
-	return (
-		<div className="space-y-6">
-			{Object.entries(questions).map(([key, question]) => {
-				// Define initialConfig for each editor instance
-				const initialConfig = {
-					namespace: `AnswerEditor-${key}`,
-					theme: editorTheme,
-					onError,
-					nodes: [LatexNode], // Still need to register the node
-				};
-
-				// Render the QuestionEditorInstance component
-				return (
-					<QuestionEditorInstance
-						key={key} // Use question key for React key
-						questionKey={key}
-						questionContent={question}
-						initialConfig={initialConfig}
-						triggerMathfieldFunc={mathLiveManager.triggerMathfield}
-						debouncedOnAnswersChange={handleEditorChangeDebounced}
-						// Pass down state and handlers from the hook
-						isLatexInputVisible={mathLiveManager.isLatexInputVisible}
-						currentLatexValue={mathLiveManager.currentLatexValue}
-						editingNodeKey={mathLiveManager.editingNodeKey}
-						activeEditorKey={mathLiveManager.activeEditorKey}
-						activeMathLiveKey={mathLiveManager.activeMathLiveKey}
-						handleMathfieldInput={mathLiveManager.handleMathfieldInput}
-						handleMathfieldKeyDown={mathLiveManager.handleMathfieldKeyDown}
-						isCortexLoaded={isCortexLoaded}
-					/>
-				);
-			})}
-		</div>
-	);
-});
+					// Render the QuestionEditorInstance component
+					return (
+						<QuestionEditorInstance
+							key={key} // Use question key for React key
+							questionKey={key}
+							questionContent={question}
+							initialConfig={initialConfig}
+							initialContent={initialAnswers?.[key]}
+							triggerMathfieldFunc={mathLiveManager.triggerMathfield}
+							debouncedOnAnswersChange={handleEditorChangeDebounced}
+							// Pass down state and handlers from the hook
+							isLatexInputVisible={mathLiveManager.isLatexInputVisible}
+							currentLatexValue={mathLiveManager.currentLatexValue}
+							editingNodeKey={mathLiveManager.editingNodeKey}
+							activeEditorKey={mathLiveManager.activeEditorKey}
+							activeMathLiveKey={mathLiveManager.activeMathLiveKey}
+							handleMathfieldInput={mathLiveManager.handleMathfieldInput}
+							handleMathfieldKeyDown={mathLiveManager.handleMathfieldKeyDown}
+							isCortexLoaded={isCortexLoaded}
+						/>
+					);
+				})}
+			</div>
+		);
+	},
+);
 
 AnswerArea.displayName = "AnswerArea"; // Add display name
 

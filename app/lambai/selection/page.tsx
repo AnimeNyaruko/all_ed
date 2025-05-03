@@ -17,12 +17,11 @@ export default async function Page() {
 	}
 
 	const sanitizedTableName: string = sanitizeUsername(username);
-	const data = await sql(
-		`SELECT "data","assignment_id" FROM "User Infomation"."${sanitizedTableName}"`,
-	);
+	const query = `SELECT "data","assignment_id" FROM "User Infomation"."${sanitizedTableName}"`;
+	const data = await sql(query);
 	const formattedData: DataItem[] = data.map(
-		(item: { name?: string; assignment_id?: string }) => ({
-			name: item.name || "",
+		(item: { data?: string; assignment_id?: string }) => ({
+			name: item.data || "",
 			assignment_id: item.assignment_id || "",
 		}),
 	);

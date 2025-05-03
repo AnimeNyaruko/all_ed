@@ -5,7 +5,6 @@ import sanitizeUsername from "@/utils/sanitizeUsername";
 export async function POST(request: NextRequest) {
 	const { _class, subject, prompt, level, quantity, username, assignmentId } =
 		await request.json();
-	console.log(_class, subject, prompt, level);
 	const fixedPrompt = _class.reduce(
 		(prev: string, curr: string, index: number) => {
 			return `${prev}Set ${index + 1}: Class: ${curr} - Subject: ${subject[index]} - Level: ${level[index]} - Prompt: ${prompt[index]}\n`;
@@ -55,7 +54,7 @@ export async function POST(request: NextRequest) {
     *   Các thông tin bổ sung, dữ kiện, quy ước, hằng số cần thiết (ví dụ: gia tốc trọng trường g, hằng số Avogadro Nᴀ, khối lượng mol, v.v.) phải được tích hợp một cách tự nhiên vào mô tả tình huống hoặc được liệt kê rõ ràng ở cuối phần đề bài mà **không cần tiêu đề**. Ví dụ: \"Coi g = 9.8 m/s². Cho Nᴀ = 6.022 x 10²³ mol⁻¹. Khối lượng mol của H₂O là 18 g/mol.\"
 5.  **Nội dung câu hỏi con (a, b, c, ...):**
     *   Các câu hỏi phải khai thác kiến thức và kỹ năng được mô tả trong phần \`Prompt:\` của các set khác nhau.
-    *   **Định dạng câu hỏi và câu trả lời mong đợi:** Tất cả các câu hỏi con phải được thiết kế sao cho câu trả lời có thể được diễn đạt hoàn toàn bằng **văn bản (text) và/hoặc công thức toán học/hóa học dạng LaTeX**. **TUYỆT ĐỐI KHÔNG** tạo ra các câu hỏi yêu cầu:
+    *   **Định dạng câu hỏi và câu trả lời mong đợi:** Tất cả các câu hỏi con phải được thiết kế sao cho câu trả lời có thể được diễn đạt hoàn toàn bằng **LaTeX**. **TUYỆT ĐỐI KHÔNG** tạo ra các câu hỏi yêu cầu:
         *   Vẽ hình, dựng hình, vẽ đồ thị.
         *   Kẻ bảng biểu.
         *   Các dạng bài tập trắc nghiệm yêu cầu nối, khoanh tròn trên hình, điền vào chỗ trống trên sơ đồ, hoặc các tương tác đồ họa khác.
@@ -71,6 +70,7 @@ export async function POST(request: NextRequest) {
     *   Mỗi câu hỏi con chỉ chứa nội dung câu hỏi, bắt đầu bằng ký tự tương ứng (ví dụ: \"a) \", \"b) \", \"c) \"). **Tuyệt đối không** thêm bất kỳ thông tin nào khác như tên môn học hay mức độ vào trong câu hỏi con (KHÔNG VIẾT: \"a) (Toán - Vận dụng) Tính...\", CHỈ VIẾT: \"a) Tính...\").
     *   Các câu hỏi con **chỉ bao gồm nội dung câu hỏi**, tuyệt đối không kèm theo bất kỳ gợi ý, lời giải, đáp án hay hướng dẫn giải nào.
 6.  **Định dạng đầu ra:**
+    *   Các ký hiệu, ký tự toán học **PHẢI** được bao bộc trong block $...$. Ví dụ $\\frac{a}{b} + c^2$
     *   Chỉ trả về **DUY NHẤT** một chuỗi JSON hợp lệ đã được \`JSON.stringify()\`.
     *   Chuỗi JSON này biểu diễn một object duy nhất.
     *   Object JSON phải có cấu trúc như sau:
@@ -103,7 +103,6 @@ export async function POST(request: NextRequest) {
 
 `;
 	const result = await generateText(systemInstruction);
-	console.log(result);
 	const sanitizedUsername = sanitizeUsername(username);
 	const query = `UPDATE "User Infomation"."${sanitizedUsername}" SET "task" = $1 WHERE "assignment_id" = $2`;
 	await sql(query, [result!.split("json")[1].split("```")[0], assignmentId]);

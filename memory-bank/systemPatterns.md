@@ -94,6 +94,7 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
    - Uses `editor.registerCommand(KEY_DOWN_COMMAND, ...)`.\n - Checks for specific key combination (`Ctrl+Q`).\n - Prevents default browser action (`event.preventDefault()`).\n - Calls context function (`triggerMathfield`) to initiate action.\n - Handles selection removal within `editor.update()` before calling trigger.\n
 
 7. **Custom Resizing: Ghost Drag (`lambai.tsx`)**
+
    - Replaces `ResizableBox`.
    - **State:** Uses `isDragging` (boolean), `ghostLeft` (number | null for ghost position).
    - **Refs:** Uses `dragStartXRef` (number | null), `startLeftWidthRef` (number), `ghostLeftRef` (number | null for latest position) to manage drag state and avoid stale closure issues.
@@ -107,6 +108,13 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
      - Handle `div` is positioned absolutely based on `leftWidth`.
      - Ghost `div` is rendered conditionally based on `isDragging` and positioned absolutely based on `ghostLeft`.
    - **Layout Update:** Main layout `div` uses `style={{ gridTemplateColumns: \`${leftWidth}px 1fr\` }}`.
+
+8. **Client-Side Parsing and Rendering for Mixed Content (`@ketqua`)**
+   - Khi dữ liệu từ backend là chuỗi text thuần túy chứa cả văn bản và LaTeX (ví dụ: được bao bọc bởi `$..$`), sử dụng hàm parser (`utils/latexParser.ts`) để tách chuỗi thành các khối text và latex.
+   - Sử dụng một component renderer riêng (`app/ketqua/(UI)/MixedContentRenderer.tsx`) để lặp qua các khối đã phân tích.
+   - Render khối text bằng thẻ `<span>` (với `whiteSpace: 'pre-wrap'` nếu cần giữ khoảng trắng/xuống dòng trong text).
+   - Render khối latex bằng thư viện phù hợp (ví dụ: `<InlineMath>` từ `react-katex`).
+   - Áp dụng phương pháp này cho tất cả các trường cần hiển thị nội dung hỗn hợp trên trang kết quả.
 
 ## Technical Decisions
 
@@ -199,7 +207,7 @@ graph TD
         OnChangePlugin[OnChangePlugin]
         LatexTriggerPlugin[LatexTriggerPlugin]
         MathShortcutPlugin[MathShortcutPlugin]
-        MathLiveInput{math-field (conditionally rendered)}
+        MathLiveInput{math-field (conditionally rendered, directly below editor)}
         LatexNode[LatexNode] --> LatexComponent[LatexComponent]
 
         LexicalComposer --> LatexContextProv
@@ -210,6 +218,7 @@ graph TD
         LatexContextProv --> LatexTriggerPlugin
         LatexContextProv --> MathShortcutPlugin
         RichTextPlugin --> ContentEditable
+        LexicalComposer -- followed by --> MathLiveInput
     end
 
     Hook -- provides --> triggerMathfield

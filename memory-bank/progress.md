@@ -10,6 +10,7 @@
    - [x] Session management
    - [x] Cookie handling
    - [x] Basic error handling
+   - [x] API `/api/nopbai` correctly parses AI response and creates valid JSON result string for DB.
 
 2. **Client-Side Layout & Base UI**
 
@@ -33,7 +34,14 @@
    - [x] Single MathLive instance enforcement (scrolls & focuses existing if attempt to open another) (`useMathLiveManager`).
    - [x] Editor instance disabled (`readOnly`) while its MathLive input is active (`QuestionEditorInstance`).
    - [x] Editor placeholder updated with `!!` and `Ctrl+Q` instructions.
-   - [ ] Click-to-edit existing `LatexNode`s (Needs implementation/verification).
+   - [x] Click-to-Edit: Verified existing implementation in `LatexComponent` correctly uses context to trigger edit.
+
+4. **Result Display (`@ketqua`)**
+   - [x] Fetches result data.
+   - [x] Parses mixed text/LaTeX strings using `utils/latexParser.ts`.
+   - [x] Renders mixed content correctly using `MixedContentRenderer` and `react-katex`.
+   - [x] Applied parsing/rendering to `de_bai`, `subQuestion`, `userAnswer`, `correctAnswer`.
+   - [x] Fixed premature text wrapping issue in rendered results.
 
 ## Recently Completed (Reflects `activeContext.md`)
 
@@ -66,38 +74,52 @@
    - [x] Removed unnecessary `eslint-disable` directives identified by the linter.
    - [x] Verified code passes `pnpm run lint` without errors or warnings.
 
+6. **Result Display Implementation (`@ketqua`)**
+
+   - [x] Implemented client-side parsing (`latexParser`) and rendering (`MixedContentRenderer`).
+   - [x] Applied to all relevant fields (`de_bai`, `subQuestion`, `userAnswer`, `correctAnswer`).
+   - [x] Fixed text wrapping issue.
+
+7. **API Fix & Prompt Tuning (`/api/nopbai`)**
+
+   - [x] Fixed JSON creation logic to prevent parsing errors on result page.
+   - [x] Iteratively refined AI prompt to improve `dap_an_dung` formatting (newline management).
+
+8. **Submission Formatting (`@lambai`)**
+
+   - [x] Updated `answerBlocksToLatex` to wrap LaTeX parts with `$..$`.
+
+9. **MathLive Positioning Fix (`@lambai`)**
+   - [x] Hoàn nguyên việc sử dụng `ReactDOM.createPortal` cho `<math-field>`.
+   - [x] `<math-field>` giờ đây được render trực tiếp trong `QuestionEditorInstance`, định vị chính xác bên dưới trình soạn thảo tương ứng.
+   - [x] Xác nhận lỗi clipping ban đầu không xuất hiện lại sau khi hoàn nguyên.
+
 ## Known Issues / Items Requiring Verification
 
-1. **Click-to-Edit:** The workflow for clicking an existing `LatexNode` to open MathLive needs full implementation and verification.
-2. **Visual Styling:** `LatexNode` currently lacks distinct visual styling within the editor.
-3. **Cursor/Selection:** Robustness of cursor positioning and selection handling around `LatexNode` after insertion/editing needs testing.
-4. **Timer Persistence:** Timer state is not persistent across page reloads/navigation (Lower priority for now).
-5. **MathLive Initial Display:** (From todo.txt) MathLive component (`<math-field>`) doesn't appear initially when triggered (`!!`, `Ctrl+Q`) due to `overflow: hidden` in `lambai.tsx`. Requires a permanent CSS solution (Positioning/Z-index, Portal, or Layout Refactor).
+1. **AI Prompt Compliance:** Need to test if the latest prompt adjustments effectively control the AI's output format for `dap_an_dung` (newlines).
+2. **Editor (`@lambai`) Issues (Needs Re-evaluation):**
+   - [x] Click-to-Edit: Verified existing implementation.
+   - [x] Visual Styling: Added border to default state in `LatexComponent` for better distinction.
+   - [ ] Cursor/Selection: Robustness around `LatexNode` needs testing. (Deferred - See Next Steps)
+   - [x] MathLive Initial Display: Fixed rendering issue using React Portal. MathLive input now appears correctly at the bottom of the screen when triggered. -> **Reverted Portal Implementation.**
+   - [ ] **Newline Saving:** Saving/Persistence of newlines within the editor is currently unstable.
+   - [x] ~~**MathLive Positioning Regression:** The Portal fix for initial display introduced an undesired fixed position at the bottom of the page. The input should ideally appear near the active editor instance.~~ (Resolved by reverting Portal)
+   - [ ] Cursor/Selection: Robustness around `LatexNode` needs testing. (Deferred)
+3. **Timer Persistence:** (Lower Priority)
 
 ## Next Steps (Immediate Tasks)
 
-1. **Fix MathLive Initial Display:**
-
-   - [ ] Investigate and implement a solution for the `overflow: hidden` issue preventing MathLive from showing (See Known Issues #5).
-
-2. **Verification & Implementation:**
-
-   - [ ] Implement/verify click-to-edit functionality for existing `LatexNode`s.
-
-3. **Refinement:**
-
-   - [ ] Add visual styling to `LatexNode` (e.g., background, border) to make it distinct.
-
-4. **Thorough Testing (Post-Fixes):**
-   - [ ] Test MathLive display fix in various scenarios.
-   - [ ] Test click-to-edit functionality.
-   - [ ] Retest core editor interactions (`!!`, `Ctrl+Q`, typing, etc.) to ensure no regressions.
+1. **Investigate Newline Saving Issue:** Determine the cause of unstable newline persistence in the Lexical editor state.
+2. ~~**Revisit MathLive Positioning:** Find a solution to position the Portal-rendered MathLive input closer to the active editor, or revert/replace the Portal approach.~~ (Resolved)
+3. **Test AI Output:** (Deferred) Submit a test assignment and verify the formatting of `dap_an_dung` in the `@ketqua` page.
+4. **Refine Prompt (If Needed):** (Deferred) Adjust the prompt in `/api/nopbai` further based on test results.
+5. **Test Editor Interactions (General):** (Deferred) Test cursor, selection, styling after addressing the primary issues.
 
 ## Upcoming / Longer Term
 
 - [ ] Refine error handling for MathLive loading and interaction.
 - [ ] Address Timer state persistence if required.
-- [ ] Optimize editor performance if necessary with complex content.
+- [ ] Optimize editor performance if necessary.
 
 ## Testing Status
 
@@ -106,3 +128,4 @@
 - Single MathLive focus/scroll logic implemented, needs testing.
 - Editor disabling implemented, needs testing.
 - `!!`
+- Client-side parsing/rendering in `@ketqua`

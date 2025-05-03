@@ -1,4 +1,5 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -18,12 +19,15 @@ import { type LexicalEditor, type EditorState } from "lexical";
 import { LatexPluginContext } from "../plugins/LatexPlugin";
 import LatexTriggerPlugin from "../plugins/LatexTriggerPlugin";
 import MathShortcutPlugin from "../plugins/MathShortcutPlugin";
+import InitialContentPlugin from "../plugins/InitialContentPlugin";
+import type { AnswerBlock } from "@/types";
 
 // Define the props based on what's passed from AnswerArea
 interface QuestionEditorInstanceProps {
 	questionKey: string;
 	questionContent: string;
 	initialConfig: InitialConfigType;
+	initialContent?: AnswerBlock[];
 	triggerMathfieldFunc: (
 		key: string,
 		nodeKey: string | null,
@@ -53,6 +57,7 @@ const QuestionEditorInstance = React.memo(
 		questionKey,
 		questionContent,
 		initialConfig,
+		initialContent,
 		triggerMathfieldFunc,
 		debouncedOnAnswersChange,
 		isLatexInputVisible,
@@ -64,6 +69,13 @@ const QuestionEditorInstance = React.memo(
 		handleMathfieldKeyDown,
 		isCortexLoaded,
 	}: QuestionEditorInstanceProps) => {
+		// State to track client-side mounting for portal
+		// const [isMounted, setIsMounted] = useState(false);
+
+		// useEffect(() => {
+		// 	setIsMounted(true);
+		// }, []);
+
 		// Create the specific trigger function needed by the context/plugins
 		// This function now has a stable reference if triggerMathfieldFunc is stable
 		const triggerForThisKey = useCallback(
@@ -116,6 +128,7 @@ const QuestionEditorInstance = React.memo(
 									debouncedOnAnswersChange(questionKey, editorState, editor)
 								}
 							/>
+							<InitialContentPlugin initialContent={initialContent} />
 							{/* Pass the stable trigger function to the plugin */}
 							<LatexTriggerPlugin trigger={triggerForThisKey} />
 							<MathShortcutPlugin />
@@ -123,11 +136,14 @@ const QuestionEditorInstance = React.memo(
 					</div>
 				</LexicalComposer>
 
-				{/* Conditional MathLive Input Area */}
+				{/* Conditional MathLive Input Area - Now rendered directly */}
 				{activeEditorKey === questionKey &&
 					isLatexInputVisible[questionKey] &&
 					isCortexLoaded && (
-						<div className="mt-2 p-2 border-blue-300 rounded bg-blue-50 border">
+						<div
+							className="mt-2 p-4 bg-blue-50 border-blue-300 shadow-lg rounded border"
+							// Removed fixed positioning, added margin-top
+						>
 							<label
 								htmlFor={`math-input-${questionKey}`}
 								className="text-sm font-medium text-gray-700 mb-1 block"
@@ -145,6 +161,8 @@ const QuestionEditorInstance = React.memo(
 									border: "1px solid #ccc",
 									padding: "5px",
 									fontSize: "1em",
+									// Ensure background is opaque if needed
+									backgroundColor: "white",
 								}}
 								value={currentLatexValue[questionKey] || ""}
 								onInput={(e: Event) => handleMathfieldInput(questionKey, e)}

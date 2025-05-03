@@ -27,7 +27,6 @@ const LatexComponent: React.FC<LatexComponentProps> = ({
 		// You could potentially use editor.update here to manage selection state
 		// or rely on a higher-level state as planned.
 		setIsSelected(true); // Basic visual feedback
-		console.log(`Clicked LatexNode: ${nodeKey}, content: ${latex}`);
 	};
 
 	// Reset selection visuals if needed elsewhere, maybe on editor update?
@@ -41,6 +40,7 @@ const LatexComponent: React.FC<LatexComponentProps> = ({
 				margin: "0 1px",
 				borderRadius: "4px",
 				backgroundColor: isSelected ? "#bae6fd" : "#e5e7eb",
+				border: isSelected ? "1px solid transparent" : "1px solid #d1d5db",
 			}} // Simple styling
 		>
 			<InlineMath math={latex || "\placeholder{}"} />
