@@ -10,7 +10,6 @@ export async function POST(request: NextRequest) {
 
 		// Lấy dữ liệu từ body JSON
 		const { time, de_bai, cau_hoi, cau_tra_loi, username, assignmentID } = body;
-		console.log(time, de_bai, cau_hoi, assignmentID);
 
 		// Kiểm tra dữ liệu có tồn tại và đúng kiểu không
 		if (
