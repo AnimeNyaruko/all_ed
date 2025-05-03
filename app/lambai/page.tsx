@@ -8,5 +8,5 @@ export default async function Page() {
 	const result = await handler();
 	if (result.status === "error") {
 		redirect("/lambai/selection");
-	} else return <Home markdownContent={result.data?.[0]?.task} />;
+	} else return <Home />;
 }
