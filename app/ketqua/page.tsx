@@ -6,11 +6,15 @@ import { getCookie } from "@/utils/cookie";
 import { redirect } from "next/navigation";
 export default async function Page() {
 	const username = await getCookie("session");
+	const assignment_id = await getCookie("assignment_id");
 	if (!username) {
 		redirect("/");
 	}
-	const query = `SELECT result from "User Infomation"."${sanitizeUsername(username)}"`;
-	const data = await sql(query);
+	if (!assignment_id) {
+		redirect("/taobai");
+	}
+	const query = `SELECT "result" from "User Infomation"."${sanitizeUsername(username)}" WHERE "assignment_id" = $1`;
+	const data = await sql(query, [assignment_id]);
 	if (!data[0].result) {
 		redirect("/lambai");
 	}
