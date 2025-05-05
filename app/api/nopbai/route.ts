@@ -120,7 +120,6 @@ Thực hiện các bước sau:
 		const aiResponseString = (await generateText(prompt))
 			?.split("```json")[1]
 			.split("```")[0];
-		console.log();
 		if (!aiResponseString) {
 			return NextResponse.json(
 				{ success: false, error: "No result from AI." },

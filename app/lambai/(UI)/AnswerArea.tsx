@@ -239,7 +239,10 @@ const AnswerArea = memo(
 							activeEditorKey={mathLiveManager.activeEditorKey}
 							activeMathLiveKey={mathLiveManager.activeMathLiveKey}
 							handleMathfieldInput={mathLiveManager.handleMathfieldInput}
+							// Restore handleMathfieldKeyDown prop
 							handleMathfieldKeyDown={mathLiveManager.handleMathfieldKeyDown}
+							// Pass down the new commit function
+							commitLatexToEditorFunc={mathLiveManager.commitLatexToEditor}
 							isCortexLoaded={isCortexLoaded}
 						/>
 					);

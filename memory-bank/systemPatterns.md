@@ -69,13 +69,20 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
 
    - Explicit grid definition (`gridTemplateColumns`) combined with fixed-height container (`h-[calc(100vh-64px)]`).\n - `overflow: hidden` on grid cells (panel wrappers) prevents content from forcing parent scroll.\n - `overflow-y: auto` on inner elements (with defined height like `h-full` or `inset-0`) enables content scrolling.\n - **Left Scrollbar Position:** CSS `direction: rtl / ltr` trick.\n
 
-2. **Lexical Editor Configuration (`QuestionEditorInstance.tsx`)**
+2. **Lexical Editor Configuration (`QuestionEditorInstance.tsx`, `AnswerArea.tsx`, `InitialContentPlugin.tsx`)**
 
-   - Plugins (`RichTextPlugin`, `HistoryPlugin`, `OnChangePlugin`, `LatexTriggerPlugin`, `MathShortcutPlugin`) provide functionality.\n - Context (`LatexPluginContext`) used for cross-component communication (`triggerMathfield`, `activeMathLiveKey`).\n - Handles selection removal within `editor.update()` before calling trigger.\n
+   - Plugins (`RichTextPlugin`, `HistoryPlugin`, `OnChangePlugin`, `LatexTriggerPlugin`, `MathShortcutPlugin`, `InitialContentPlugin`) provide functionality.
+   - Context (`LatexPluginContext`) used for cross-component communication (`triggerMathfield`, `activeMathLiveKey`).
+   - `lexicalStateToAnswerBlocks` (in `AnswerArea`) converts `EditorState` to `AnswerBlock[]`, inserting `{ type: 'text', content: '\n' }` between paragraphs.
+   - `InitialContentPlugin` parses `AnswerBlock[]` (including `\n` blocks) to reconstruct the editor state with correct paragraph breaks upon loading saved work.
 
 3. **External UI Interaction (MathLive)**
 
-   - Interactions (`!!`, `Ctrl+Q`, click) call `triggerMathfield` (via context).\n - `triggerMathfield` checks `activeMathLiveKey`:\n - If different & active: scrolls to and **focuses** existing MathLive.\n - If same or none active: updates state (`isLatexInputVisible`, `currentLatexValue`, `editingNodeKey`, `activeMathLiveKey`) to show/populate the MathLive input.\n - Submitting MathLive (`handleMathfieldKeyDown`) uses `editor.update()` and resets state (`activeMathLiveKey = null`).\n - **Editor Disabling:** `QuestionEditorInstance` uses `isLatexInputVisible` state to set `readOnly` on `ContentEditable`.\n
+   - Interactions (`!!`, `Ctrl+Q`, click) call `triggerMathfield` (via context).
+   - `triggerMathfield` manages single active instance (focus/scroll) and state updates.
+   - Submitting MathLive (`handleMathfieldKeyDown`) uses `editor.update()`.
+   - Editor disabling (`readOnly`) managed in `QuestionEditorInstance`.
+   - `<math-field>` rendered directly within `QuestionEditorInstance`, not via Portal.
 
 4. **State Management (`useMathLiveManager`, `lambai.tsx`)**
 
@@ -110,11 +117,21 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
    - **Layout Update:** Main layout `div` uses `style={{ gridTemplateColumns: \`${leftWidth}px 1fr\` }}`.
 
 8. **Client-Side Parsing and Rendering for Mixed Content (`@ketqua`)**
+
    - Khi dữ liệu từ backend là chuỗi text thuần túy chứa cả văn bản và LaTeX (ví dụ: được bao bọc bởi `$..$`), sử dụng hàm parser (`utils/latexParser.ts`) để tách chuỗi thành các khối text và latex.
    - Sử dụng một component renderer riêng (`app/ketqua/(UI)/MixedContentRenderer.tsx`) để lặp qua các khối đã phân tích.
    - Render khối text bằng thẻ `<span>` (với `whiteSpace: 'pre-wrap'` nếu cần giữ khoảng trắng/xuống dòng trong text).
    - Render khối latex bằng thư viện phù hợp (ví dụ: `<InlineMath>` từ `react-katex`).
    - Áp dụng phương pháp này cho tất cả các trường cần hiển thị nội dung hỗn hợp trên trang kết quả.
+
+9. **API Interaction & Prompt Engineering (`/api/nopbai`, `/api/taobai`)**
+   - **`/api/nopbai`:**
+     - Handles AI responses containing correctly escaped backslashes (`\\`) for LaTeX and literal newlines (`\n`).
+     - Prompt instructs AI to return only the final result, format units correctly, wrap necessary LaTeX in `$ ... $`, avoid custom delimiters, and use literal newlines.
+   - **`/api/taobai`:**
+     - Handles AI responses containing standard JSON strings (no pre-escaped quotes `\\"`).
+     - Prompt instructs AI on structure, content integration, question generation rules (including difficulty sorting, LaTeX-only answers), and specific constraints (Chemistry standard condition 24.79 L/mol).
+     - Prompt requires AI to return a single string containing the valid JSON structure.
 
 ## Technical Decisions
 

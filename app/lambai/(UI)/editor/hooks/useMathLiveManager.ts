@@ -11,6 +11,8 @@ interface MathfieldElement {
 }
 
 interface UseMathLiveManagerProps {
+	// editorRefMap is no longer the primary way to get the editor for commit
+	// It might still be needed for other purposes, but commit logic is changed.
 	editorRefMap: RefObject<Record<string, LexicalEditor | null>>;
 }
 
@@ -67,63 +69,74 @@ export function useMathLiveManager({ editorRefMap }: UseMathLiveManagerProps) {
 		[activeMathLiveKey],
 	);
 
-	const handleMathfieldKeyDown = useCallback(
-		(key: string, event: React.KeyboardEvent<HTMLElement>) => {
-			if (
-				event.key === "Enter" &&
-				!event.shiftKey &&
-				!event.ctrlKey &&
-				!event.altKey &&
-				!event.metaKey
-			) {
-				event.preventDefault();
-				const mathField = event.target as EventTarget & { value: string };
-				const latexValue = mathField.value.trim();
-				const currentEditingKey = editingNodeKey[key];
-				const editor = editorRefMap.current?.[key];
+	// New function to handle committing LaTeX and resetting state
+	const commitLatexToEditor = useCallback(
+		// Revert signature: Only key and value are needed from outside
+		(key: string, latexValue: string) => {
+			const currentEditingKey = editingNodeKey[key];
+			// Get editor instance using the ref map inside the hook
+			const editor = editorRefMap.current?.[key];
 
-				if (editor) {
-					editor.update(() => {
-						if (currentEditingKey) {
-							const nodeToUpdate = $getNodeByKey(currentEditingKey);
-							if ($isLatexNode(nodeToUpdate)) {
-								if (latexValue) {
-									nodeToUpdate.setLatex(latexValue);
-								} else {
-									nodeToUpdate.remove();
-								}
-							}
-						} else {
-							if (latexValue) {
-								const selection = $getSelection();
-								if (selection) {
-									const latexNode = $createLatexNode(latexValue);
-									selection.insertNodes([latexNode]);
-								}
-							}
-						}
-					});
-				} else {
-					console.error(`Editor instance not found for key: ${key}`);
-				}
-
-				setTimeout(() => {
-					setIsLatexInputVisible((prev) => ({ ...prev, [key]: false }));
-					setCurrentLatexValue((prev) => ({ ...prev, [key]: "" }));
-					setEditingNodeKey((prev) => ({ ...prev, [key]: null }));
-					setActiveEditorKey(null);
-					setActiveMathLiveKey(null);
-					editor?.focus();
-				}, 0);
+			// Add null check for the editor instance
+			if (!editor) {
+				console.error(
+					`[${key}] Editor instance not found in commitLatexToEditor. Cannot commit.`,
+				);
+				// Optionally reset state here too?
+				// Reset MathLive specific state even if editor commit fails
+				setIsLatexInputVisible((prev) => ({ ...prev, [key]: false }));
+				setCurrentLatexValue((prev) => ({ ...prev, [key]: "" }));
+				setEditingNodeKey((prev) => ({ ...prev, [key]: null }));
+				setActiveEditorKey(null);
+				setActiveMathLiveKey(null);
+				return;
 			}
+
+			editor.update(() => {
+				if (currentEditingKey) {
+					const nodeToUpdate = $getNodeByKey(currentEditingKey);
+					if ($isLatexNode(nodeToUpdate)) {
+						if (latexValue) {
+							nodeToUpdate.setLatex(latexValue);
+						} else {
+							nodeToUpdate.remove();
+						}
+					}
+				} else {
+					if (latexValue) {
+						const selection = $getSelection();
+						if (selection) {
+							const latexNode = $createLatexNode(latexValue);
+							selection.insertNodes([latexNode]);
+						}
+					}
+				}
+			});
+
+			// Reset state after committing
+			setTimeout(() => {
+				setIsLatexInputVisible((prev) => ({ ...prev, [key]: false }));
+				setCurrentLatexValue((prev) => ({ ...prev, [key]: "" }));
+				setEditingNodeKey((prev) => ({ ...prev, [key]: null }));
+				setActiveEditorKey(null);
+				setActiveMathLiveKey(null);
+				// Focus back on the Lexical editor after closing MathLive
+				editor.focus();
+			}, 0);
 		},
-		[editingNodeKey, editorRefMap],
+		[editingNodeKey, editorRefMap], // Restore editorRefMap dependency
 	);
 
-	const handleMathfieldInput = useCallback((key: string, event: Event) => {
-		const target = event.target as EventTarget & { value: string };
-		setCurrentLatexValue((prev) => ({ ...prev, [key]: target.value || "" }));
-	}, []);
+	const handleMathfieldInput = useCallback(
+		(key: string, event: Event) => {
+			// Ensure target has value property
+			const target = event.target as EventTarget & { value?: string };
+			const newValue = target.value ?? "";
+			setCurrentLatexValue((prev) => ({ ...prev, [key]: newValue }));
+			setEditingNodeKey((prev) => ({ ...prev, [key]: null })); // Clear editing node if typing new
+		},
+		[setCurrentLatexValue, setEditingNodeKey],
+	);
 
 	return {
 		isLatexInputVisible,
@@ -132,7 +145,7 @@ export function useMathLiveManager({ editorRefMap }: UseMathLiveManagerProps) {
 		activeEditorKey,
 		activeMathLiveKey,
 		triggerMathfield,
-		handleMathfieldKeyDown,
 		handleMathfieldInput,
+		commitLatexToEditor,
 	};
 }

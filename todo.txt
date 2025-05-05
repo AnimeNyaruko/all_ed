@@ -1,2 +1,33 @@
+# TODO List
+
+- **Test Virtual Keyboard Enter:**
+    - Mở MathLive input (dùng `!!` hoặc `Ctrl+Q`).
+    - Nhấn phím Enter trên **bàn phím ảo**.
+    - Kiểm tra console log trong trình duyệt.
+    - Tìm dòng log bắt đầu bằng `[<questionKey>] beforeinput triggered...`.
+    - Ghi lại giá trị của `InputType` và `Data` được log ra.
+
+- **Fix Virtual Enter Logic (Nếu cần):**
+    - Nếu `InputType` log ra là `insertLineBreak`, thì không cần làm gì thêm, chỉ cần xác nhận commit hoạt động.
+    - Nếu `InputType` là một giá trị khác (hoặc `Data` có giá trị đặc biệt), hãy mở file `app/lambai/(UI)/editor/components/QuestionEditorInstance.tsx`.
+    - Tìm hàm `handleMathfieldBeforeInput`.
+    - Cập nhật điều kiện `if (event.inputType === "insertLineBreak")` để khớp với giá trị `InputType` (hoặc `Data`) đã log ra. Ví dụ: `if (event.inputType === 'insertText' && event.data === null)` (đây chỉ là ví dụ).
+
+- **Address MathLive Initial Display Issue:**
+    - Điều tra tại sao MathLive input đôi khi bị cắt/không hiển thị đúng do `overflow: hidden` ở các component cha.
+    - Tìm giải pháp CSS hoặc cấu trúc component để đảm bảo MathLive luôn hiển thị đầy đủ.
+
+- **Implement/Verify Click-to-Edit for LatexNode:**
+    - Kiểm tra lại luồng hiện tại: Khi click vào một `LatexNode` đã render, nó có gọi `triggerMathfield` với `nodeKey` và LaTeX hiện tại không?
+    - Nếu chưa, triển khai `onClick` handler trong `LatexComponent.tsx`.
+    - Nếu có, xác nhận rằng MathLive input mở ra với đúng LaTeX và sau khi commit (Enter), nó cập nhật đúng node đó.
+
+- **Add Visual Styling for `LatexNode`:**
+    - Trong `app/lambai/(UI)/editor/nodes/LatexNode.tsx` hoặc file CSS liên quan, thêm CSS class (ví dụ: `.latex-node-class`) cho `LatexComponent` khi nó không được chọn hoặc không có focus.
+    - Style nó (ví dụ: thêm border nhẹ, background khác biệt) để dễ phân biệt với text thường.
+
+- **Clean up Console Logs:**
+    - Sau khi các chức năng hoạt động ổn định, xóa hoặc comment out các lệnh `console.log` dùng để debug trong các file liên quan (chủ yếu là `QuestionEditorInstance.tsx`, `useMathLiveManager.ts`).
+
 - [ ] **Newline Saving:** Việc lưu trữ xuống dòng trong trình soạn thảo Lexical vẫn chưa hoạt động ổn định.
 - [ ] **MathLive Positioning Regression:** Việc sử dụng Portal để sửa lỗi hiển thị MathLive đã di chuyển input ra cuối trang (fixed position), thay đổi vị trí mong muốn (vốn là ngay dưới editor tương ứng). Cần xem xét lại giải pháp hoặc điều chỉnh vị trí Portal. 

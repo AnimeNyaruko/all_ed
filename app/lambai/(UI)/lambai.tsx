@@ -7,6 +7,7 @@ import {
 	faSpinner,
 	faCheckCircle,
 	faExclamationCircle,
+	faArrowDown,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ReactMarkdown from "react-markdown";
@@ -18,12 +19,13 @@ import AnswerArea from "./AnswerArea";
 import { submitAnswers, handler, saveWorkProgress } from "../(handler)/handler";
 import { useOrientationCheck } from "./OrientationCheck";
 import { RotationOverlay } from "./RotationOverlay";
+import { useVirtualKeyboardPadding } from "./hooks/useVirtualKeyboardPadding";
+import { animate } from "animejs";
 import type {
 	AnswerBlock,
 	// FormattedOutput, // Removed as unused
 	// QuestionStructure, // Removed as unused - Let's keep QuestionStructure for now as it might be needed later
 } from "@/types";
-import { redirect } from "next/navigation";
 // Tách phần nội dung MathJax thành component riêng
 const QuestionContent = memo(
 	({ markdownContent }: { markdownContent: string }) => {
@@ -117,6 +119,11 @@ const QuestionContent = memo(
 QuestionContent.displayName = "QuestionContent";
 
 export default function Home() {
+	const [isBounded, setBounding] = useState<boolean>(false);
+	const HeaderDropdownArrow = useRef<SVGSVGElement>(null);
+	const [isHeaderVisible, setHeaderVisibility] = useState(true);
+	const HeaderComponent = useRef<HTMLDivElement>(null);
+	const HeaderInitialHeight = useRef<number>(0);
 	const [leftWidth, setLeftWidth] = useState(0);
 	const [isDragging, setIsDragging] = useState(false);
 	const [ghostLeft, setGhostLeft] = useState<number | null>(null);
@@ -140,6 +147,9 @@ export default function Home() {
 		"idle" | "saving" | "saved" | "error"
 	>("idle");
 	const saveStatusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+	// Get keyboard padding from the hook
+	const keyboardPadding = useVirtualKeyboardPadding();
 
 	// Kiểm tra hướng màn hình
 	const isLandscape = useOrientationCheck();
@@ -202,6 +212,7 @@ export default function Home() {
 							if (typeof savedAnswers === "object" && savedAnswers !== null) {
 								fetchedAnswers = savedAnswers;
 							} // Không cần else vì mặc định là {}
+							setBounding(true);
 						} catch (parseError) {
 							console.error(
 								"Error parsing saved work:",
@@ -470,6 +481,56 @@ export default function Home() {
 		/* ... */
 	}, []);
 
+	// Lấy giá trị chiều cao ban đầu của HeaderComponent trước khi ẩn.
+	useEffect(() => {
+		if (!isBounded) return;
+		if (HeaderComponent.current && !HeaderInitialHeight.current) {
+			HeaderInitialHeight.current =
+				HeaderComponent.current.getBoundingClientRect().height;
+			setHeaderVisibility(false);
+		}
+	}, [isBounded]);
+
+	// Áp dụng animejs vào việc tạo transition cho HeaderComponent
+	useEffect(() => {
+		if (
+			HeaderComponent.current &&
+			HeaderDropdownArrow.current &&
+			HeaderInitialHeight.current
+		) {
+			if (isHeaderVisible) {
+				animate(HeaderComponent.current, {
+					height: {
+						to: `${HeaderInitialHeight.current}px`,
+					},
+					duration: 150,
+					loop: false,
+				});
+			} else {
+				animate(HeaderComponent.current, {
+					height: {
+						to: "0px",
+					},
+					duration: 150,
+					loop: false,
+				});
+			}
+			animate(HeaderDropdownArrow.current, {
+				rotate: "+=180deg",
+				duration: 150,
+				loop: false,
+				frameRate: 120,
+			});
+		}
+	}, [isHeaderVisible]);
+	// Define spacer style once
+	const spacerStyle: React.CSSProperties = {
+		height: `${keyboardPadding}px`,
+		transition: "height 150ms ease-in-out",
+		flexShrink: 0, // Prevent shrinking in flex/grid contexts
+		width: "100%", // Ensure it takes full width
+	};
+
 	// Render loading state
 	if (isLoading) {
 		return (
@@ -485,8 +546,23 @@ export default function Home() {
 			<RotationOverlay isVisible={isClient && !isLandscape} />
 
 			{/* Header */}
-			<header className="bg-gray-100 border-black border-b">
-				<div className="max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto">
+			<header className="bg-gray-100 border-black relative h-fit border-b">
+				<button
+					type="button"
+					onClick={() => setHeaderVisibility(!isHeaderVisible)}
+					className="bg-white border-black text-gray-400! rounded-b-xl absolute top-full left-1/2 z-[1000] h-fit w-fit -translate-x-1/2 cursor-pointer border px-[1.5em]"
+				>
+					<FontAwesomeIcon
+						ref={HeaderDropdownArrow}
+						fixedWidth
+						icon={faArrowDown}
+					/>
+				</button>
+
+				<div
+					ref={HeaderComponent}
+					className="max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto transition-all"
+				>
 					<div className="py-4 flex items-center justify-between">
 						{/* Logo */}
 						<div className="gap-x-4 flex items-center">
@@ -598,6 +674,8 @@ export default function Home() {
 							style={{ direction: "ltr" }}
 						>
 							<QuestionContent markdownContent={taskContent.de_bai || ""} />
+							{/* Spacer Div for Left Panel */}
+							<div className="keyboard-spacer-left" style={spacerStyle} />
 						</div>
 					</div>
 
@@ -633,6 +711,8 @@ export default function Home() {
 								onAnswersChange={handleAnswersChange}
 								initialAnswers={answers}
 							/>
+							{/* Spacer Div for Right Panel */}
+							<div className="keyboard-spacer-right" style={spacerStyle} />
 						</div>
 					</div>
 				</main>

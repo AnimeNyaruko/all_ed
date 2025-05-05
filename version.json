@@ -12,5 +12,12 @@
 		"final_git_commit_message": "hotfix: Fix prompt format",
 		"pre_release_date": "Sat May 3 15:30:02 2025 +0700",
 		"pre_git_commit_message": "fix: Fixed line ending warnings in memory-bank/activeContext.md, ui/final.css, and app/lambai/(UI)/editor/plugins/InitialContentPlugin.tsx"
+	},
+	{
+		"version": "beta 1.2",
+		"final_release_date": "Sat May 3 16:26:25 2025 +0700",
+		"final_git_commit_message": "",
+		"pre_release_date": "Sat May 3 16:21:48 2025 +0700",
+		"pre_git_commit_message": "hotfix: enhance chemistry prompt"
 	}
 ]

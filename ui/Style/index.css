@@ -22,6 +22,19 @@ body {
 
 body {
 	font-family: Arial, Helvetica, sans-serif;
+	/* Giảm chiều cao keycap (thử giá trị nhỏ hơn mặc định) */
+	--keycap-height: 10px; /* Giá trị mặc định có thể khác, cần thử nghiệm */
+	/* Có thể giảm font size để phù hợp */
+	--keycap-font-size: 14px;
+	/* Có thể giảm gap giữa các key */
+	--keycap-gap: 0px;
+	/* Có thể giảm padding trên/dưới của panel */
+	--keyboard-padding-top: 0px;
+	--keyboard-padding-bottom: 4px;
+
+	/* Các biến khác có thể thử nghiệm nếu cần */
+	--keyboard-toolbar-font-size: 14px;
+	--variant-keycap-length: 2px;
 }
 /* Style chung cho các trang có header cố định */
 .page-content-with-fixed-header {
