@@ -458,7 +458,7 @@ export default function Home() {
 
 					<div
 						ref={HeaderComponent}
-						className="max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto transition-all"
+						className="max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto"
 					>
 						<div className="py-4 flex items-center justify-between">
 							{/* Logo */}
@@ -552,9 +552,9 @@ export default function Home() {
 					</div>
 				</header>
 
-				{/* Content Area */}
+				{/* Content Area - Thêm 'relative' vào đây */}
 				<div
-					className="grid h-[calc(100vh-64px)] flex-grow overflow-hidden" // Adjust height calculation if header height changes
+					className="relative grid h-[calc(100vh-64px)] flex-grow overflow-hidden" // <-- Thêm 'relative'
 					style={{ gridTemplateColumns: `${leftWidth}px 1fr` }}
 				>
 					{/* Left Panel (Scrollable Question) */}
@@ -582,7 +582,6 @@ export default function Home() {
 						style={{
 							left: `${leftWidth}px`, // Position handle based on state
 							transform: "translateX(-50%)", // Center the handle visually
-							zIndex: 20,
 						}}
 					/>
 
@@ -592,7 +591,6 @@ export default function Home() {
 							className="top-0 bottom-0 w-0.5 bg-blue-500 absolute opacity-75"
 							style={{
 								left: `${ghostLeft}px`, // Position ghost based on drag state
-								zIndex: 30, // Ensure ghost is above handle and content
 								pointerEvents: "none", // Prevent ghost from intercepting mouse events
 							}}
 						/>

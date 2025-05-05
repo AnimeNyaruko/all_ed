@@ -22,8 +22,8 @@
 	},
 	{
 		"version": "beta 1.3",
-		"final_release_date": "Tue May 6 02:38:42 2025 +0700",
-		"final_git_commit_message": "chore: Add formatted copy of mathlive static CSS for analysis",
+		"final_release_date": "Tue May 6 04:40:06 2025 +0700",
+		"final_git_commit_message": "feat: Refactor lambai UI components and utils - Extracted QuestionContent component from lambai.tsx to components/QuestionContent.tsx. Moved lexicalStateToAnswerBlocks utility from AnswerArea.tsx to editor/utils/lexicalUtils.ts. Moved editorTheme and onError definitions into AnswerArea component scope. Extracted EditorUIAndMathfield component from QuestionEditorInstance.tsx to file level and memoized it. Created separate EditorUIAndMathfieldProps interface. Fixed related lint errors during refactoring.",
 		"pre_release_date": "Tue May 6 02:38:42 2025 +0700",
 		"pre_git_commit_message": "chore: Add formatted copy of mathlive static CSS for analysis"
 	}

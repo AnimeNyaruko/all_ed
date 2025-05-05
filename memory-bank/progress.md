@@ -25,15 +25,16 @@
 
 ## Current Status
 
-- **Refactoring Complete:** Code related to question display (`QuestionContent`) and Lexical state conversion (`lexicalStateToAnswerBlocks`) has been moved to separate files/utils for better organization.
-- **Optimization Applied:** The inner UI component of the editor (`EditorUIAndMathfield`) has been extracted and memoized.
-- **Bug Fixes Stable:** Previous fixes for "Editor instance not found" and "ResizeObserver" errors are stable.
-- **Linting Passed:** Code passes lint checks after refactoring.
-- **Ready for Git:** Codebase is ready for the commit and push stage of `re-update mode 2`.
+- **UI Fix Applied:** The resizable handle no longer overlaps the header due to the correct positioning context being set on the grid container.
+- **Refactoring Complete (Previous Cycle):** Code related to question display and Lexical state conversion is organized.
+- **Optimization Applied (Previous Cycle):** The inner UI component of the editor is memoized.
+- **Bug Fixes Stable:** Previous fixes for editor commit errors are stable.
+- **Linting Passed:** Code passes lint checks.
+- **Ready for Git:** Codebase is ready for the commit and push stage of this `re-update mode 2` cycle.
 
 ## Known Issues
 
-- **Smoothness:** Interaction might feel slightly less immediate due to the restored `setTimeout` (trade-off for stability).
+- **Smoothness:** Interaction might feel slightly less immediate due to the restored `setTimeout`.
 - **Click-to-Edit:** Not fully implemented/verified.
 - **Styling:** Visual styling for `LatexNode` is pending.
 - **MathLive Initial Display:** Potential rendering issue due to parent overflow (requires testing).

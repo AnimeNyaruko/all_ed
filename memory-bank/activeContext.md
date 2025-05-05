@@ -243,11 +243,13 @@ Testing editor stability and interactions, particularly cursor behavior and sele
 ## Next Steps
 
 - Update other Memory Bank files (`progress.md`, etc.).
-- Proceed to Git commit and push.
-- Update `version.json`.
+- Proceed to Git commit and push for the handle fix.
+- Update `version.json` for the current version (`beta 1.3`).
 
 ## Active Decisions & Considerations
 
 - The refactoring aims to improve code organization, readability, and potential reusability.
 - Memoizing `EditorUIAndMathfield` might offer minor performance benefits in lists.
 - Keeping `editorTheme` and `onError` scoped within `AnswerArea` for now.
+- The handle overlapping issue was confirmed to be a CSS positioning context problem.
+- Decided against further refactoring in this cycle to focus on updating the version with the fix.
