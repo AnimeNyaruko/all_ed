@@ -2,33 +2,42 @@
 
 ## What Works
 
-- **Core Editor Structure:** Lexical editor (`AnswerArea.tsx`, `QuestionEditorInstance.tsx`) renders, manages multiple instances.
-- **Basic LaTeX Rendering:** `LatexNode` and `LatexComponent` render existing LaTeX using `react-katex`.
-- **LaTeX Input Trigger:** `!!` trigger (`LatexTriggerPlugin`) and `Ctrl+Q` (`MathShortcutPlugin`) successfully open the MathLive input field (`<math-field>`).
-- **MathLive Input:** `<math-field>` component appears when triggered, allows LaTeX input.
-- **Physical Keyboard Enter:** Pressing the physical Enter key while the `<math-field>` input is focused now correctly inserts/updates the `LatexNode` in the Lexical editor and closes the MathLive input (using `onKeyDown` and `commitLatexToEditor` with direct editor instance).
-- **Context Handling:** `useLexicalComposerContext` is used correctly within the `EditorUIAndMathfield` inner component, resolving previous context errors.
-- **State Management:** `useMathLiveManager` hook manages MathLive visibility, value, and active state.
-- **Content Conversion:** `lexicalStateToAnswerBlocks` converts editor state correctly for parent components (including handling newlines).
-- **Layout:** Resizable layout and scrolling generally work as intended.
+- Core Lexical editor setup with multiple instances (`QuestionEditorInstance`).
+- MathLive integration for LaTeX input (`<math-field>`).
+- Custom `LatexNode` and `LatexComponent` for rendering KaTeX.
+- `LatexTriggerPlugin` (`!!`) and `MathShortcutPlugin` (`Ctrl+Q`) to initiate MathLive.
+- `useMathLiveManager` hook manages MathLive state (visibility, value, active key).
+- `LatexPluginContext` (potentially redundant) or direct prop drilling for communication.
+- `lexicalStateToAnswerBlocks` converts editor state to a simplified structure.
+- Layout with resizable panels using custom ghost drag logic.
+- Left scrollbar (`direction: rtl/ltr` trick).
+- Global scroll prevention.
+- Conflict resolution for single active MathLive input.
+- Editor instance reference (`editorRefMap`) is now updated immediately upon `QuestionEditorInstance` mount via `EditorRefPlugin`.
 
 ## What's Left to Build / Fix
 
-- **Virtual Keyboard Enter:** Pressing the Enter key _on the MathLive virtual keyboard_ needs to commit the LaTeX and close the input, mirroring the physical keyboard behavior.
-- **Click-to-Edit LaTeX:** Functionality for clicking an existing rendered `LatexNode` to open the MathLive input for editing needs full implementation/verification (currently uses `triggerMathfield` but flow needs confirmation).
-- **Visual Styling for `LatexNode`:** Add specific CSS (`.latex-node-class`) for better visual distinction of rendered LaTeX.
+- **Verify Fix:** Confirm that the "Editor instance not found" error is resolved by testing the specific scenario.
+- **Click-to-Edit:** Full verification/implementation needed for clicking existing `LatexNode`s to edit them in MathLive.
+- **Styling:** Add visual styling for `LatexNode` (e.g., background, border when active/hovered).
+- **Initial Display:** Address the original MathLive rendering issue if it persists (might be related to `overflow: hidden` or timing).
+- **Context Cleanup:** Review if `LatexPluginContext` can be removed in favor of prop drilling managed by `useMathLiveManager`.
 
 ## Current Status
 
-- **Enter Key:** Phím Enter vật lý hoạt động (sử dụng `onKeyDown`). Đã thêm trình xử lý `onBeforeInput` cho `<math-field>` để thử bắt Enter ảo. **Cần kiểm tra log console để xem `event.inputType` khi nhấn Enter ảo.**
-- **Refactoring:** Đã ổn định sau nhiều lần tái cấu trúc (context, editor instance passing).
+- **Refactoring Complete:** Code related to question display (`QuestionContent`) and Lexical state conversion (`lexicalStateToAnswerBlocks`) has been moved to separate files/utils for better organization.
+- **Optimization Applied:** The inner UI component of the editor (`EditorUIAndMathfield`) has been extracted and memoized.
+- **Bug Fixes Stable:** Previous fixes for "Editor instance not found" and "ResizeObserver" errors are stable.
+- **Linting Passed:** Code passes lint checks after refactoring.
+- **Ready for Git:** Codebase is ready for the commit and push stage of `re-update mode 2`.
 
-## Known Issues / Bugs
+## Known Issues
 
-- **Virtual Keyboard Enter (Pending Test):** Chưa xác nhận hoạt động với `onBeforeInput`. Cần kiểm tra log.
-- **Focusout Commit Edge Case:** (Không còn áp dụng - đã xóa bỏ logic `focusout`)
-- **MathLive Initial Display (Low Priority now):** Vấn đề `overflow: hidden` ban đầu có thể vẫn còn.
-- **Click-to-Edit (Not Tested/Implemented):** Chưa được kiểm tra hoặc triển khai đầy đủ.
+- **Smoothness:** Interaction might feel slightly less immediate due to the restored `setTimeout` (trade-off for stability).
+- **Click-to-Edit:** Not fully implemented/verified.
+- **Styling:** Visual styling for `LatexNode` is pending.
+- **MathLive Initial Display:** Potential rendering issue due to parent overflow (requires testing).
+- **`LatexPluginContext` Redundancy:** Context might be unnecessary.
 
 ## Recently Completed (Reflects `activeContext.md`)
 

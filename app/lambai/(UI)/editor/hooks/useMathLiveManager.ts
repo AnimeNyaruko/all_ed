@@ -43,9 +43,6 @@ export function useMathLiveManager({ editorRefMap }: UseMathLiveManagerProps) {
 						block: "center",
 					});
 					activeMathfieldElement.focus();
-					console.warn(
-						`MathLive for editor ${activeMathLiveKey} is already active. Please complete it first.`,
-					);
 				}
 				return;
 			}
@@ -74,6 +71,7 @@ export function useMathLiveManager({ editorRefMap }: UseMathLiveManagerProps) {
 		// Revert signature: Only key and value are needed from outside
 		(key: string, latexValue: string) => {
 			const currentEditingKey = editingNodeKey[key];
+
 			// Get editor instance using the ref map inside the hook
 			const editor = editorRefMap.current?.[key];
 
@@ -113,7 +111,7 @@ export function useMathLiveManager({ editorRefMap }: UseMathLiveManagerProps) {
 				}
 			});
 
-			// Reset state after committing
+			// Reset state after committing - HOÀN NGUYÊN setTimeout
 			setTimeout(() => {
 				setIsLatexInputVisible((prev) => ({ ...prev, [key]: false }));
 				setCurrentLatexValue((prev) => ({ ...prev, [key]: "" }));
@@ -138,6 +136,44 @@ export function useMathLiveManager({ editorRefMap }: UseMathLiveManagerProps) {
 		[setCurrentLatexValue, setEditingNodeKey],
 	);
 
+	// Handler for specific keydown events on the MathLive input
+	// This is needed for things like Enter to commit, Escape to cancel, etc.
+	const handleMathfieldKeyDown = useCallback(
+		(key: string, event: React.KeyboardEvent<HTMLElement>) => {
+			// Enter key (without modifiers) commits the LaTeX
+			if (
+				event.key === "Enter" &&
+				!event.shiftKey &&
+				!event.ctrlKey &&
+				!event.altKey &&
+				!event.metaKey
+			) {
+				event.preventDefault();
+				// Use intermediate 'unknown' cast to satisfy linter
+				const mathfieldElement = event.target as unknown as MathfieldElement;
+				const value = mathfieldElement.value?.trim() ?? "";
+				commitLatexToEditor(key, value);
+			}
+			// Example: Escape key to cancel (clears state without committing)
+			else if (event.key === "Escape") {
+				event.preventDefault();
+				// Reset state without committing
+				setIsLatexInputVisible((prev) => ({ ...prev, [key]: false }));
+				setCurrentLatexValue((prev) => ({ ...prev, [key]: "" }));
+				setEditingNodeKey((prev) => ({ ...prev, [key]: null }));
+				setActiveEditorKey(null);
+				setActiveMathLiveKey(null);
+				// Focus back on the editor
+				const editor = editorRefMap.current?.[key];
+				if (editor) {
+					editor.focus();
+				}
+			}
+			// Add other keydown handling if needed
+		},
+		[commitLatexToEditor, editorRefMap], // Include dependencies
+	);
+
 	return {
 		isLatexInputVisible,
 		currentLatexValue,
@@ -146,6 +182,7 @@ export function useMathLiveManager({ editorRefMap }: UseMathLiveManagerProps) {
 		activeMathLiveKey,
 		triggerMathfield,
 		handleMathfieldInput,
+		handleMathfieldKeyDown, // Add the function to the return object
 		commitLatexToEditor,
 	};
 }

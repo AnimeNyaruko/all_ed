@@ -1,6 +1,6 @@
 // utils/latexParser.ts
 
-interface ParsedBlock {
+export interface ParsedBlock {
 	type: "text" | "latex";
 	content: string;
 }

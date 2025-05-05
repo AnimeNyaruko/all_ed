@@ -1,56 +1,15 @@
 "use client";
 import { useState, useRef, useEffect, useCallback, memo } from "react";
 import "katex/dist/katex.min.css";
-import {
-	$getRoot,
-	EditorState,
-	LexicalEditor,
-	LexicalNode,
-	ElementNode,
-	TextNode,
-} from "lexical";
+import { EditorState, LexicalEditor } from "lexical";
+import { InitialConfigType } from "@lexical/react/LexicalComposer";
 import { useMathLiveManager } from "./editor/hooks/useMathLiveManager";
 import QuestionEditorInstance from "./editor/components/QuestionEditorInstance";
 
 // Custom Node
 import { LatexNode, $isLatexNode } from "./editor/nodes/LatexNode";
-
-// Type definitions remain the same
-declare global {
-	namespace JSX {
-		interface IntrinsicElements {
-			"math-field": React.DetailedHTMLProps<
-				React.HTMLAttributes<HTMLElement> & {
-					value?: string;
-					readonly?: boolean;
-					style?: React.CSSProperties;
-					onInput?: (event: Event) => void;
-					onKeyDown?: (event: React.KeyboardEvent<HTMLElement>) => void;
-					"virtual-keyboard-mode"?: string;
-					id?: string;
-				},
-				HTMLElement
-			>;
-		}
-	}
-	interface Window {
-		MathfieldElement: MathfieldElement;
-	}
-}
-
-// Define a basic interface for the Mathfield element we interact with
-interface MathfieldElement {
-	// Or choose a more specific name if preferred
-	value: string;
-	focus(): void;
-	select(): void;
-}
-
-interface AnswerBlock {
-	id: string; // Add unique ID for React keys
-	type: "text" | "latex";
-	content: string;
-}
+import { lexicalStateToAnswerBlocks } from "./editor/utils/lexicalUtils";
+import type { AnswerBlock } from "@/types";
 
 interface AnswerAreaProps {
 	questions: Record<string, string>;
@@ -58,93 +17,33 @@ interface AnswerAreaProps {
 	onAnswersChange: (answers: Record<string, AnswerBlock[]>) => void; // Expect AnswerBlock array
 }
 
-// Example Lexical Theme (Customize as needed)
-const editorTheme = {
-	ltr: "ltr",
-	rtl: "rtl",
-	paragraph: "mb-1",
-	text: {
-		bold: "font-bold",
-		italic: "italic",
-		underline: "underline",
-		strikethrough: "line-through",
-		underlineStrikethrough: "underline line-through",
-		code: "bg-gray-100 text-gray-800 p-1 rounded text-sm font-mono",
-	},
-	latex: "latex-node-class", // Add class for custom styling of LatexNode span
-};
-
-// Function to handle editor errors
-function onError(error: Error) {
-	console.error(error);
-}
-
-// Function to convert Lexical state to AnswerBlock[] (Improved Typing)
-function lexicalStateToAnswerBlocks(editorState: EditorState): AnswerBlock[] {
-	const blocks: AnswerBlock[] = [];
-	editorState.read(() => {
-		const root = $getRoot();
-		const rootChildren = root.getChildren();
-		rootChildren.forEach((paragraph: LexicalNode, paragraphIndex: number) => {
-			// Ensure it's an element node that can have children (like ParagraphNode)
-			if (paragraph instanceof ElementNode) {
-				let currentText = "";
-				paragraph.getChildren().forEach((node: LexicalNode) => {
-					if (node instanceof TextNode) {
-						// Use instanceof for type checking
-						currentText += node.getTextContent();
-					} else if ($isLatexNode(node)) {
-						// Use type guard
-						if (currentText) {
-							blocks.push({
-								// Keep using Math.random() for text blocks to maintain existing behavior
-								id: `text-${Math.random()}`,
-								type: "text",
-								content: currentText,
-							});
-							currentText = "";
-						}
-						// Use the node's key for latex blocks
-						blocks.push({
-							id: node.getKey(),
-							type: "latex",
-							content: node.getLatex(),
-						});
-					}
-				});
-				if (currentText) {
-					// Keep using Math.random() for trailing text blocks
-					blocks.push({
-						id: `text-${Math.random()}`,
-						type: "text",
-						content: currentText,
-					});
-				}
-
-				// Add newline block after processing each paragraph, except the last one
-				if (paragraphIndex < rootChildren.length - 1) {
-					// Ensure the paragraph wasn't completely empty (or handle as needed)
-					// Optional: Check if the last added block was already a newline? (Probably not needed)
-					blocks.push({
-						id: `newline-${paragraphIndex}`,
-						type: "text",
-						content: "\n",
-					});
-				}
-			}
-		});
-	});
-	return blocks;
-}
-
 // Wrap the component with React.memo
 const AnswerArea = memo(
 	({ questions, initialAnswers, onAnswersChange }: AnswerAreaProps) => {
+		const editorTheme = {
+			ltr: "ltr",
+			rtl: "rtl",
+			paragraph: "mb-1",
+			text: {
+				bold: "font-bold",
+				italic: "italic",
+				underline: "underline",
+				strikethrough: "line-through",
+				underlineStrikethrough: "underline line-through",
+				code: "bg-gray-100 text-gray-800 p-1 rounded text-sm font-mono",
+			},
+			latex: "latex-node-class",
+		};
+
+		function onError(error: Error) {
+			console.error(error);
+		}
+
 		const [isClient, setIsClient] = useState(false);
 		const [isCortexLoaded, setIsCortexLoaded] = useState(false);
 		const editorRefMap = useRef<Record<string, LexicalEditor | null>>({});
 		const mathLiveManager = useMathLiveManager({ editorRefMap });
-		const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref for debounce timeout
+		const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 		// Load CortexJS script
 		useEffect(() => {
@@ -156,9 +55,16 @@ const AnswerArea = memo(
 				script.async = true;
 				script.onload = () => {
 					setIsCortexLoaded(true);
+					console.log("MathLive script loaded successfully."); // Add confirmation log
 				};
-				// script.onerror = () => console.error("Failed to load CortexJS/MathLive.");
+				// Uncomment and improve onerror
+				script.onerror = () =>
+					console.error("Failed to load CortexJS/MathLive script.");
 				document.body.appendChild(script);
+			} else if (customElements.get("math-field")) {
+				// If already loaded, set the state
+				setIsCortexLoaded(true);
+				console.log("MathLive custom element already registered.");
 			}
 
 			// Enhanced Cleanup Function
@@ -213,40 +119,44 @@ const AnswerArea = memo(
 
 		return (
 			<div className="space-y-6">
-				{Object.entries(questions).map(([key, question]) => {
-					// Define initialConfig for each editor instance
-					const initialConfig = {
-						namespace: `AnswerEditor-${key}`,
-						theme: editorTheme,
-						onError,
-						nodes: [LatexNode], // Still need to register the node
-					};
+				{isClient &&
+					Object.entries(questions).map(([key, questionText]) => {
+						// Create Lexical config for each instance
+						const initialConfig: InitialConfigType = {
+							namespace: `QuestionEditor-${key}`,
+							theme: editorTheme,
+							onError: onError,
+							nodes: [LatexNode],
+							editorState: null, // Set initial state if needed, e.g., from initialAnswers
+						};
 
-					// Render the QuestionEditorInstance component
-					return (
-						<QuestionEditorInstance
-							key={key} // Use question key for React key
-							questionKey={key}
-							questionContent={question}
-							initialConfig={initialConfig}
-							initialContent={initialAnswers?.[key]}
-							triggerMathfieldFunc={mathLiveManager.triggerMathfield}
-							debouncedOnAnswersChange={handleEditorChangeDebounced}
-							// Pass down state and handlers from the hook
-							isLatexInputVisible={mathLiveManager.isLatexInputVisible}
-							currentLatexValue={mathLiveManager.currentLatexValue}
-							editingNodeKey={mathLiveManager.editingNodeKey}
-							activeEditorKey={mathLiveManager.activeEditorKey}
-							activeMathLiveKey={mathLiveManager.activeMathLiveKey}
-							handleMathfieldInput={mathLiveManager.handleMathfieldInput}
-							// Restore handleMathfieldKeyDown prop
-							handleMathfieldKeyDown={mathLiveManager.handleMathfieldKeyDown}
-							// Pass down the new commit function
-							commitLatexToEditorFunc={mathLiveManager.commitLatexToEditor}
-							isCortexLoaded={isCortexLoaded}
-						/>
-					);
-				})}
+						return (
+							<div key={key}>
+								<QuestionEditorInstance
+									questionKey={key}
+									questionContent={questionText}
+									initialConfig={initialConfig}
+									// Pass initialContent specific to this key if available
+									initialContent={initialAnswers?.[key]}
+									// Pass down functions and state from mathLiveManager
+									triggerMathfieldFunc={mathLiveManager.triggerMathfield}
+									debouncedOnAnswersChange={handleEditorChangeDebounced}
+									isLatexInputVisible={mathLiveManager.isLatexInputVisible}
+									currentLatexValue={mathLiveManager.currentLatexValue}
+									editingNodeKey={mathLiveManager.editingNodeKey}
+									activeEditorKey={mathLiveManager.activeEditorKey}
+									activeMathLiveKey={mathLiveManager.activeMathLiveKey}
+									handleMathfieldInput={mathLiveManager.handleMathfieldInput}
+									handleMathfieldKeyDown={
+										mathLiveManager.handleMathfieldKeyDown
+									}
+									commitLatexToEditorFunc={mathLiveManager.commitLatexToEditor}
+									isCortexLoaded={isCortexLoaded} // Pass the state
+									editorRefMap={editorRefMap}
+								/>
+							</div>
+						);
+					})}
 			</div>
 		);
 	},
