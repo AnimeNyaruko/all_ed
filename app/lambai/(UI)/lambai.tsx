@@ -18,19 +18,29 @@ import { useVirtualKeyboardPadding } from "./hooks/useVirtualKeyboardPadding";
 import { animate } from "animejs";
 import type { AnswerBlock } from "@/types";
 import QuestionContent from "./components/QuestionContent";
+import { usePanelResizer } from "./hooks/usePanelResizer";
 
 export default function Home() {
 	const [isBounded, setBounding] = useState<boolean>(false);
 	const HeaderDropdownArrow = useRef<SVGSVGElement>(null);
-	const [isHeaderVisible, setHeaderVisibility] = useState(true);
+	const [isHeaderVisible, setHeaderVisibility] = useState(false);
 	const HeaderComponent = useRef<HTMLDivElement>(null);
 	const HeaderInitialHeight = useRef<number>(0);
-	const [leftWidth, setLeftWidth] = useState(0);
-	const [isDragging, setIsDragging] = useState(false);
-	const [ghostLeft, setGhostLeft] = useState<number | null>(null);
-	const dragStartXRef = useRef<number | null>(null);
-	const startLeftWidthRef = useRef<number>(0);
-	const ghostLeftRef = useRef<number | null>(null);
+
+	// Initial width calculation (remains here)
+	const initialLeftWidth = useMemo(() => {
+		// Check if window is defined (client-side)
+		if (typeof window !== "undefined") {
+			return window.innerWidth / 2;
+		}
+		return 500; // Default width for server-side or if window is undefined
+	}, []);
+
+	// Use the custom hook for resizing logic
+	const { leftWidth, isDragging, ghostLeft, handleDragStart } = usePanelResizer(
+		{ initialWidth: initialLeftWidth },
+	);
+
 	const [answers, setAnswers] = useState<Record<string, AnswerBlock[]>>({});
 	const [isTimerRunning, setIsTimerRunning] = useState(false);
 	const [isTimerPaused, setIsTimerPaused] = useState(false);
@@ -71,8 +81,7 @@ export default function Home() {
 
 	// Khởi tạo kích thước ban đầu, fetch dữ liệu và tải lại bài làm
 	useEffect(() => {
-		const initialWidth = window.innerWidth / 2;
-		setLeftWidth(initialWidth);
+		// Remove initial setLeftWidth here, handled by the hook and initialLeftWidth memo
 		setIsClient(true);
 
 		const fetchData = async () => {
@@ -141,105 +150,6 @@ export default function Home() {
 
 		fetchData();
 	}, []);
-
-	// --- Custom Drag Handlers ---
-	const handleDragMove = useCallback((event: MouseEvent | TouchEvent) => {
-		if (dragStartXRef.current === null) return;
-
-		const currentX =
-			"touches" in event ? event.touches[0].clientX : event.clientX;
-		const deltaX = currentX - dragStartXRef.current;
-		const newGhostLeft = startLeftWidthRef.current + deltaX;
-
-		// Apply constraints (e.g., min/max width)
-		const minWidth = 300;
-		const maxWidth = window.innerWidth - 300;
-		const constrainedGhostLeft = Math.max(
-			minWidth,
-			Math.min(maxWidth, newGhostLeft),
-		);
-
-		setGhostLeft(constrainedGhostLeft);
-		ghostLeftRef.current = constrainedGhostLeft;
-
-		// Prevent default text selection during drag
-		if (event.cancelable) {
-			event.preventDefault();
-		}
-	}, []);
-
-	const handleDragEnd = useCallback(
-		(event: MouseEvent | TouchEvent) => {
-			if (!isDragging) return;
-
-			setIsDragging(false);
-
-			if (ghostLeftRef.current !== null) {
-				setLeftWidth(ghostLeftRef.current);
-			}
-
-			setGhostLeft(null);
-			ghostLeftRef.current = null;
-			dragStartXRef.current = null;
-
-			// Re-enable user select is handled by useEffect cleanup
-			if (event.cancelable) {
-				event.preventDefault();
-			}
-		},
-		[isDragging],
-	);
-
-	// Effect to add/remove global listeners based on isDragging state
-	useEffect(() => {
-		const moveHandler = (e: MouseEvent | TouchEvent) => handleDragMove(e);
-		const endHandler = (e: MouseEvent | TouchEvent) => handleDragEnd(e);
-
-		if (isDragging) {
-			document.addEventListener("mousemove", moveHandler);
-			document.addEventListener("mouseup", endHandler);
-			document.addEventListener("touchmove", moveHandler, { passive: false });
-			document.addEventListener("touchend", endHandler);
-			// Optional: Disable text selection globally during drag
-			document.body.style.userSelect = "none";
-		} else {
-			document.removeEventListener("mousemove", moveHandler);
-			document.removeEventListener("mouseup", endHandler);
-			document.removeEventListener("touchmove", moveHandler);
-			document.removeEventListener("touchend", endHandler);
-			// Re-enable user select when not dragging
-			document.body.style.userSelect = "";
-		}
-
-		// Cleanup function to remove listeners when component unmounts or before re-running effect
-		return () => {
-			document.removeEventListener("mousemove", moveHandler);
-			document.removeEventListener("mouseup", endHandler);
-			document.removeEventListener("touchmove", moveHandler);
-			document.removeEventListener("touchend", endHandler);
-			// Ensure user select is re-enabled on unmount
-			document.body.style.userSelect = "";
-		};
-	}, [isDragging, handleDragMove, handleDragEnd]);
-
-	const handleDragStart = useCallback(
-		(event: React.MouseEvent | React.TouchEvent) => {
-			if (isDragging) return;
-
-			const currentX =
-				"touches" in event.nativeEvent
-					? event.nativeEvent.touches[0].clientX
-					: event.nativeEvent.clientX;
-			dragStartXRef.current = currentX;
-			startLeftWidthRef.current = leftWidth;
-			ghostLeftRef.current = leftWidth;
-			setGhostLeft(leftWidth);
-			setIsDragging(true);
-
-			event.preventDefault();
-		},
-		[leftWidth, isDragging],
-	);
 
 	// Timer effect
 	useEffect(() => {
@@ -382,48 +292,61 @@ export default function Home() {
 		/* ... */
 	}, []);
 
-	// Lấy giá trị chiều cao ban đầu của HeaderComponent trước khi ẩn.
+	// Lấy giá trị chiều cao ban đầu của HeaderComponent khi mount.
 	useEffect(() => {
-		if (!isBounded) return;
+		// Chạy một lần khi component mount để lấy chiều cao
 		if (HeaderComponent.current && !HeaderInitialHeight.current) {
 			HeaderInitialHeight.current =
 				HeaderComponent.current.getBoundingClientRect().height;
-			setHeaderVisibility(false);
+			// Không setHeaderVisibility(false) ở đây nữa vì trạng thái ban đầu đã là false
 		}
-	}, [isBounded]);
+	}, []); // <-- Chạy một lần khi mount
 
-	// Áp dụng animejs vào việc tạo transition cho HeaderComponent
+	// Áp dụng animejs vào việc tạo transition cho HeaderComponent và mũi tên
 	useEffect(() => {
-		if (
-			HeaderComponent.current &&
-			HeaderDropdownArrow.current &&
-			HeaderInitialHeight.current
-		) {
+		// Animation cho chiều cao header (phụ thuộc vào initialHeight)
+		if (HeaderComponent.current && HeaderInitialHeight.current) {
 			if (isHeaderVisible) {
 				animate(HeaderComponent.current, {
 					height: {
 						to: `${HeaderInitialHeight.current}px`,
 					},
+					// overflow: 'visible', // Tạm thời cho phép overflow khi mở rộng
 					duration: 150,
 					loop: false,
+					// complete: (anim) => {
+					// 	if (isHeaderVisible && HeaderComponent.current) {
+					// 		HeaderComponent.current.style.overflow = 'visible';
+					// 	}
+					// }
 				});
 			} else {
 				animate(HeaderComponent.current, {
 					height: {
 						to: "0px",
 					},
+					// overflow: 'hidden', // Ẩn overflow khi thu gọn
 					duration: 150,
 					loop: false,
+					// begin: (anim) => {
+					// 	if (!isHeaderVisible && HeaderComponent.current) {
+					// 		HeaderComponent.current.style.overflow = 'hidden';
+					// 	}
+					// }
 				});
 			}
+		}
+		// Animation cho mũi tên (chỉ phụ thuộc isHeaderVisible và ref)
+		if (HeaderDropdownArrow.current) {
 			animate(HeaderDropdownArrow.current, {
-				rotate: "+=180deg",
+				rotate: isHeaderVisible ? "0deg" : "180deg", // Xoay đến vị trí cụ thể thay vì +=
 				duration: 150,
 				loop: false,
 				frameRate: 120,
 			});
 		}
-	}, [isHeaderVisible]);
+	}, [isHeaderVisible]); // <-- Chỉ phụ thuộc vào isHeaderVisible
+
 	// Define spacer style once
 	const spacerStyle: React.CSSProperties = {
 		height: `${keyboardPadding}px`,
@@ -573,28 +496,6 @@ export default function Home() {
 							)}
 						</div>
 					</div>
-
-					{/* Splitter Handle */}
-					<div
-						onMouseDown={handleDragStart}
-						onTouchStart={handleDragStart}
-						className="top-0 bottom-0 w-2 bg-gray-300 hover:bg-blue-500 absolute cursor-col-resize"
-						style={{
-							left: `${leftWidth}px`, // Position handle based on state
-							transform: "translateX(-50%)", // Center the handle visually
-						}}
-					/>
-
-					{/* Ghost Bar - Rendered conditionally during custom drag */}
-					{isDragging && ghostLeft !== null && (
-						<div
-							className="top-0 bottom-0 w-0.5 bg-blue-500 absolute opacity-75"
-							style={{
-								left: `${ghostLeft}px`, // Position ghost based on drag state
-								pointerEvents: "none", // Prevent ghost from intercepting mouse events
-							}}
-						/>
-					)}
 
 					{/* Right Panel */}
 					<div className="bg-gray-50 shadow-inner relative overflow-hidden">

@@ -227,29 +227,22 @@ Testing editor stability and interactions, particularly cursor behavior and sele
 
 ## Recent Changes
 
-- **Refactor (`lambai.tsx`):** Extracted the `QuestionContent` component into its own file (`app/lambai/(UI)/components/QuestionContent.tsx`) and imported it back into `lambai.tsx`.
-- **Refactor (`AnswerArea.tsx`):**
-  - Moved the `lexicalStateToAnswerBlocks` utility function to a new file (`app/lambai/(UI)/editor/utils/lexicalUtils.ts`).
-  - Imported the utility function back into `AnswerArea.tsx`.
-  - Moved `editorTheme` definition and `onError` function inside the `AnswerArea` component scope.
-- **Optimize (`QuestionEditorInstance.tsx`):**
-  - Extracted the `EditorUIAndMathfield` inner component to the file level.
-  - Applied `React.memo` to `EditorUIAndMathfield`.
-  - Created a separate `EditorUIAndMathfieldProps` interface containing only the props needed by the child component.
-  - Updated `QuestionEditorInstance` to use the memoized child component and pass the correct props.
-- **Linting:** Fixed various lint errors that occurred during refactoring (missing imports, incorrect props).
-- **Previous Bug Fixes:** Resolved "Editor instance not found" and reverted the change that caused the "ResizeObserver" error.
+- **Refactor (`lambai.tsx`):**
+  - Extracted panel resizing logic (state, refs, handlers, effect) into a new custom hook `app/lambai/(UI)/hooks/usePanelResizer.ts`.
+  - Updated `lambai.tsx` to import and use the `usePanelResizer` hook.
+- **Linting:** Passed lint checks after refactoring.
+- **Previous (Fix Mode):** Fixed the header toggle arrow bug for new users.
 
 ## Next Steps
 
-- Update other Memory Bank files (`progress.md`, etc.).
-- Proceed to Git commit and push for the handle fix.
-- Update `version.json` for the current version (`beta 1.3`).
+- Update `systemPatterns.md` and `progress.md`.
+- Draft Git commit message for this `re-update mode 2` run.
+- Present commit message for approval.
+- Await Git execution and timestamp.
+- Update `version.json`.
 
 ## Active Decisions & Considerations
 
-- The refactoring aims to improve code organization, readability, and potential reusability.
-- Memoizing `EditorUIAndMathfield` might offer minor performance benefits in lists.
-- Keeping `editorTheme` and `onError` scoped within `AnswerArea` for now.
-- The handle overlapping issue was confirmed to be a CSS positioning context problem.
-- Decided against further refactoring in this cycle to focus on updating the version with the fix.
+- The refactoring improves the organization of `lambai.tsx` by encapsulating the resizing logic.
+- The header toggle issue was caused by the initial height not being available when the first animation ran for new users.
+- The fix ensures the initial state is correct (hidden) and animations run reliably from the first interaction.

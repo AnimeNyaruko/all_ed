@@ -100,21 +100,24 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
 
    - Uses `editor.registerCommand(KEY_DOWN_COMMAND, ...)`.\n - Checks for specific key combination (`Ctrl+Q`).\n - Prevents default browser action (`event.preventDefault()`).\n - Calls context function (`triggerMathfield`) to initiate action.\n - Handles selection removal within `editor.update()` before calling trigger.\n
 
-7. **Custom Resizing: Ghost Drag (`lambai.tsx`)**
+7. **Custom Resizing: Ghost Drag (`lambai.tsx`, `hooks/usePanelResizer.ts`)**
 
-   - Replaces `ResizableBox`.
-   - **State:** Uses `isDragging` (boolean), `ghostLeft` (number | null for ghost position).
-   - **Refs:** Uses `dragStartXRef` (number | null), `startLeftWidthRef` (number), `ghostLeftRef` (number | null for latest position) to manage drag state and avoid stale closure issues.
-   - **Event Handling:**
-     - `onMouseDown`/`onTouchStart` on the handle `div` triggers `handleDragStart`.
-     - `handleDragStart`: Sets `isDragging=true`, records start X and width, initializes ghost state/ref.
-     - `useEffect [isDragging]`: Adds/removes global `mousemove`/`touchmove` and `mouseup`/`touchend` listeners to `document`.
-     - `handleDragMove`: Calculates new ghost position based on delta X, applies constraints, updates `ghostLeft` state (for render) and `ghostLeftRef` (for `handleDragEnd`). Prevents default text selection.
-     - `handleDragEnd`: Sets `isDragging=false` (triggers listener removal via `useEffect`), reads final position from `ghostLeftRef`, updates `leftWidth` state to apply layout change, resets refs and ghost state.
-   - **Rendering:**
-     - Handle `div` is positioned absolutely based on `leftWidth`.
-     - Ghost `div` is rendered conditionally based on `isDragging` and positioned absolutely based on `ghostLeft`.
-   - **Layout Update:** Main layout `div` uses `style={{ gridTemplateColumns: \`${leftWidth}px 1fr\` }}`.
+   - **Hook (`usePanelResizer.ts`):** Encapsulates the state (`leftWidth`, `isDragging`, `ghostLeft`), refs (`dragStartXRef`, `startLeftWidthRef`, `ghostLeftRef`), event handlers (`handleDragMove`, `handleDragEnd`, `handleDragStart`), and the `useEffect` for managing global listeners.
+   - **Component (`lambai.tsx`):** Imports and calls `usePanelResizer`, passing the initial width. Uses the returned values (`leftWidth`, `isDragging`, `ghostLeft`, `handleDragStart`) to render the layout, handle, and ghost bar.
+   - **(Original Logic Details - Now in Hook):**
+     - Replaces `ResizableBox`.
+     - **State:** Uses `isDragging` (boolean), `ghostLeft` (number | null for ghost position).
+     - **Refs:** Uses `dragStartXRef` (number | null), `startLeftWidthRef` (number), `ghostLeftRef` (number | null for latest position) to manage drag state and avoid stale closure issues.
+     - **Event Handling:**
+       - `onMouseDown`/`onTouchStart` on the handle `div` triggers `handleDragStart`.
+       - `handleDragStart`: Sets `isDragging=true`, records start X and width, initializes ghost state/ref.
+       - `useEffect [isDragging]`: Adds/removes global `mousemove`/`touchmove` and `mouseup`/`touchend` listeners to `document`.
+       - `handleDragMove`: Calculates new ghost position based on delta X, applies constraints, updates `ghostLeft` state (for render) and `ghostLeftRef` (for `handleDragEnd`). Prevents default text selection.
+       - `handleDragEnd`: Sets `isDragging=false` (triggers listener removal via `useEffect`), reads final position from `ghostLeftRef`, updates `leftWidth` state to apply layout change, resets refs and ghost state.
+     - **Rendering:**
+       - Handle `div` is positioned absolutely based on `leftWidth`.
+       - Ghost `div` is rendered conditionally based on `isDragging` and positioned absolutely based on `ghostLeft`.
+     - **Layout Update:** Main layout `div` uses `style={{ gridTemplateColumns: \`${leftWidth}px 1fr\` }}`.
 
 8. **Client-Side Parsing and Rendering for Mixed Content (`@ketqua`)**
 
@@ -156,7 +159,7 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
 - **Tailwind CSS** for styling.
 - **CSS Grid** for main two-column layout (replaced Flexbox).
 - CSS `direction: rtl/ltr` for left scrollbar.
-- Custom hook/logic for left panel width adjustment (Ghost Drag).
+- **Custom hook/logic (`usePanelResizer`)** for left panel width adjustment (Ghost Drag).
 - FontAwesome icons.
 
 ### Editor: Lexical

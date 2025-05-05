@@ -25,11 +25,9 @@
 
 ## Current Status
 
-- **UI Fix Applied:** The resizable handle no longer overlaps the header due to the correct positioning context being set on the grid container.
-- **Refactoring Complete (Previous Cycle):** Code related to question display and Lexical state conversion is organized.
-- **Optimization Applied (Previous Cycle):** The inner UI component of the editor is memoized.
-- **Bug Fixes Stable:** Previous fixes for editor commit errors are stable.
-- **Linting Passed:** Code passes lint checks.
+- **Refactor Complete:** Panel resizing logic in `lambai.tsx` has been extracted into the `usePanelResizer` hook.
+- **Linting Passed:** Code passes lint checks after refactoring.
+- **Previous Fix Stable:** Header toggle arrow fix for new users is stable.
 - **Ready for Git:** Codebase is ready for the commit and push stage of this `re-update mode 2` cycle.
 
 ## Known Issues
@@ -42,10 +40,12 @@
 
 ## Recently Completed (Reflects `activeContext.md`)
 
-1.  **Virtual Keyboard Enter Attempt (`onBeforeInput`)**: Thêm trình xử lý sự kiện `onBeforeInput` vào `math-field`.
-2.  **Reverted Virtual Keyboard Command Customization:** Loại bỏ việc thay đổi `command` của keycap Enter ảo.
-3.  **Removed `focusout` Logic:** Loại bỏ logic commit dựa trên sự kiện `focusout`.
-4.  **Previous Refactoring:**
+1.  **Refactor (`lambai.tsx`):** Extracted panel resizing logic into `usePanelResizer` hook.
+2.  **Previous Fix (Header Toggle):** Corrected header toggle arrow behavior for new users.
+3.  **Virtual Keyboard Enter Attempt (`onBeforeInput`)**: Thêm trình xử lý sự kiện `onBeforeInput` vào `math-field`.
+4.  **Reverted Virtual Keyboard Command Customization:** Loại bỏ việc thay đổi `command` của keycap Enter ảo.
+5.  **Removed `focusout` Logic:** Loại bỏ logic commit dựa trên sự kiện `focusout`.
+6.  **Previous Refactoring:**
     - Hoàn nguyên Portal cho MathLive positioning.
     - Triển khai lưu/khôi phục newline.
     - Xử lý lỗi API và tinh chỉnh prompt.
@@ -68,6 +68,7 @@
 
 ## Testing Status
 
+- **Panel Resizing:** Refactored using `usePanelResizer` hook, basic functionality seems intact, needs testing.
 - Layout scrolling seems fixed, needs more thorough testing.
 - `Ctrl+Q` shortcut implemented, needs testing.
 - Single MathLive focus/scroll logic implemented, needs testing.
@@ -80,3 +81,4 @@
 - Newline saving and restoration works.
 - API `/api/nopbai` JSON parsing and formatting seems stable.
 - API `/api/taobai` JSON validity and Chem std cond seems stable.
+- **Header Toggle Arrow:** Works correctly for new users after fix.
