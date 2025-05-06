@@ -22,8 +22,8 @@
 	},
 	{
 		"version": "beta 1.3",
-		"final_release_date": "Tue May 6 04:40:06 2025 +0700",
-		"final_git_commit_message": "feat: Refactor lambai UI components and utils - Extracted QuestionContent component from lambai.tsx to components/QuestionContent.tsx. Moved lexicalStateToAnswerBlocks utility from AnswerArea.tsx to editor/utils/lexicalUtils.ts. Moved editorTheme and onError definitions into AnswerArea component scope. Extracted EditorUIAndMathfield component from QuestionEditorInstance.tsx to file level and memoized it. Created separate EditorUIAndMathfieldProps interface. Fixed related lint errors during refactoring.",
+		"final_release_date": "Tue May 6 06:03:09 2025 +0700",
+		"final_git_commit_message": "Refactor: Extract panel resizing logic to usePanelResizer hook\n\nExtracted the state, refs, event handlers, and effect responsible for handling the draggable resizing of the left panel in `app/lambai/(UI)/lambai.tsx` into a new custom hook `app/lambai/(UI)/hooks/usePanelResizer.ts`.\n\nUpdated `lambai.tsx` to import and utilize the `usePanelResizer` hook, simplifying the component's logic.\n\nThis refactoring improves code organization and encapsulation without changing functionality. Memory Bank files (`activeContext.md`, `systemPatterns.md`, `progress.md`) have been updated accordingly.",
 		"pre_release_date": "Tue May 6 02:38:42 2025 +0700",
 		"pre_git_commit_message": "chore: Add formatted copy of mathlive static CSS for analysis"
 	}
