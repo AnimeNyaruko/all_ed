@@ -25,7 +25,8 @@
 
 ## Current Status
 
-- **Refactor Complete:** Panel resizing logic in `lambai.tsx` has been extracted into the `usePanelResizer` hook.
+- **Update Mode - Step 1 Complete:** Code scan (refactor, optimize, lint) performed. No code changes were implemented as none were deemed necessary and no lint errors were found.
+- **Refactor Complete (Carried Over):** Panel resizing logic in `lambai.tsx` has been extracted into the `usePanelResizer` hook.
 - **Linting Passed:** Code passes lint checks after refactoring.
 - **Previous Fix Stable:** Header toggle arrow fix for new users is stable.
 - **Ready for Git:** Codebase is ready for the commit and push stage of this `re-update mode 2` cycle.
@@ -40,23 +41,26 @@
 
 ## Recently Completed (Reflects `activeContext.md`)
 
-1.  **Refactor (`lambai.tsx`):** Extracted panel resizing logic into `usePanelResizer` hook.
-2.  **Previous Fix (Header Toggle):** Corrected header toggle arrow behavior for new users.
-3.  **Virtual Keyboard Enter Attempt (`onBeforeInput`)**: Thêm trình xử lý sự kiện `onBeforeInput` vào `math-field`.
-4.  **Reverted Virtual Keyboard Command Customization:** Loại bỏ việc thay đổi `command` của keycap Enter ảo.
-5.  **Removed `focusout` Logic:** Loại bỏ logic commit dựa trên sự kiện `focusout`.
-6.  **Previous Refactoring:**
+1.  **Update Mode - Step 1 (Current Cycle):**
+    - Code scan for refactor, optimize, lint opportunities.
+    - No changes implemented (no issues found or critical improvements identified).
+2.  **Refactor (`lambai.tsx`) (Carried Over from previous `re-update mode 2`):** Extracted panel resizing logic into `usePanelResizer` hook.
+3.  **Previous Fix (Header Toggle) (Carried Over from `fix mode`):** Corrected header toggle arrow behavior for new users.
+4.  **Virtual Keyboard Enter Attempt (`onBeforeInput`)**: Thêm trình xử lý sự kiện `onBeforeInput` vào `math-field`.
+5.  **Reverted Virtual Keyboard Command Customization:** Loại bỏ việc thay đổi `command` của keycap Enter ảo.
+6.  **Removed `focusout` Logic:** Loại bỏ logic commit dựa trên sự kiện `focusout`.
+7.  **Previous Refactoring:**
     - Hoàn nguyên Portal cho MathLive positioning.
     - Triển khai lưu/khôi phục newline.
     - Xử lý lỗi API và tinh chỉnh prompt.
 
 ## Next Steps (Immediate Tasks)
 
-1.  **Test Virtual Keyboard Enter:** Mở MathLive, nhấn Enter ảo, kiểm tra console log cho `beforeinput triggered`, ghi lại `InputType` và `Data`.
-2.  **Fix Virtual Enter Logic (If needed):** Nếu `inputType` không phải `insertLineBreak`, cập nhật điều kiện trong `handleMathfieldBeforeInput`.
-3.  **Test Editor Interactions:** Kiểm tra kỹ lưỡng hành vi của con trỏ/selection sau khi Enter ảo hoạt động.
-4.  **(Optional) Further AI Prompt Testing:** Giám sát đầu ra AI.
-5.  **(Optional) Timer Persistence:** Giải quyết nếu cần.
+1.  **Proceed with `update mode` Step 3: Git Commit & Push.**
+2.  Draft Git commit message.
+3.  Await user approval for commit message.
+4.  Execute Git operations upon approval.
+5.  Request timestamp for `version.json` update.
 
 ## Upcoming / Longer Term
 
