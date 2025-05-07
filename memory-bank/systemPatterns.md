@@ -25,7 +25,9 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
 
 1. **UI Layout (`lambai.tsx`, `ui/Style/index.css`)**
 
-   - **CSS Grid Layout:** Main content area uses `display: grid` with columns defined by `gridTemplateColumns: \`${leftWidth}px 1fr\``. Container has fixed height (`calc(100vh - headerHeight)`) and `overflow: hidden`.\n    - **Independent Scrolling:** Left and right panels achieve independent scrolling.\n        - Wrapper divs (`relative/overflow-hidden`or`bg-white p-6 overflow-hidden relative`) clip overflow within their grid cell.\n        - Inner content divs use `h-full overflow-y-auto`or`absolute inset-0 overflow-y-auto`.\n    - **Left Scrollbar:** Left panel uses `direction: rtl`on the scroll container and`direction: ltr` on the content (`QuestionContent`) to position scrollbar on the left.\n    - **Resizable Panels:** Custom Ghost Drag implementation.\n    - **Global Styles:**`html, body`have`height: 100%`, `overflow: hidden`.\n - Modern header & Timer controls.\n
+   - **CSS Grid Layout:** Main content area uses `display: grid` with columns defined by `gridTemplateColumns: \`${leftWidth}px 1fr\`. The main container (`h-screen flex flex-col`) and the grid container (`flex-grow`) manage height dynamically, allowing the content area to fill available space below the header. Container has `overflow: hidden`.
+   - **Independent Scrolling:** Left and right panels achieve independent scrolling.
+     - Wrapper divs (`relative/overflow-hidden`or`bg-white p-6 overflow-hidden relative`) clip overflow within their grid cell.\n - Inner content divs use `h-full overflow-y-auto`or`absolute inset-0 overflow-y-auto`.\n - **Left Scrollbar:** Left panel uses `direction: rtl`on the scroll container and`direction: ltr` on the content (`QuestionContent`) to position scrollbar on the left.\n - **Resizable Panels:** Custom Ghost Drag implementation.\n - **Global Styles:**`html, body`have`height: 100%`, `overflow: hidden`.\n - Modern header & Timer controls.\n
 
 2. **Content Management & Editing (`AnswerArea.tsx`, `editor/`)**
 
@@ -67,7 +69,10 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
 
 1. **Layout: CSS Grid & Overflow Management**
 
-   - Explicit grid definition (`gridTemplateColumns`) combined with fixed-height container (`h-[calc(100vh-64px)]`).\n - `overflow: hidden` on grid cells (panel wrappers) prevents content from forcing parent scroll.\n - `overflow-y: auto` on inner elements (with defined height like `h-full` or `inset-0`) enables content scrolling.\n - **Left Scrollbar Position:** CSS `direction: rtl / ltr` trick.\n
+   - Explicit grid definition (`gridTemplateColumns`) combined with a flexible height content area (using `flex-grow` within a `h-screen flex-col` parent) instead of a fixed calculated height.
+   - `overflow: hidden` on grid cells (panel wrappers) prevents content from forcing parent scroll.
+   - `overflow-y: auto` on inner elements (with defined height like `h-full` or `inset-0`) enables content scrolling.
+   - **Left Scrollbar Position:** CSS `direction: rtl / ltr` trick.
 
 2. **Lexical Editor Configuration (`QuestionEditorInstance.tsx`, `AnswerArea.tsx`, `InitialContentPlugin.tsx`)**
 

@@ -246,3 +246,7 @@ Testing editor stability and interactions, particularly cursor behavior and sele
 - The refactoring improves the organization of `lambai.tsx` by encapsulating the resizing logic.
 - The header toggle issue was caused by the initial height not being available when the first animation ran for new users.
 - The fix ensures the initial state is correct (hidden) and animations run reliably from the first interaction.
+
+## Recent Changes
+
+- **Bug Fix Confirmed:** The "Editor instance not found" error is resolved. Logs confirmed that `editorRefMap` is correctly populated when `commitLatexToEditor` is called, thanks to the `EditorRefPlugin`.

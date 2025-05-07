@@ -19,6 +19,8 @@ import { animate } from "animejs";
 import type { AnswerBlock } from "@/types";
 import QuestionContent from "./components/QuestionContent";
 import { usePanelResizer } from "./hooks/usePanelResizer";
+import { FullScreen, useFullScreenHandle } from "react-full-screen";
+import clsx from "clsx";
 
 export default function Home() {
 	const [isBounded, setBounding] = useState<boolean>(false);
@@ -27,18 +29,17 @@ export default function Home() {
 	const HeaderComponent = useRef<HTMLDivElement>(null);
 	const HeaderInitialHeight = useRef<number>(0);
 
-	// Initial width calculation (remains here)
-	const initialLeftWidth = useMemo(() => {
-		// Check if window is defined (client-side)
-		if (typeof window !== "undefined") {
-			return window.innerWidth / 2;
-		}
-		return 500; // Default width for server-side or if window is undefined
-	}, []);
+	// Default width for server-side and initial client render
+	const SERVER_DEFAULT_LEFT_WIDTH = 500;
+
+	// State for initialLeftWidth, to be updated on client after mount
+	const [calculatedInitialLeftWidth, setCalculatedInitialLeftWidth] = useState(
+		SERVER_DEFAULT_LEFT_WIDTH,
+	);
 
 	// Use the custom hook for resizing logic
 	const { leftWidth, isDragging, ghostLeft, handleDragStart } = usePanelResizer(
-		{ initialWidth: initialLeftWidth },
+		{ initialWidth: calculatedInitialLeftWidth },
 	);
 
 	const [answers, setAnswers] = useState<Record<string, AnswerBlock[]>>({});
@@ -64,6 +65,10 @@ export default function Home() {
 
 	// Kiểm tra hướng màn hình
 	const isLandscape = useOrientationCheck();
+	const fullscreenHandle = useFullScreenHandle();
+	const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(false);
+	const [promptActionTakenThisSession, setPromptActionTakenThisSession] =
+		useState(false);
 
 	// Extract questions (all keys except de_bai)
 	const questions = useMemo(() => {
@@ -81,8 +86,21 @@ export default function Home() {
 
 	// Khởi tạo kích thước ban đầu, fetch dữ liệu và tải lại bài làm
 	useEffect(() => {
-		// Remove initial setLeftWidth here, handled by the hook and initialLeftWidth memo
 		setIsClient(true);
+
+		// Update initialLeftWidth on the client after mount
+		// This ensures server and initial client render match, then client updates.
+		const clientCalculatedWidth = (() => {
+			const savedWidth = localStorage.getItem("leftPanelWidth");
+			if (savedWidth) {
+				const parsedWidth = parseInt(savedWidth, 10);
+				if (!isNaN(parsedWidth) && parsedWidth > 0) {
+					return parsedWidth;
+				}
+			}
+			return window.innerWidth / 2;
+		})();
+		setCalculatedInitialLeftWidth(clientCalculatedWidth);
 
 		const fetchData = async () => {
 			setIsLoading(true);
@@ -150,6 +168,34 @@ export default function Home() {
 
 		fetchData();
 	}, []);
+
+	// Effect to show fullscreen prompt when landscape and not already fullscreen
+	useEffect(() => {
+		if (isClient) {
+			if (promptActionTakenThisSession) {
+				// If action taken this session, and prompt is somehow visible, hide it.
+				// This also prevents it from showing again in this session.
+				if (showFullscreenPrompt) {
+					setShowFullscreenPrompt(false);
+				}
+				return; // Exit: No further action needed regarding the prompt for this session.
+			}
+
+			// If action has NOT been taken yet this session:
+			const shouldShow = isLandscape && !fullscreenHandle.active;
+			if (shouldShow && !showFullscreenPrompt) {
+				setShowFullscreenPrompt(true);
+			} else if (!shouldShow && showFullscreenPrompt) {
+				setShowFullscreenPrompt(false);
+			}
+		}
+	}, [
+		isLandscape,
+		fullscreenHandle.active,
+		isClient,
+		showFullscreenPrompt,
+		promptActionTakenThisSession,
+	]);
 
 	// Timer effect
 	useEffect(() => {
@@ -360,157 +406,220 @@ export default function Home() {
 			{/* Screen rotation overlay - Thêm lại prop isVisible */}
 			{!isLandscape && <RotationOverlay isVisible={isClient && !isLandscape} />}
 
-			{/* Main layout */}
-			<div
-				className="flex h-screen flex-col overflow-hidden"
-				style={{ paddingBottom: `${keyboardPadding}px` }} // Add keyboard padding
-			>
-				{/* Header Component - Giữ nguyên */}
-				<header className="bg-gray-100 border-black relative h-fit border-b">
-					<button
-						type="button"
-						onClick={() => setHeaderVisibility(!isHeaderVisible)}
-						className="bg-white border-black text-gray-400! rounded-b-xl absolute top-full left-1/2 z-[1000] h-fit w-fit -translate-x-1/2 cursor-pointer border px-[1.5em]"
-					>
-						<FontAwesomeIcon
-							ref={HeaderDropdownArrow}
-							fixedWidth
-							icon={faArrowDown}
-						/>
-					</button>
-
-					<div
-						ref={HeaderComponent}
-						className="max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto"
-					>
-						<div className="py-4 flex items-center justify-between">
-							{/* Logo */}
-							<div className="gap-x-4 flex items-center">
-								<div className="w-10 h-10 from-blue-600 to-purple-600 rounded-lg flex items-center justify-center bg-gradient-to-r">
-									<span className="text-white text-xl font-bold">A</span>
-								</div>
-								<div className="text-2xl font-bold from-blue-600 to-purple-600 bg-gradient-to-r bg-clip-text text-transparent">
-									The AllEd
-								</div>
-							</div>
-
-							{/* Right side buttons */}
-							<div className="space-x-4 flex items-center">
-								{/* Timer Controls */}
-								<div className="space-x-2 flex items-center">
-									<button
-										onClick={handleTimerClick}
-										className={`px-4 py-2 rounded-lg font-medium cursor-pointer transition-colors duration-200 ${
-											isTimerRunning
-												? isTimerPaused
-													? "bg-yellow-500 text-white hover:bg-yellow-600"
-													: "bg-gray-200 text-gray-700 hover:bg-gray-300"
-												: "bg-gray-200 text-gray-700 hover:bg-gray-300"
-										}`}
-									>
-										{isTimerRunning ? (
-											isTimerPaused ? (
-												<FontAwesomeIcon icon={faPlay} className="w-4 h-4" />
-											) : (
-												<FontAwesomeIcon icon={faPause} className="w-4 h-4" />
-											)
-										) : (
-											"Bấm thời gian"
-										)}
-									</button>
-									{isTimerRunning && (
-										<button
-											onClick={handleStopTimer}
-											className="px-4 py-2 rounded-lg font-medium bg-red-500 text-white hover:bg-red-600 cursor-pointer transition-colors duration-200"
-										>
-											<FontAwesomeIcon icon={faStop} className="w-4 h-4" />
-										</button>
-									)}
-									{isTimerRunning && (
-										<span className="text-gray-700 font-medium">
-											{formatTime(timer)}
-										</span>
-									)}
-								</div>
-
-								{/* Submit Button */}
-								<button
-									onClick={handleSubmit}
-									className={`px-6 py-2 rounded-lg font-semibold text-white transition-colors duration-200 ${
-										isSubmitting
-											? "bg-gray-400 cursor-not-allowed"
-											: "bg-green-500 hover:bg-green-600"
-									}`}
-									disabled={isSubmitting}
-								>
-									{isSubmitting ? "Đang nộp..." : "Nộp bài"}
-								</button>
-							</div>
-
-							{/* <<< THÊM Chỉ báo trạng thái lưu */}
-							<div className="text-sm text-gray-500 absolute left-1/2 -translate-x-1/2 transform">
-								{saveStatus === "saving" && (
-									<span className="animate-pulse flex items-center">
-										<FontAwesomeIcon icon={faSpinner} spin className="mr-1" />{" "}
-										Đang lưu...
-									</span>
-								)}
-								{saveStatus === "saved" && (
-									<span className="text-green-600 flex items-center">
-										<FontAwesomeIcon icon={faCheckCircle} className="mr-1" /> Đã
-										lưu
-									</span>
-								)}
-								{saveStatus === "error" && (
-									<span className="text-red-600 flex items-center">
-										<FontAwesomeIcon
-											icon={faExclamationCircle}
-											className="mr-1"
-										/>{" "}
-										Lỗi lưu bài!
-									</span>
-								)}
-							</div>
-						</div>
-					</div>
-				</header>
-
-				{/* Content Area - Thêm 'relative' vào đây */}
-				<div
-					className="relative grid h-[calc(100vh-64px)] flex-grow overflow-hidden" // <-- Thêm 'relative'
-					style={{ gridTemplateColumns: `${leftWidth}px 1fr` }}
-				>
-					{/* Left Panel (Scrollable Question) */}
-					<div
-						className="bg-gray-50 h-full overflow-hidden"
-						style={{ direction: "rtl" }}
-					>
-						<div
-							className="p-6 h-full overflow-y-auto"
-							style={{ direction: "ltr" }}
-						>
-							{isLoading ? (
-								<div>Đang tải đề bài...</div>
-							) : (
-								<QuestionContent markdownContent={taskContent.de_bai} />
-							)}
-						</div>
-					</div>
-
-					{/* Right Panel */}
-					<div className="bg-gray-50 shadow-inner relative overflow-hidden">
-						<div className="inset-0 p-6 absolute overflow-y-auto">
-							<AnswerArea
-								questions={questions ?? {}}
-								onAnswersChange={handleAnswersChange}
-								initialAnswers={answers}
-							/>
-							{/* Spacer Div for Right Panel */}
-							<div className="keyboard-spacer-right" style={spacerStyle} />
+			{/* Fullscreen Prompt Modal */}
+			{showFullscreenPrompt && (
+				<div className="inset-0 bg-black bg-opacity-50 fixed z-[2000] flex items-center justify-center">
+					<div className="bg-white p-6 rounded-lg shadow-xl text-center">
+						<h3 className="text-lg font-semibold mb-4">Chế độ Toàn Màn Hình</h3>
+						<p className="mb-4">
+							Bạn có muốn chuyển sang chế độ toàn màn hình để làm bài tốt hơn
+							không?
+						</p>
+						<div className="space-x-4 flex justify-center">
+							<button
+								onClick={() => {
+									fullscreenHandle.enter();
+									setShowFullscreenPrompt(false);
+									setPromptActionTakenThisSession(true);
+								}}
+								className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 cursor-pointer"
+							>
+								Có
+							</button>
+							<button
+								onClick={() => {
+									setShowFullscreenPrompt(false);
+									setPromptActionTakenThisSession(true);
+								}}
+								className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 cursor-pointer"
+							>
+								Để sau
+							</button>
 						</div>
 					</div>
 				</div>
-			</div>
+			)}
+
+			{/* Main layout wrapped in FullScreen component */}
+			<FullScreen handle={fullscreenHandle}>
+				<div
+					// Apply a background color if in fullscreen mode to ensure content visibility
+					// The FullScreen component itself is transparent by default
+					className={`flex h-screen flex-col overflow-hidden ${
+						fullscreenHandle.active ? "bg-white" : ""
+					}`}
+					style={{ paddingBottom: `${keyboardPadding}px` }} // Add keyboard padding
+				>
+					{/* Header Component - Giữ nguyên */}
+					<header className="bg-gray-100 border-black relative h-fit border-b">
+						<button
+							type="button"
+							onClick={() => setHeaderVisibility(!isHeaderVisible)}
+							className="bg-white border-black text-gray-400! rounded-b-xl absolute top-full left-1/2 z-[1000] h-fit w-fit -translate-x-1/2 cursor-pointer border px-[1.5em]"
+						>
+							<FontAwesomeIcon
+								ref={HeaderDropdownArrow}
+								fixedWidth
+								icon={faArrowDown}
+							/>
+						</button>
+
+						<div
+							ref={HeaderComponent}
+							className="max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto"
+						>
+							<div className="py-4 flex items-center justify-between">
+								{/* Logo */}
+								<div className="gap-x-4 flex items-center">
+									<div className="w-10 h-10 from-blue-600 to-purple-600 rounded-lg flex items-center justify-center bg-gradient-to-r">
+										<span className="text-white text-xl font-bold">A</span>
+									</div>
+									<div className="text-2xl font-bold from-blue-600 to-purple-600 bg-gradient-to-r bg-clip-text text-transparent">
+										The AllEd
+									</div>
+								</div>
+
+								{/* Right side buttons */}
+								<div className="space-x-4 flex items-center">
+									{/* Timer Controls */}
+									<div className="space-x-2 flex items-center">
+										<button
+											onClick={handleTimerClick}
+											className={`px-4 py-2 rounded-lg font-medium cursor-pointer transition-colors duration-200 ${
+												isTimerRunning
+													? isTimerPaused
+														? "bg-yellow-500 text-white hover:bg-yellow-600"
+														: "bg-gray-200 text-gray-700 hover:bg-gray-300"
+													: "bg-gray-200 text-gray-700 hover:bg-gray-300"
+											}`}
+										>
+											{isTimerRunning ? (
+												isTimerPaused ? (
+													<FontAwesomeIcon icon={faPlay} className="w-4 h-4" />
+												) : (
+													<FontAwesomeIcon icon={faPause} className="w-4 h-4" />
+												)
+											) : (
+												"Bấm thời gian"
+											)}
+										</button>
+										{isTimerRunning && (
+											<button
+												onClick={handleStopTimer}
+												className="px-4 py-2 rounded-lg font-medium bg-red-500 text-white hover:bg-red-600 cursor-pointer transition-colors duration-200"
+											>
+												<FontAwesomeIcon icon={faStop} className="w-4 h-4" />
+											</button>
+										)}
+										{isTimerRunning && (
+											<span className="text-gray-700 font-medium">
+												{formatTime(timer)}
+											</span>
+										)}
+									</div>
+
+									{/* Fullscreen Button */}
+									<button
+										onClick={() =>
+											fullscreenHandle.active
+												? fullscreenHandle.exit()
+												: fullscreenHandle.enter()
+										}
+										className={clsx(
+											`px-6 py-2 rounded-lg font-semibold text-white cursor-pointer transition-colors duration-200`,
+											{
+												"bg-green-500 hover:bg-green-600":
+													!fullscreenHandle.active,
+												"bg-red-500 hover:bg-red-600": fullscreenHandle.active,
+											},
+										)}
+									>
+										{fullscreenHandle.active
+											? "Thoát toàn màn hình"
+											: "Toàn màn hình"}
+									</button>
+
+									{/* Submit Button */}
+									<button
+										onClick={handleSubmit}
+										className={`px-6 py-2 rounded-lg font-semibold text-white transition-colors duration-200 ${
+											isSubmitting
+												? "bg-gray-400 cursor-not-allowed"
+												: "bg-green-500 hover:bg-green-600"
+										}`}
+										disabled={isSubmitting}
+									>
+										{isSubmitting ? "Đang nộp..." : "Nộp bài"}
+									</button>
+								</div>
+
+								{/* <<< THÊM Chỉ báo trạng thái lưu */}
+								<div className="text-sm text-gray-500 absolute left-1/2 -translate-x-1/2 transform">
+									{saveStatus === "saving" && (
+										<span className="animate-pulse flex items-center">
+											<FontAwesomeIcon icon={faSpinner} spin className="mr-1" />{" "}
+											Đang lưu...
+										</span>
+									)}
+									{saveStatus === "saved" && (
+										<span className="text-green-600 flex items-center">
+											<FontAwesomeIcon icon={faCheckCircle} className="mr-1" />{" "}
+											Đã lưu
+										</span>
+									)}
+									{saveStatus === "error" && (
+										<span className="text-red-600 flex items-center">
+											<FontAwesomeIcon
+												icon={faExclamationCircle}
+												className="mr-1"
+											/>{" "}
+											Lỗi lưu bài!
+										</span>
+									)}
+								</div>
+							</div>
+						</div>
+					</header>
+
+					{/* Content Area - Thêm 'relative' vào đây */}
+					<div
+						className="relative grid h-[calc(100vh-64px)] flex-grow overflow-hidden" // <-- Thêm 'relative'
+						style={{ gridTemplateColumns: `${leftWidth}px 1fr` }}
+					>
+						{/* Left Panel (Scrollable Question) */}
+						<div
+							className="bg-gray-50 h-full overflow-hidden"
+							style={{ direction: "rtl" }}
+						>
+							<div
+								className="p-6 h-full overflow-y-auto"
+								style={{ direction: "ltr" }}
+							>
+								{isLoading ? (
+									<div>Đang tải đề bài...</div>
+								) : (
+									<QuestionContent markdownContent={taskContent.de_bai} />
+								)}
+							</div>
+						</div>
+
+						{/* Right Panel */}
+						<div className="bg-gray-50 shadow-inner relative overflow-hidden">
+							<div className="inset-0 p-6 absolute overflow-y-auto">
+								<AnswerArea
+									questions={questions ?? {}}
+									onAnswersChange={handleAnswersChange}
+									initialAnswers={answers}
+								/>
+								{/* Spacer Div for Right Panel */}
+								<div className="keyboard-spacer-right" style={spacerStyle} />
+							</div>
+						</div>
+					</div>
+				</div>
+				{/* Spacer for main layout's keyboard padding - might not be needed if padding is on the inner div */}
+				{/* <div style={spacerStyle} /> */}
+			</FullScreen>
 		</>
 	);
 }

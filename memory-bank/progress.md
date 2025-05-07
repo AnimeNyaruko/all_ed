@@ -25,8 +25,11 @@
 
 ## Current Status
 
+- **UI Adjustments (`app/lambai/(UI)/lambai.tsx`):**
+  - Timer button CSS class logic fixed.
+  - Content area height calculation adjusted for flexibility.
+- **Linting Passed:** Code passes lint checks (no errors were found in this pass).
 - **Refactor Complete:** Panel resizing logic in `lambai.tsx` has been extracted into the `usePanelResizer` hook.
-- **Linting Passed:** Code passes lint checks after refactoring.
 - **Previous Fix Stable:** Header toggle arrow fix for new users is stable.
 - **Ready for Git:** Codebase is ready for the commit and push stage of this `re-update mode 2` cycle.
 
@@ -40,12 +43,15 @@
 
 ## Recently Completed (Reflects `activeContext.md`)
 
-1.  **Refactor (`lambai.tsx`):** Extracted panel resizing logic into `usePanelResizer` hook.
-2.  **Previous Fix (Header Toggle):** Corrected header toggle arrow behavior for new users.
-3.  **Virtual Keyboard Enter Attempt (`onBeforeInput`)**: Thêm trình xử lý sự kiện `onBeforeInput` vào `math-field`.
-4.  **Reverted Virtual Keyboard Command Customization:** Loại bỏ việc thay đổi `command` của keycap Enter ảo.
-5.  **Removed `focusout` Logic:** Loại bỏ logic commit dựa trên sự kiện `focusout`.
-6.  **Previous Refactoring:**
+1.  **UI/Layout Adjustments (`app/lambai/(UI)/lambai.tsx` - Update Mode):**
+    - Fixed CSS class logic for the timer button.
+    - Adjusted content area height calculation using `flex-grow`.
+2.  **Refactor (`lambai.tsx`):** Extracted panel resizing logic into `usePanelResizer` hook.
+3.  **Previous Fix (Header Toggle):** Corrected header toggle arrow behavior for new users.
+4.  **Virtual Keyboard Enter Attempt (`onBeforeInput`)**: Thêm trình xử lý sự kiện `onBeforeInput` vào `math-field`.
+5.  **Reverted Virtual Keyboard Command Customization:** Loại bỏ việc thay đổi `command` của keycap Enter ảo.
+6.  **Removed `focusout` Logic:** Loại bỏ logic commit dựa trên sự kiện `focusout`.
+7.  **Previous Refactoring:**
     - Hoàn nguyên Portal cho MathLive positioning.
     - Triển khai lưu/khôi phục newline.
     - Xử lý lỗi API và tinh chỉnh prompt.
