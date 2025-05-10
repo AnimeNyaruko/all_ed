@@ -2,7 +2,7 @@
 
 ## Current Focus
 
-Testing editor stability and interactions, particularly cursor behavior and selection around `LatexNode` and paragraph breaks, following the implementation of newline handling.
+Update Mode - Post Linting & Memory Bank Update
 
 ## Current Work Focus
 
@@ -230,13 +230,15 @@ Testing editor stability and interactions, particularly cursor behavior and sele
 - **Refactor (`lambai.tsx`):**
   - Extracted panel resizing logic (state, refs, handlers, effect) into a new custom hook `app/lambai/(UI)/hooks/usePanelResizer.ts`.
   - Updated `lambai.tsx` to import and use the `usePanelResizer` hook.
-- **Linting:** Passed lint checks after refactoring.
+- **Linting:**
+  - Passed lint checks after refactoring.
+  - Applied lint fixes to `app/ve-chung-toi/page.tsx` (escaped HTML entities).
 - **Previous (Fix Mode):** Fixed the header toggle arrow bug for new users.
 
 ## Next Steps
 
 - Update `systemPatterns.md` and `progress.md`.
-- Draft Git commit message for this `re-update mode 2` run.
+- Draft Git commit message for the current update cycle.
 - Present commit message for approval.
 - Await Git execution and timestamp.
 - Update `version.json`.
@@ -245,7 +247,7 @@ Testing editor stability and interactions, particularly cursor behavior and sele
 
 - The refactoring improves the organization of `lambai.tsx` by encapsulating the resizing logic.
 - The header toggle issue was caused by the initial height not being available when the first animation ran for new users.
-- The fix ensures the initial state is correct (hidden) and animations run reliably from the first interaction.
+- Lint fixes ensure code quality and prevent potential rendering issues.
 
 ## Recent Changes
 

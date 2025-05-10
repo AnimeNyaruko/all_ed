@@ -195,7 +195,7 @@ export default function Header() {
 				Tạo bài tập
 			</Link>
 			<Link
-				href="/about"
+				href="/ve-chung-toi"
 				className="text-gray-700 hover:text-blue-600 font-medium py-2 transition-colors"
 			>
 				Về chúng tôi

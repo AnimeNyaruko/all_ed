@@ -7,13 +7,13 @@
 - Custom `LatexNode` and `LatexComponent` for rendering KaTeX.
 - `LatexTriggerPlugin` (`!!`) and `MathShortcutPlugin` (`Ctrl+Q`) to initiate MathLive.
 - `useMathLiveManager` hook manages MathLive state (visibility, value, active key).
-- `LatexPluginContext` (potentially redundant) or direct prop drilling for communication.
-- `lexicalStateToAnswerBlocks` converts editor state to a simplified structure.
-- Layout with resizable panels using custom ghost drag logic.
+- Editor instance reference (`editorRefMap`) is now updated immediately upon `QuestionEditorInstance` mount via `EditorRefPlugin`.
+- Layout with resizable panels using custom ghost drag logic (extracted to `usePanelResizer` hook).
 - Left scrollbar (`direction: rtl/ltr` trick).
 - Global scroll prevention.
 - Conflict resolution for single active MathLive input.
-- Editor instance reference (`editorRefMap`) is now updated immediately upon `QuestionEditorInstance` mount via `EditorRefPlugin`.
+- `LatexPluginContext` (potentially redundant) or direct prop drilling for communication.
+- `lexicalStateToAnswerBlocks` converts editor state to a simplified structure.
 
 ## What's Left to Build / Fix
 
@@ -28,10 +28,10 @@
 - **UI Adjustments (`app/lambai/(UI)/lambai.tsx`):**
   - Timer button CSS class logic fixed.
   - Content area height calculation adjusted for flexibility.
-- **Linting Passed:** Code passes lint checks (no errors were found in this pass).
 - **Refactor Complete:** Panel resizing logic in `lambai.tsx` has been extracted into the `usePanelResizer` hook.
+- **Linting Passed:** Code passes lint checks. Linting passed successfully after fixes.
 - **Previous Fix Stable:** Header toggle arrow fix for new users is stable.
-- **Ready for Git:** Codebase is ready for the commit and push stage of this `re-update mode 2` cycle.
+- **Ready for Git:** Codebase is ready for the commit and push stage of this update cycle.
 
 ## Known Issues
 
@@ -41,28 +41,22 @@
 - **MathLive Initial Display:** Potential rendering issue due to parent overflow (requires testing).
 - **`LatexPluginContext` Redundancy:** Context might be unnecessary.
 
-## Recently Completed (Reflects `activeContext.md`)
+## Recently Completed
 
-1.  **UI/Layout Adjustments (`app/lambai/(UI)/lambai.tsx` - Update Mode):**
+1.  **UI/Layout Adjustments (`app/lambai/(UI)/lambai.tsx`):**
     - Fixed CSS class logic for the timer button.
     - Adjusted content area height calculation using `flex-grow`.
 2.  **Refactor (`lambai.tsx`):** Extracted panel resizing logic into `usePanelResizer` hook.
-3.  **Previous Fix (Header Toggle):** Corrected header toggle arrow behavior for new users.
-4.  **Virtual Keyboard Enter Attempt (`onBeforeInput`)**: Thêm trình xử lý sự kiện `onBeforeInput` vào `math-field`.
-5.  **Reverted Virtual Keyboard Command Customization:** Loại bỏ việc thay đổi `command` của keycap Enter ảo.
-6.  **Removed `focusout` Logic:** Loại bỏ logic commit dựa trên sự kiện `focusout`.
-7.  **Previous Refactoring:**
-    - Hoàn nguyên Portal cho MathLive positioning.
-    - Triển khai lưu/khôi phục newline.
-    - Xử lý lỗi API và tinh chỉnh prompt.
+3.  **Lint Fixes:** Applied lint fixes to `app/ve-chung-toi/page.tsx`.
+4.  **Previous Fix (Header Toggle):** Corrected header toggle arrow behavior for new users.
+5.  **Previous Editor Bug Fixes & Refinements.**
 
 ## Next Steps (Immediate Tasks)
 
-1.  **Test Virtual Keyboard Enter:** Mở MathLive, nhấn Enter ảo, kiểm tra console log cho `beforeinput triggered`, ghi lại `InputType` và `Data`.
-2.  **Fix Virtual Enter Logic (If needed):** Nếu `inputType` không phải `insertLineBreak`, cập nhật điều kiện trong `handleMathfieldBeforeInput`.
-3.  **Test Editor Interactions:** Kiểm tra kỹ lưỡng hành vi của con trỏ/selection sau khi Enter ảo hoạt động.
-4.  **(Optional) Further AI Prompt Testing:** Giám sát đầu ra AI.
-5.  **(Optional) Timer Persistence:** Giải quyết nếu cần.
+1.  Draft Git commit message.
+2.  Present commit message for approval.
+3.  Push to repository.
+4.  Update `version.json`.
 
 ## Upcoming / Longer Term
 
@@ -74,17 +68,18 @@
 
 ## Testing Status
 
-- **Panel Resizing:** Refactored using `usePanelResizer` hook, basic functionality seems intact, needs testing.
-- Layout scrolling seems fixed, needs more thorough testing.
-- `Ctrl+Q` shortcut implemented, needs testing.
-- Single MathLive focus/scroll logic implemented, needs testing.
-- Editor disabling implemented, needs testing.
+- **Panel Resizing:** Refactored using `usePanelResizer` hook, basic functionality seems intact.
+- Layout scrolling seems fixed.
+- `Ctrl+Q` shortcut implemented.
+- Single MathLive focus/scroll logic implemented.
+- Editor disabling implemented.
 - `!!` trigger works.
-- **Virtual Keyboard Enter:** Needs testing with `onBeforeInput`.
 - Physical Enter key works.
-- Click-to-Edit: Needs testing/implementation.
 - Client-side parsing/rendering in `@ketqua` works.
 - Newline saving and restoration works.
 - API `/api/nopbai` JSON parsing and formatting seems stable.
 - API `/api/taobai` JSON validity and Chem std cond seems stable.
 - **Header Toggle Arrow:** Works correctly for new users after fix.
+- **Linting:** All checks pass.
+- **Virtual Keyboard Enter:** Needs testing with `onBeforeInput`.
+- Click-to-Edit: Needs testing/implementation.
