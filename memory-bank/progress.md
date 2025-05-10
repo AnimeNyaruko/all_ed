@@ -55,17 +55,18 @@
 
 ## Testing Status
 
-- **Panel Resizing:** Refactored using `usePanelResizer` hook, basic functionality seems intact, needs testing.
-- Layout scrolling seems fixed, needs more thorough testing.
-- `Ctrl+Q` shortcut implemented, needs testing.
-- Single MathLive focus/scroll logic implemented, needs testing.
-- Editor disabling implemented, needs testing.
+- **Panel Resizing:** Refactored using `usePanelResizer` hook, basic functionality seems intact.
+- Layout scrolling seems fixed.
+- `Ctrl+Q` shortcut implemented.
+- Single MathLive focus/scroll logic implemented.
+- Editor disabling implemented.
 - `!!` trigger works.
-- **Virtual Keyboard Enter:** Needs testing with `onBeforeInput`.
 - Physical Enter key works.
-- Click-to-Edit: Needs testing/implementation.
 - Client-side parsing/rendering in `@ketqua` works.
 - Newline saving and restoration works.
 - API `/api/nopbai` JSON parsing and formatting seems stable.
 - API `/api/taobai` JSON validity and Chem std cond seems stable.
 - **Header Toggle Arrow:** Works correctly for new users after fix.
+- **Linting:** All checks pass.
+- **Virtual Keyboard Enter:** Needs testing with `onBeforeInput`.
+- Click-to-Edit: Needs testing/implementation.
