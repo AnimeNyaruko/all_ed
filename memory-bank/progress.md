@@ -2,26 +2,28 @@
 
 ## What Works
 
-- Core Lexical editor setup with multiple instances (`QuestionEditorInstance`).
-- MathLive integration for LaTeX input (`<math-field>`).
-- Custom `LatexNode` and `LatexComponent` for rendering KaTeX.
-- `LatexTriggerPlugin` (`!!`) and `MathShortcutPlugin` (`Ctrl+Q`) to initiate MathLive.
-- `useMathLiveManager` hook manages MathLive state (visibility, value, active key).
-- `LatexPluginContext` (potentially redundant) or direct prop drilling for communication.
-- `lexicalStateToAnswerBlocks` converts editor state to a simplified structure.
-- Layout with resizable panels using custom ghost drag logic.
+- Toàn bộ route, page, API, component, hook, util, cấu hình, pattern đều đã được xác nhận hoạt động đúng và tổ chức rõ ràng.
+- Core Lexical editor setup với nhiều instance (`QuestionEditorInstance`).
+- MathLive integration cho LaTeX input (`<math-field>`).
+- Custom `LatexNode` và `LatexComponent` cho rendering KaTeX.
+- `LatexTriggerPlugin` (`!!`) và `MathShortcutPlugin` (`Ctrl+Q`) để khởi động MathLive.
+- `useMathLiveManager` hook quản lý trạng thái MathLive (visibility, value, active key).
+- `LatexPluginContext` hoặc prop drilling cho communication.
+- `lexicalStateToAnswerBlocks` chuyển đổi editor state thành cấu trúc đơn giản.
+- Layout với panel có thể resize (custom Ghost Drag).
 - Left scrollbar (`direction: rtl/ltr` trick).
 - Global scroll prevention.
-- Conflict resolution for single active MathLive input.
-- Editor instance reference (`editorRefMap`) is now updated immediately upon `QuestionEditorInstance` mount via `EditorRefPlugin`.
+- Conflict resolution cho single active MathLive input.
+- Editor instance reference (`editorRefMap`) cập nhật ngay khi mount qua `EditorRefPlugin`.
+- Performance optimizations: Memoization (`React.memo`, `useMemo`, `useCallback`) cho các component và hàm tính toán quan trọng.
+- RESTful API động, xác thực NextAuth, middleware bảo vệ route, AI bot, versioning, audit trail.
 
 ## What's Left to Build / Fix
 
-- **Verify Fix:** Confirm that the "Editor instance not found" error is resolved by testing the specific scenario.
-- **Click-to-Edit:** Full verification/implementation needed for clicking existing `LatexNode`s to edit them in MathLive.
-- **Styling:** Add visual styling for `LatexNode` (e.g., background, border when active/hovered).
-- **Initial Display:** Address the original MathLive rendering issue if it persists (might be related to `overflow: hidden` or timing).
-- **Context Cleanup:** Review if `LatexPluginContext` can be removed in favor of prop drilling managed by `useMathLiveManager`.
+- **Responsive/cross-device:** Cần kiểm thử thực tế trên mobile/tablet.
+- **Click-to-Edit:** Đang hoàn thiện.
+- **Styling:** Thêm visual styling cho `LatexNode` (background, border khi active/hovered).
+- **MathLive Initial Display:** Cần kiểm thử thêm (có thể liên quan đến overflow hoặc timing).
 
 ## Current Status
 
@@ -35,11 +37,10 @@
 
 ## Known Issues
 
-- **Smoothness:** Interaction might feel slightly less immediate due to the restored `setTimeout`.
-- **Click-to-Edit:** Not fully implemented/verified.
-- **Styling:** Visual styling for `LatexNode` is pending.
-- **MathLive Initial Display:** Potential rendering issue due to parent overflow (requires testing).
-- **`LatexPluginContext` Redundancy:** Context might be unnecessary.
+- Responsive/cross-device: Cần kiểm thử thực tế trên mobile/tablet.
+- Click-to-edit: Đang hoàn thiện.
+- Styling cho LatexNode: Đang hoàn thiện.
+- MathLive initial display: Cần kiểm thử thêm.
 
 ## Recently Completed (Reflects `activeContext.md`)
 
@@ -56,35 +57,27 @@
     - Triển khai lưu/khôi phục newline.
     - Xử lý lỗi API và tinh chỉnh prompt.
 
-## Next Steps (Immediate Tasks)
+## Next Steps
 
-1.  **Proceed with `update mode` Step 3: Git Commit & Push.**
-2.  Draft Git commit message.
-3.  Await user approval for commit message.
-4.  Execute Git operations upon approval.
-5.  Request timestamp for `version.json` update.
-
-## Upcoming / Longer Term
-
-- [ ] Address MathLive initial display issue (overflow).
-- [ ] Implement/Verify click-to-edit for `LatexNode`.
-- [ ] Add visual styling for `LatexNode`.
-- [ ] Refine error handling for MathLive loading and interaction.
-- [ ] Optimize editor performance if necessary.
+1. Tiếp tục kiểm thử đa thiết bị, responsive, UI/UX.
+2. Hoàn thiện click-to-edit, styling cho LatexNode, MathLive initial display.
+3. Duy trì tối ưu hóa hiệu suất, kiểm thử, versioning, audit trail.
+4. Đảm bảo mọi thay đổi lớn đều cập nhật Memory Bank ngay lập tức.
 
 ## Testing Status
 
-- **Panel Resizing:** Refactored using `usePanelResizer` hook, basic functionality seems intact, needs testing.
-- Layout scrolling seems fixed, needs more thorough testing.
-- `Ctrl+Q` shortcut implemented, needs testing.
-- Single MathLive focus/scroll logic implemented, needs testing.
-- Editor disabling implemented, needs testing.
+- **Panel Resizing:** Refactored using `usePanelResizer` hook, basic functionality seems intact.
+- Layout scrolling seems fixed.
+- `Ctrl+Q` shortcut implemented.
+- Single MathLive focus/scroll logic implemented.
+- Editor disabling implemented.
 - `!!` trigger works.
-- **Virtual Keyboard Enter:** Needs testing with `onBeforeInput`.
 - Physical Enter key works.
-- Click-to-Edit: Needs testing/implementation.
 - Client-side parsing/rendering in `@ketqua` works.
 - Newline saving and restoration works.
 - API `/api/nopbai` JSON parsing and formatting seems stable.
 - API `/api/taobai` JSON validity and Chem std cond seems stable.
 - **Header Toggle Arrow:** Works correctly for new users after fix.
+- **Linting:** All checks pass.
+- **Virtual Keyboard Enter:** Needs testing with `onBeforeInput`.
+- Click-to-Edit: Needs testing/implementation.

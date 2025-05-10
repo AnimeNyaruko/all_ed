@@ -2,7 +2,14 @@
 
 ## Current Focus
 
-- Completing `update mode` including Memory Bank update and Git operations.
+- Đã quét lại toàn bộ codebase, xác nhận và đồng bộ hóa Memory Bank với trạng thái thực tế của dự án.
+- Đảm bảo mọi route, page, API, component, hook, util, cấu hình, pattern, tiến độ, vấn đề còn lại, quyết định kỹ thuật đều được phản ánh chính xác.
+
+## Current Work Focus
+
+- Đảm bảo Memory Bank luôn là nguồn sự thật duy nhất, cập nhật ngay sau mỗi thay đổi lớn.
+- Theo dõi các vấn đề còn lại chủ yếu về UI/UX (responsive, click-to-edit, styling, MathLive initial display).
+- Duy trì tối ưu hóa hiệu suất, kiểm thử đa thiết bị, versioning, audit trail.
 
 ## Recent Changes
 
@@ -231,11 +238,10 @@
 
 ## Next Steps
 
-- Proceed with `update mode` Step 3: Git Commit & Push.
-- Draft Git commit message for this `update mode` run.
-- Present commit message for approval.
-- Await Git execution and timestamp.
-- Update `version.json`.
+1. Tiếp tục kiểm thử đa thiết bị, responsive, UI/UX.
+2. Hoàn thiện click-to-edit, styling cho LatexNode, MathLive initial display.
+3. Duy trì tối ưu hóa hiệu suất, kiểm thử, versioning, audit trail.
+4. Đảm bảo mọi thay đổi lớn đều cập nhật Memory Bank ngay lập tức.
 
 ## Active Decisions & Considerations
 
