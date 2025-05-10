@@ -49,10 +49,10 @@ export default function Home() {
 						{/* <div className="mb-8 h-40 w-full bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">Visual Element Placeholder</div> */}
 
 						<h1 className="text-5xl md:text-6xl font-bold text-gray-800 mb-6">
-							The AllEd:{" "}
-							<span className="text-indigo-600">
+							The AllEd
+							<div className="text-indigo-600">
 								Bứt Phá Học Tập Liên Môn Cùng AI
-							</span>
+							</div>
 						</h1>
 						<p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
 							Tạo và luyện tập không giới hạn bài tập tích hợp liên môn theo
