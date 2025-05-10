@@ -603,6 +603,22 @@ export default function Home() {
 							</div>
 						</div>
 
+						{/* Scrollbar */}
+						<div
+							className="bg-gray-300 hover:bg-blue-600 absolute z-10 flex h-full w-[10px] cursor-col-resize items-center justify-center"
+							style={{ left: leftWidth }}
+							onMouseDown={handleDragStart}
+							onTouchMove={handleDragStart}
+						>
+							<div className="bg-blue-600 h-[30px] w-[35%] rounded-full" />
+						</div>
+						{isDragging && (
+							<div
+								className="bg-blue-600 absolute z-50 h-full w-[2.5px]"
+								style={{ left: ghostLeft ? ghostLeft : leftWidth }}
+							/>
+						)}
+
 						{/* Right Panel */}
 						<div className="bg-gray-50 shadow-inner relative overflow-hidden">
 							<div className="inset-0 p-6 absolute overflow-y-auto">

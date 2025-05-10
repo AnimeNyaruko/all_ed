@@ -4,11 +4,16 @@
 
 ### Core Technologies
 
-- Next.js 15.2.3
+- Next.js 15.2.3 (App Router, dynamic API routes)
 - React 19
 - TypeScript 5
-- Neon Database (serverless)
-- NextAuth 4.24.11
+- Tailwind CSS (utility-first, responsive)
+- Neon Database (serverless, SQL)
+- NextAuth 4.24.11 (Google, Email)
+- MathLive (LaTeX input)
+- Lexical (rich-text editor)
+- react-katex (LaTeX rendering)
+- Vercel (deployment)
 
 ### Key Dependencies
 

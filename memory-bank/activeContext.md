@@ -2,11 +2,14 @@
 
 ## Current Focus
 
-Update Mode - Post Linting & Memory Bank Update
+- Đã quét lại toàn bộ codebase, xác nhận và đồng bộ hóa Memory Bank với trạng thái thực tế của dự án.
+- Đảm bảo mọi route, page, API, component, hook, util, cấu hình, pattern, tiến độ, vấn đề còn lại, quyết định kỹ thuật đều được phản ánh chính xác.
 
 ## Current Work Focus
 
-- Addressing residual lint errors related to type assertions and hook return values.
+- Đảm bảo Memory Bank luôn là nguồn sự thật duy nhất, cập nhật ngay sau mỗi thay đổi lớn.
+- Theo dõi các vấn đề còn lại chủ yếu về UI/UX (responsive, click-to-edit, styling, MathLive initial display).
+- Duy trì tối ưu hóa hiệu suất, kiểm thử đa thiết bị, versioning, audit trail.
 
 ## Recent Changes
 
@@ -230,24 +233,21 @@ Update Mode - Post Linting & Memory Bank Update
 - **Refactor (`lambai.tsx`):**
   - Extracted panel resizing logic (state, refs, handlers, effect) into a new custom hook `app/lambai/(UI)/hooks/usePanelResizer.ts`.
   - Updated `lambai.tsx` to import and use the `usePanelResizer` hook.
-- **Linting:**
-  - Passed lint checks after refactoring.
-  - Applied lint fixes to `app/ve-chung-toi/page.tsx` (escaped HTML entities).
+- **Linting:** Passed lint checks after refactoring.
 - **Previous (Fix Mode):** Fixed the header toggle arrow bug for new users.
 
 ## Next Steps
 
-- Update `systemPatterns.md` and `progress.md`.
-- Draft Git commit message for the current update cycle.
-- Present commit message for approval.
-- Await Git execution and timestamp.
-- Update `version.json`.
+1. Tiếp tục kiểm thử đa thiết bị, responsive, UI/UX.
+2. Hoàn thiện click-to-edit, styling cho LatexNode, MathLive initial display.
+3. Duy trì tối ưu hóa hiệu suất, kiểm thử, versioning, audit trail.
+4. Đảm bảo mọi thay đổi lớn đều cập nhật Memory Bank ngay lập tức.
 
 ## Active Decisions & Considerations
 
 - The refactoring improves the organization of `lambai.tsx` by encapsulating the resizing logic.
 - The header toggle issue was caused by the initial height not being available when the first animation ran for new users.
-- Lint fixes ensure code quality and prevent potential rendering issues.
+- The fix ensures the initial state is correct (hidden) and animations run reliably from the first interaction.
 
 ## Recent Changes
 
