@@ -2,11 +2,7 @@
 
 ## Current Focus
 
-Testing editor stability and interactions, particularly cursor behavior and selection around `LatexNode` and paragraph breaks, following the implementation of newline handling.
-
-## Current Work Focus
-
-- Addressing residual lint errors related to type assertions and hook return values.
+- Completing `update mode` including Memory Bank update and Git operations.
 
 ## Recent Changes
 
@@ -235,8 +231,8 @@ Testing editor stability and interactions, particularly cursor behavior and sele
 
 ## Next Steps
 
-- Update `systemPatterns.md` and `progress.md`.
-- Draft Git commit message for this `re-update mode 2` run.
+- Proceed with `update mode` Step 3: Git Commit & Push.
+- Draft Git commit message for this `update mode` run.
 - Present commit message for approval.
 - Await Git execution and timestamp.
 - Update `version.json`.

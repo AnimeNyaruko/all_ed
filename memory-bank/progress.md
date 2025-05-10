@@ -58,11 +58,11 @@
 
 ## Next Steps (Immediate Tasks)
 
-1.  **Test Virtual Keyboard Enter:** Mở MathLive, nhấn Enter ảo, kiểm tra console log cho `beforeinput triggered`, ghi lại `InputType` và `Data`.
-2.  **Fix Virtual Enter Logic (If needed):** Nếu `inputType` không phải `insertLineBreak`, cập nhật điều kiện trong `handleMathfieldBeforeInput`.
-3.  **Test Editor Interactions:** Kiểm tra kỹ lưỡng hành vi của con trỏ/selection sau khi Enter ảo hoạt động.
-4.  **(Optional) Further AI Prompt Testing:** Giám sát đầu ra AI.
-5.  **(Optional) Timer Persistence:** Giải quyết nếu cần.
+1.  **Proceed with `update mode` Step 3: Git Commit & Push.**
+2.  Draft Git commit message.
+3.  Await user approval for commit message.
+4.  Execute Git operations upon approval.
+5.  Request timestamp for `version.json` update.
 
 ## Upcoming / Longer Term
 
