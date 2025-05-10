@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import LogoPTNK from "@/public/Logo-PTNK-01-xan.webp";
+import LogoPTNK from "@/public/logo PTNK.svg";
 import LogoTranPhu from "@/public/logo_thpt_tran_phu.webp";
 import icon from "@/public/pageIcon.svg";
 import VietNamflag from "@/public/VietNamflag.svg";
