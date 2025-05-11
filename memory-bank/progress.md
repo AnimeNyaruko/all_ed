@@ -15,8 +15,12 @@
 - Global scroll prevention.
 - Conflict resolution cho single active MathLive input.
 - Editor instance reference (`editorRefMap`) cập nhật ngay khi mount qua `EditorRefPlugin`.
-- Performance optimizations: Memoization (`React.memo`, `useMemo`, `useCallback`) cho các component và hàm tính toán quan trọng.
+- Performance optimizations: Memoization (`React.memo`, `useMemo`, `useCallback`) cho các component và hàm tính toán quan trọng, bao gồm các event handlers chính trong `lambai.tsx` (`handleSubmit`, `handleSaveProgress`, `handleAnswersChange`) và `Tutorial.tsx` (`openModal`, `closeModal`).
 - RESTful API động, xác thực NextAuth, middleware bảo vệ route, AI bot, versioning, audit trail.
+- **Logic gọi Server Action (`handler.ts`, `lambai.tsx`):**
+    - `submitAnswers` và `saveWorkProgress` trong `handler.ts` trả về kết quả có cấu trúc (status, message/submissionId) thay vì tự redirect.
+    - Client (`lambai.tsx`) gọi các server actions này với tham số chính xác và xử lý kết quả trả về một cách nhất quán.
+- **Linting:** Codebase vượt qua tất cả các kiểm tra lint sau các thay đổi gần đây.
 
 ## What's Left to Build / Fix
 
@@ -30,7 +34,8 @@
 - **UI Adjustments (`app/lambai/(UI)/lambai.tsx`):**
   - Timer button CSS class logic fixed.
   - Content area height calculation adjusted for flexibility.
-- **Linting Passed:** Code passes lint checks (no errors were found in this pass).
+- **Linting Passed:** Code passes lint checks (no errors were found in this pass), bao gồm cả việc sửa lỗi `exhaustive-deps` trong `Tutorial.tsx`.
+- **Optimization Applied:** Các hàm xử lý chính trong `lambai.tsx` và `handler.ts` đã được tối ưu hóa và logic gọi hàm được làm rõ.
 - **Refactor Complete:** Panel resizing logic in `lambai.tsx` has been extracted into the `usePanelResizer` hook.
 - **Previous Fix Stable:** Header toggle arrow fix for new users is stable.
 - **Ready for Git:** Codebase is ready for the commit and push stage of this `re-update mode 2` cycle.
@@ -44,15 +49,23 @@
 
 ## Recently Completed (Reflects `activeContext.md`)
 
-1.  **UI/Layout Adjustments (`app/lambai/(UI)/lambai.tsx` - Update Mode):**
+1.  **Re-update Mode 2 - Linting & Optimization:**
+    - **`app/lambai/(UI)/components/Tutorial.tsx` (Lint Fix):**
+        - Resolved `react-hooks/exhaustive-deps` by memoizing `openModal`/`closeModal` and updating `useEffect` deps.
+    - **`app/lambai/(handler)/handler.ts` (Logic & Return Update):**
+        - `submitAnswers`: Returns structured result (status, submissionId) instead of redirecting.
+        - `saveWorkProgress`: Returns structured result (status, message).
+    - **`app/lambai/(UI)/lambai.tsx` (Optimization & Handler Update):**
+        - `handleSubmit`, `handleSaveProgress`, `handleAnswersChange` updated to use new handler logic and wrapped in `useCallback`.
+    - **Linting:** All checks passed post-changes.
+2.  **UI/Layout Adjustments (`app/lambai/(UI)/lambai.tsx` - Update Mode):**
     - Fixed CSS class logic for the timer button.
-    - Adjusted content area height calculation using `flex-grow`.
-2.  **Refactor (`lambai.tsx`):** Extracted panel resizing logic into `usePanelResizer` hook.
-3.  **Previous Fix (Header Toggle):** Corrected header toggle arrow behavior for new users.
-4.  **Virtual Keyboard Enter Attempt (`onBeforeInput`)**: Thêm trình xử lý sự kiện `onBeforeInput` vào `math-field`.
-5.  **Reverted Virtual Keyboard Command Customization:** Loại bỏ việc thay đổi `command` của keycap Enter ảo.
-6.  **Removed `focusout` Logic:** Loại bỏ logic commit dựa trên sự kiện `focusout`.
-7.  **Previous Refactoring:**
+3.  **Refactor (`lambai.tsx`):** Extracted panel resizing logic into `usePanelResizer` hook.
+4.  **Previous Fix (Header Toggle):** Corrected header toggle arrow behavior for new users.
+5.  **Virtual Keyboard Enter Attempt (`onBeforeInput`)**: Thêm trình xử lý sự kiện `onBeforeInput` vào `math-field`.
+6.  **Reverted Virtual Keyboard Command Customization:** Loại bỏ việc thay đổi `command` của keycap Enter ảo.
+7.  **Removed `focusout` Logic:** Loại bỏ logic commit dựa trên sự kiện `focusout`.
+8.  **Previous Refactoring:**
     - Hoàn nguyên Portal cho MathLive positioning.
     - Triển khai lưu/khôi phục newline.
     - Xử lý lỗi API và tinh chỉnh prompt.
