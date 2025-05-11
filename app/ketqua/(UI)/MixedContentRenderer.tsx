@@ -41,7 +41,7 @@ const MixedContentRenderer: React.FC<MixedContentRendererProps> = ({
 					// Render text, có thể cần xử lý xuống dòng nếu text chứa \n
 					// Giữ lại khoảng trắng để hiển thị đúng - use CSS class
 					return (
-						<span key={key} className="text-block-whitespace">
+						<span key={key} className="whitespace-pre-line">
 							{block.content}
 						</span>
 					);
