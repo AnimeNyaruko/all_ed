@@ -159,22 +159,17 @@ export async function submitAnswers(
 		}
 
 		// Giả sử API /api/nopbai trả về JSON có chứa submissionId khi thành công
-		const responseData = await response.json();
 
 		// TODO: Xác minh cấu trúc của responseData và submissionId thực tế từ API
 		// Ví dụ: if (responseData && responseData.submissionId)
 		// Vì không có thông tin về API response, tạm thời giả định nó có submissionId
-
-		return {
-			status: "success",
-		};
 	} catch (error) {
 		console.error("Error in submitAnswers:", error);
 		return {
 			status: "error", // Thay 'success: false' bằng 'status: "error"'
 		};
 	}
-	// redirect("/ketqua"); // Xóa redirect ở đây, client sẽ xử lý
+	redirect("/ketqua"); // Xóa redirect ở đây, client sẽ xử lý
 }
 
 export async function saveWorkProgress(

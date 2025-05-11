@@ -23,6 +23,7 @@ import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import clsx from "clsx";
 import TutorialModal from "./components/Tutorial";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 export default function Home() {
 	const [isBounded, setBounding] = useState<boolean>(false);
@@ -466,14 +467,17 @@ export default function Home() {
 						>
 							<div className="py-4 flex items-center justify-between">
 								{/* Logo */}
-								<div className="gap-x-4 flex items-center">
+								<Link
+									href="/"
+									className="gap-x-4 flex cursor-pointer items-center"
+								>
 									<div className="w-10 h-10 from-blue-600 to-purple-600 rounded-lg flex items-center justify-center bg-gradient-to-r">
 										<span className="text-white text-xl font-bold">A</span>
 									</div>
 									<div className="text-2xl font-bold from-blue-600 to-purple-600 bg-gradient-to-r bg-clip-text text-transparent">
 										The AllEd
 									</div>
-								</div>
+								</Link>
 
 								{/* Right side buttons */}
 								<div className="space-x-3 flex items-center">

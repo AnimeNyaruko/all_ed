@@ -32,9 +32,9 @@
 ## Current Status
 
 - **Hoàn thành Bước 1 của "re-update mode 2" (Chu trình hiện tại):**
-    - Quét mã nguồn (`app/`) không tìm thấy cơ hội refactor/optimize.
-    - `pnpm run lint` không có lỗi.
-    - Không có thay đổi mã nào được thực hiện.
+  - Quét mã nguồn (`app/`) không tìm thấy cơ hội refactor/optimize.
+  - `pnpm run lint` không có lỗi.
+  - Không có thay đổi mã nào được thực hiện.
 - **Đang thực hiện Bước 2 của "re-update mode 2":** Cập nhật Memory Bank.
 - Sẵn sàng cho Bước 3 (Git Commit & Push) sau khi hoàn tất cập nhật Memory Bank.
 
@@ -47,9 +47,9 @@
 ## Recently Completed (Reflects `activeContext.md`)
 
 - **Re-update Mode 2 (Chu trình hiện tại) - Bước 1: Scan, Propose, Implement:**
-    - Quét mã nguồn trong `app/` không phát hiện cơ hội refactoring hoặc tối ưu hóa nào cần thiết.
-    - Chạy `pnpm run lint` cho kết quả không có lỗi hay cảnh báo ESLint.
-    - Không có thay đổi mã nào được đề xuất hay triển khai.
+  - Quá trình quét mã nguồn trong `app/` không phát hiện cơ hội refactoring hoặc tối ưu hóa nào cần thiết.
+  - Chạy `pnpm run lint` cho kết quả không có lỗi hay cảnh báo ESLint.
+  - Không có thay đổi mã nào được đề xuất hay triển khai.
 
 1.  **Re-update Mode 2 - Linting & Optimization (Chu trình TRƯỚC ĐÓ):**
     - **`app/lambai/(UI)/components/Tutorial.tsx` (Lint Fix):**

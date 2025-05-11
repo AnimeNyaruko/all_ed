@@ -120,6 +120,7 @@ Thực hiện các bước sau:
 		const aiResponseString = (await generateText(prompt))
 			?.split("```json")[1]
 			.split("```")[0];
+		console.log(aiResponseString);
 		if (!aiResponseString) {
 			return NextResponse.json(
 				{ success: false, error: "No result from AI." },
@@ -130,7 +131,9 @@ Thực hiện các bước sau:
 		let aiResult: { cau_tra_loi_dung: boolean[]; dap_an_dung: string[] };
 		try {
 			// <<< BƯỚC 1: Parse kết quả từ AI
-			aiResult = JSON.parse(aiResponseString);
+			// Tiền xử lý chuỗi JSON để loại bỏ các escape không hợp lệ do AI tạo ra
+			const cleanedAiResponseString = aiResponseString.replace(/\\\$/g, "$");
+			aiResult = JSON.parse(cleanedAiResponseString);
 		} catch (parseError) {
 			console.error("Error parsing AI response:", parseError);
 			console.error("AI response string:", aiResponseString);

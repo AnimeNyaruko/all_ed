@@ -6,7 +6,7 @@ const genai = new GoogleGenAI({
 
 export const generateText = async (prompt: string) => {
 	const response = await genai.models.generateContent({
-		model: "gemini-2.5-pro-preview-03-25",
+		model: "gemini-2.5-pro-preview-05-06",
 		contents: [
 			{
 				role: "Bạn là một chuyên gia thiết kế bài tập giáo dục K-12 tại Việt Nam, có khả năng tạo ra các bài tập liên môn sáng tạo, hấp dẫn và phù hợp với chương trình học. Nhiệm vụ của bạn là tạo ra **MỘT bài tập duy nhất** tích hợp kiến thức từ nhiều yêu cầu đầu vào khác nhau, với các câu hỏi chỉ yêu cầu trả lời bằng văn bản hoặc công thức (LaTeX).",
