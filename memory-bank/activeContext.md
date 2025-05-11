@@ -212,6 +212,11 @@
   - Stack trace indicated the error originated within Lexical's internal DOM update/selection logic (`$commitPendingUpdates`, `updateDOMSelection`).
   - Hypothesis: Removing the timeout caused a race condition or exposed an edge case in Lexical's internal observer handling during rapid state updates and focus shifts.
 - **Reverted Optimization:** Re-added `setTimeout(..., 0)` around the state reset logic in `commitLatexToEditor` to resolve the `ResizeObserver` error.
+- **LaTeX Click-to-Edit Fix (`app/lambai/(UI)/editor/hooks/useMathLiveManager.ts`):**
+  - **Problem:** Khi người dùng nhấp vào một khối LaTeX hiện có để sửa, sau đó nhập liệu vào MathLive input, `editingNodeKey` bị xóa (set về `null`) ngay lập tức trong hàm `handleMathfieldInput`.
+  - **Consequence:** Khi nhấn Enter để commit, `commitLatexToEditor` không nhận diện được đây là một thao tác sửa (vì `editingNodeKey` là `null`), dẫn đến việc thay đổi không được lưu hoặc hành vi sai lệch (ví dụ: cố gắng chèn node mới).
+  - **Solution:** Xóa dòng `setEditingNodeKey((prev) => ({ ...prev, [key]: null }));` và `setEditingNodeKey` khỏi mảng phụ thuộc trong `handleMathfieldInput`.
+  - **Result:** `editingNodeKey` được duy trì đúng cách trong suốt quá trình chỉnh sửa, cho phép `commitLatexToEditor` cập nhật chính xác node hiện có. Tính năng "Click-to-Edit" hoạt động trở lại.
 
 ## Next Steps
 
@@ -223,6 +228,7 @@
 
 - Prioritized fixing the runtime error over the minor smoothness optimization.
 - The interaction between immediate state updates, Lexical's internal reconciliation, and focus management appears sensitive.
+- **Click-to-Edit Logic:** The fix in `handleMathfieldInput` ensures `editingNodeKey` is preserved correctly, which is crucial for distinguishing between creating a new LaTeX node and editing an existing one.
 
 ## Current Focus
 
@@ -231,32 +237,32 @@
 ## Recent Changes
 
 - **Re-update Mode 2 - Linting & Optimization:**
-    - **`app/lambai/(UI)/components/Tutorial.tsx` (Lint Fix):**
-        - Resolved `react-hooks/exhaustive-deps` warning for `useEffect` handling Escape key.
-        - Wrapped `openModal` and `closeModal` functions in `useCallback` with `onModalToggle` as a dependency.
-        - Added the memoized `closeModal` to the `useEffect` dependency array.
-    - **`app/lambai/(handler)/handler.ts` (Logic & Return Type Update):**
-        - Modified `submitAnswers` server action:
-            - It now returns an object `{ status: "success", submissionId: string }` upon successful API call to `/api/nopbai` and retrieval of `submissionId`.
-            - Or returns `{ status: "error", message: string }` on failure.
-            - Removed the direct `redirect("/ketqua")` call; redirection is now handled by the client based on the returned `submissionId`.
-        - Modified `saveWorkProgress` server action:
-            - Updated return type to `Promise<{ status: "success" | "error"; message?: string }>` for consistency.
-            - Returns `{ status: "success" }` or `{ status: "error", message: "..." }`.
-    - **`app/lambai/(UI)/lambai.tsx` (Optimization & Handler Update):**
-        - `handleSubmit` function:
-            - Updated to call the modified `submitAnswers` server action with all four required arguments: `timer`, `taskContent.de_bai`, `questions`, and `answersRef.current`.
-            - Now correctly handles the new return object from `submitAnswers` to perform client-side redirection using `window.location.href = \`/ketqua?id=\${result.submissionId}\`;`.
-            - Wrapped in `useCallback` with dependencies `[timer, taskContent.de_bai, questions]`.
-        - `handleSaveProgress` function:
-            - Updated to call the modified `saveWorkProgress` server action with `JSON.stringify(answersRef.current)` as the sole argument.
-            - Now correctly handles the new return object.
-            - Wrapped in `useCallback` with an empty dependency array `[]` as its core logic depends on refs and state setters.
-        - `handleAnswersChange` function:
-            - Remains wrapped in `useCallback` with `[handleSaveProgress]` as its dependency, ensuring it uses the memoized version of `handleSaveProgress`.
-    - **Linting:** Ran `pnpm run lint` successfully after all changes, confirming no new lint errors or warnings were introduced.
+  - **`app/lambai/(UI)/components/Tutorial.tsx` (Lint Fix):**
+    - Resolved `react-hooks/exhaustive-deps` warning for `useEffect` handling Escape key.
+    - Wrapped `openModal` and `closeModal` functions in `useCallback` with `onModalToggle` as a dependency.
+    - Added the memoized `closeModal` to the `useEffect` dependency array.
+  - **`app/lambai/(handler)/handler.ts` (Logic & Return Type Update):**
+    - Modified `submitAnswers` server action:
+      - It now returns an object `{ status: "success", submissionId: string }` upon successful API call to `/api/nopbai` and retrieval of `submissionId`.
+      - Or returns `{ status: "error", message: string }` on failure.
+      - Removed the direct `redirect("/ketqua")` call; redirection is now handled by the client based on the returned `submissionId`.
+    - Modified `saveWorkProgress` server action:
+      - Updated return type to `Promise<{ status: "success" | "error"; message?: string }>` for consistency.
+      - Returns `{ status: "success" }` or `{ status: "error", message: "..." }`.
+  - **`app/lambai/(UI)/lambai.tsx` (Optimization & Handler Update):**
+    - `handleSubmit` function:
+      - Updated to call the modified `submitAnswers` server action with all four required arguments: `timer`, `taskContent.de_bai`, `questions`, and `answersRef.current`.
+      - Now correctly handles the new return object from `submitAnswers` to perform client-side redirection using `window.location.href = \`/ketqua?id=\${result.submissionId}\`;`.
+      - Wrapped in `useCallback` with dependencies `[timer, taskContent.de_bai, questions]`.
+    - `handleSaveProgress` function:
+      - Updated to call the modified `saveWorkProgress` server action with `JSON.stringify(answersRef.current)` as the sole argument.
+      - Now correctly handles the new return object.
+      - Wrapped in `useCallback` with an empty dependency array `[]` as its core logic depends on refs and state setters.
+    - `handleAnswersChange` function:
+      - Remains wrapped in `useCallback` with `[handleSaveProgress]` as its dependency, ensuring it uses the memoized version of `handleSaveProgress`.
+  - **Linting:** Ran `pnpm run lint` successfully after all changes, confirming no new lint errors or warnings were introduced.
 - **Refactor (`lambai.tsx`):**
-    - Extracted panel resizing logic (state, refs, handlers, effect) into a new custom hook `app/lambai/(UI)/hooks/usePanelResizer.ts`.
+  - Extracted panel resizing logic (state, refs, handlers, effect) into a new custom hook `app/lambai/(UI)/hooks/usePanelResizer.ts`.
 
 ## Next Steps
 

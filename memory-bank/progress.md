@@ -18,14 +18,14 @@
 - Performance optimizations: Memoization (`React.memo`, `useMemo`, `useCallback`) cho các component và hàm tính toán quan trọng, bao gồm các event handlers chính trong `lambai.tsx` (`handleSubmit`, `handleSaveProgress`, `handleAnswersChange`) và `Tutorial.tsx` (`openModal`, `closeModal`).
 - RESTful API động, xác thực NextAuth, middleware bảo vệ route, AI bot, versioning, audit trail.
 - **Logic gọi Server Action (`handler.ts`, `lambai.tsx`):**
-    - `submitAnswers` và `saveWorkProgress` trong `handler.ts` trả về kết quả có cấu trúc (status, message/submissionId) thay vì tự redirect.
-    - Client (`lambai.tsx`) gọi các server actions này với tham số chính xác và xử lý kết quả trả về một cách nhất quán.
+  - `submitAnswers` và `saveWorkProgress` trong `handler.ts` trả về kết quả có cấu trúc (status, message/submissionId) thay vì tự redirect.
+  - Client (`lambai.tsx`) gọi các server actions này với tham số chính xác và xử lý kết quả trả về một cách nhất quán.
+- **Click-to-Edit LaTeX Blocks:** Chức năng nhấp và sửa các khối LaTeX hiện có đã hoạt động trở lại sau khi khắc phục sự cố `editingNodeKey` bị xóa sớm trong `useMathLiveManager`.
 - **Linting:** Codebase vượt qua tất cả các kiểm tra lint sau các thay đổi gần đây.
 
 ## What's Left to Build / Fix
 
 - **Responsive/cross-device:** Cần kiểm thử thực tế trên mobile/tablet.
-- **Click-to-Edit:** Đang hoàn thiện.
 - **Styling:** Thêm visual styling cho `LatexNode` (background, border khi active/hovered).
 - **MathLive Initial Display:** Cần kiểm thử thêm (có thể liên quan đến overflow hoặc timing).
 
@@ -43,7 +43,6 @@
 ## Known Issues
 
 - Responsive/cross-device: Cần kiểm thử thực tế trên mobile/tablet.
-- Click-to-edit: Đang hoàn thiện.
 - Styling cho LatexNode: Đang hoàn thiện.
 - MathLive initial display: Cần kiểm thử thêm.
 
@@ -51,12 +50,12 @@
 
 1.  **Re-update Mode 2 - Linting & Optimization:**
     - **`app/lambai/(UI)/components/Tutorial.tsx` (Lint Fix):**
-        - Resolved `react-hooks/exhaustive-deps` by memoizing `openModal`/`closeModal` and updating `useEffect` deps.
+      - Resolved `react-hooks/exhaustive-deps` by memoizing `openModal`/`closeModal` and updating `useEffect` deps.
     - **`app/lambai/(handler)/handler.ts` (Logic & Return Update):**
-        - `submitAnswers`: Returns structured result (status, submissionId) instead of redirecting.
-        - `saveWorkProgress`: Returns structured result (status, message).
+      - `submitAnswers`: Returns structured result (status, submissionId) instead of redirecting.
+      - `saveWorkProgress`: Returns structured result (status, message).
     - **`app/lambai/(UI)/lambai.tsx` (Optimization & Handler Update):**
-        - `handleSubmit`, `handleSaveProgress`, `handleAnswersChange` updated to use new handler logic and wrapped in `useCallback`.
+      - `handleSubmit`, `handleSaveProgress`, `handleAnswersChange` updated to use new handler logic and wrapped in `useCallback`.
     - **Linting:** All checks passed post-changes.
 2.  **UI/Layout Adjustments (`app/lambai/(UI)/lambai.tsx` - Update Mode):**
     - Fixed CSS class logic for the timer button.
@@ -65,7 +64,10 @@
 5.  **Virtual Keyboard Enter Attempt (`onBeforeInput`)**: Thêm trình xử lý sự kiện `onBeforeInput` vào `math-field`.
 6.  **Reverted Virtual Keyboard Command Customization:** Loại bỏ việc thay đổi `command` của keycap Enter ảo.
 7.  **Removed `focusout` Logic:** Loại bỏ logic commit dựa trên sự kiện `focusout`.
-8.  **Previous Refactoring:**
+8.  **LaTeX Click-to-Edit Fix (`useMathLiveManager.ts`):**
+    - Khắc phục lỗi logic trong `handleMathfieldInput` nơi `editingNodeKey` bị xóa (set về `null`) mỗi khi người dùng nhập liệu vào MathLive. Điều này ngăn cản việc cập nhật node LaTeX hiện có.
+    - Sau khi xóa dòng `setEditingNodeKey(...)` không cần thiết khỏi `handleMathfieldInput`, tính năng click và sửa khối LaTeX đã hoạt động chính xác.
+9.  **Previous Refactoring:**
     - Hoàn nguyên Portal cho MathLive positioning.
     - Triển khai lưu/khôi phục newline.
     - Xử lý lỗi API và tinh chỉnh prompt.
@@ -93,4 +95,4 @@
 - **Header Toggle Arrow:** Works correctly for new users after fix.
 - **Linting:** All checks pass.
 - **Virtual Keyboard Enter:** Needs testing with `onBeforeInput`.
-- Click-to-Edit: Needs testing/implementation.
+- **Click-to-Edit:** Hoạt động sau khi sửa lỗi `editingNodeKey` trong `useMathLiveManager`.

@@ -131,9 +131,8 @@ export function useMathLiveManager({ editorRefMap }: UseMathLiveManagerProps) {
 			const target = event.target as EventTarget & { value?: string };
 			const newValue = target.value ?? "";
 			setCurrentLatexValue((prev) => ({ ...prev, [key]: newValue }));
-			setEditingNodeKey((prev) => ({ ...prev, [key]: null })); // Clear editing node if typing new
 		},
-		[setCurrentLatexValue, setEditingNodeKey],
+		[setCurrentLatexValue],
 	);
 
 	// Handler for specific keydown events on the MathLive input
