@@ -22,6 +22,7 @@ import { usePanelResizer } from "./hooks/usePanelResizer";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import clsx from "clsx";
 import TutorialModal from "./components/Tutorial";
+import { redirect } from "next/navigation";
 
 export default function Home() {
 	const [isBounded, setBounding] = useState<boolean>(false);
@@ -253,24 +254,6 @@ export default function Home() {
 		setIsTimerPaused(false);
 
 		try {
-			const allAnswersValid = Object.values(answersRef.current).every(
-				(answerBlockArray) =>
-					answerBlockArray.length > 0 &&
-					answerBlockArray.every(
-						(block) =>
-							block.content.trim() !== "" || block.type === "latex",
-					),
-			);
-
-			if (!allAnswersValid) {
-				alert(
-					"Vui lòng trả lời tất cả các câu hỏi trước khi nộp bài. " +
-					"Nếu bạn muốn chèn một công thức toán học, hãy đảm bảo nó không rỗng.",
-				);
-				setIsSubmitting(false);
-				return;
-			}
-
 			const result = await submitAnswers(
 				timer,
 				taskContent.de_bai,
@@ -279,21 +262,10 @@ export default function Home() {
 			);
 
 			if (result.status === "success") {
-				localStorage.removeItem("currentTaskAnswers");
-				localStorage.removeItem("currentTaskTimer");
-				localStorage.removeItem("currentTaskId");
-				if (result.submissionId) {
-					window.location.href = `/ketqua?id=${result.submissionId}`;
-				} else {
-					alert("Nộp bài thành công nhưng không nhận được ID bài làm. Sẽ chuyển về trang chủ.");
-					window.location.href = "/";
-				}
-			} else {
-				alert("Có lỗi xảy ra khi nộp bài: " + (result.message || "Lỗi không xác định"));
+				redirect("/ketqua");
 			}
 		} catch (error) {
 			console.error("Submit error:", error);
-			alert("Có lỗi nghiêm trọng xảy ra khi nộp bài.");
 		} finally {
 			setIsSubmitting(false);
 		}
