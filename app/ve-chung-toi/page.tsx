@@ -3,6 +3,9 @@ import Image from "next/image";
 import Header from "@/ui/Components/Header";
 import Footer from "@/ui/Components/Footer";
 import Link from "next/link";
+import SamPiDieu from "@/public/220307 - SẨM PÍ DIỆU.jpg";
+import TruongQuocSang from "@/public/truongquocsang.jpg";
+import AnhTeam from "@/public/anh_team.jpg";
 
 export default function Home() {
 	const scrollToFooter = (e: React.MouseEvent) => {
@@ -61,7 +64,7 @@ export default function Home() {
 							{/* Cột hình ảnh/illustration */}
 							<div className="mb-8 md:mb-0 flex justify-center">
 								<div className="w-full max-w-md h-64 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-									Ảnh minh họa câu chuyện
+									<Image src={AnhTeam} alt="Team" width={400} height={600} className="object-cover w-full h-full" />
 								</div>
 							</div>
 							{/* Cột nội dung */}
@@ -134,9 +137,8 @@ export default function Home() {
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-4xl mx-auto">
 							{/* Card Sẩm Pí Diệu */}
 							<div className="bg-gray-50 p-6 rounded-lg shadow-md text-center border border-gray-200 flex flex-col items-center transition duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
-								<div className="w-32 h-32 rounded-lg bg-gray-300 mb-4 flex items-center justify-center text-gray-500 overflow-hidden">
-									{/* <Image src="/path/to/sam-pi-dieu.jpg" alt="Sẩm Pí Diệu" width={128} height={128} className="object-cover" /> */}
-									Ảnh
+								<div className="w-40 h-60 rounded-lg bg-gray-300 mb-4 flex items-center justify-center text-gray-500 overflow-hidden">
+									<Image src={SamPiDieu} alt="Sẩm Pí Diệu" width={400} height={600} className="object-cover w-full h-full" />
 								</div>
 								<h3 className="text-xl font-bold text-gray-900 mb-1">Sẩm Pí Diệu</h3>
 								<p className="text-sm text-gray-500 italic mb-3">Học sinh lớp 12 Tin, Trường Phổ thông Năng khiếu, ĐHQG-HCM.</p>
@@ -146,9 +148,8 @@ export default function Home() {
 							</div>
 							{/* Card Trương Quốc Sang */}
 							<div className="bg-gray-50 p-6 rounded-lg shadow-md text-center border border-gray-200 flex flex-col items-center transition duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
-								<div className="w-32 h-32 rounded-lg bg-gray-300 mb-4 flex items-center justify-center text-gray-500 overflow-hidden">
-									{/* <Image src="/path/to/truong-quoc-sang.jpg" alt="Trương Quốc Sang" width={128} height={128} className="object-cover" /> */}
-									Ảnh
+								<div className="w-40 h-60 rounded-lg bg-gray-300 mb-4 flex items-center justify-center text-gray-500 overflow-hidden">
+									<Image src={TruongQuocSang} alt="Trương Quốc Sang" width={400} height={600} className="object-cover w-full h-full" />
 								</div>
 								<h3 className="text-xl font-bold text-gray-900 mb-1">Trương Quốc Sang</h3>
 								<p className="text-sm text-gray-500 italic mb-3">Học sinh lớp 12A05, Trường THPT Trần Phú, Tân Phú.</p>
@@ -243,7 +244,7 @@ export default function Home() {
 							</div>
 						</div>
 						<p className="text-center text-gray-700 text-lg mt-12">
-							Hãy cùng chờ đón và <a href="#" className="text-indigo-600 hover:underline font-semibold">đóng góp ý kiến</a> để The AllEd ngày càng phát triển nhé!
+							Hãy cùng chờ đón và <a href="#footer" className="text-indigo-600 hover:underline font-semibold">đóng góp ý kiến (Liên hệ)</a> để The AllEd ngày càng phát triển nhé!
 						</p>
 					</div>
 				</section>

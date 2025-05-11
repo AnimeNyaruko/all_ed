@@ -31,14 +31,12 @@
 
 ## Current Status
 
-- **UI Adjustments (`app/lambai/(UI)/lambai.tsx`):**
-  - Timer button CSS class logic fixed.
-  - Content area height calculation adjusted for flexibility.
-- **Linting Passed:** Code passes lint checks (no errors were found in this pass), bao gồm cả việc sửa lỗi `exhaustive-deps` trong `Tutorial.tsx`.
-- **Optimization Applied:** Các hàm xử lý chính trong `lambai.tsx` và `handler.ts` đã được tối ưu hóa và logic gọi hàm được làm rõ.
-- **Refactor Complete:** Panel resizing logic in `lambai.tsx` has been extracted into the `usePanelResizer` hook.
-- **Previous Fix Stable:** Header toggle arrow fix for new users is stable.
-- **Ready for Git:** Codebase is ready for the commit and push stage of this `re-update mode 2` cycle.
+- **Hoàn thành Bước 1 của "re-update mode 2" (Chu trình hiện tại):**
+    - Quét mã nguồn (`app/`) không tìm thấy cơ hội refactor/optimize.
+    - `pnpm run lint` không có lỗi.
+    - Không có thay đổi mã nào được thực hiện.
+- **Đang thực hiện Bước 2 của "re-update mode 2":** Cập nhật Memory Bank.
+- Sẵn sàng cho Bước 3 (Git Commit & Push) sau khi hoàn tất cập nhật Memory Bank.
 
 ## Known Issues
 
@@ -48,7 +46,12 @@
 
 ## Recently Completed (Reflects `activeContext.md`)
 
-1.  **Re-update Mode 2 - Linting & Optimization:**
+- **Re-update Mode 2 (Chu trình hiện tại) - Bước 1: Scan, Propose, Implement:**
+    - Quét mã nguồn trong `app/` không phát hiện cơ hội refactoring hoặc tối ưu hóa nào cần thiết.
+    - Chạy `pnpm run lint` cho kết quả không có lỗi hay cảnh báo ESLint.
+    - Không có thay đổi mã nào được đề xuất hay triển khai.
+
+1.  **Re-update Mode 2 - Linting & Optimization (Chu trình TRƯỚC ĐÓ):**
     - **`app/lambai/(UI)/components/Tutorial.tsx` (Lint Fix):**
       - Resolved `react-hooks/exhaustive-deps` by memoizing `openModal`/`closeModal` and updating `useEffect` deps.
     - **`app/lambai/(handler)/handler.ts` (Logic & Return Update):**
