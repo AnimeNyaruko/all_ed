@@ -2,8 +2,8 @@
 
 ## Current Focus
 
-- Đã quét lại toàn bộ codebase, xác nhận và đồng bộ hóa Memory Bank với trạng thái thực tế của dự án.
-- Đảm bảo mọi route, page, API, component, hook, util, cấu hình, pattern, tiến độ, vấn đề còn lại, quyết định kỹ thuật đều được phản ánh chính xác.
+- Đang thực hiện Bước 2 (Cập nhật Memory Bank) của quy trình "re-update mode 2".
+- Chuẩn bị cho Bước 3 (Git Commit & Push).
 
 ## Current Work Focus
 
@@ -13,6 +13,10 @@
 
 ## Recent Changes
 
+- **Re-update Mode 2 (Chu trình hiện tại) - Bước 1: Scan, Propose, Implement:**
+    - Quá trình quét mã nguồn trong `app/` không phát hiện cơ hội refactoring hoặc tối ưu hóa nào cần thiết vào lúc này, do mã nguồn đã được dọn dẹp và tối ưu trong các chu trình trước.
+    - Chạy `pnpm run lint` cho kết quả không có lỗi hay cảnh báo ESLint.
+    - Không có thay đổi mã nào được đề xuất hay triển khai trong bước này.
 1.  **Hiển thị Kết quả (`app/ketqua`)**
     - Triển khai hàm `utils/latexParser.ts` để phân tích chuỗi text chứa markup LaTeX (`$...$`).
     - Tạo component `app/ketqua/(UI)/MixedContentRenderer.tsx` để hiển thị nội dung hỗn hợp text/LaTeX, sử dụng `react-katex`.
@@ -64,9 +68,9 @@
 
 ## Next Steps
 
-1.  **Test Editor Interactions:** Thoroughly test cursor behavior, selection, deletion, copy/paste, etc., focusing on scenarios involving `LatexNode` and paragraph breaks.
-2.  **Monitor AI Output:** (Ongoing) Observe results from both APIs for formatting consistency.
-3.  **(Optional) Timer Persistence:** Address if necessary.
+- Hoàn tất việc cập nhật Memory Bank (Bước 2 của "re-update mode 2").
+- Tiến hành Bước 3: Git Commit & Push.
+- Tiến hành Bước 4: Cập nhật `version.json`.
 
 ## Recent Feedback
 
@@ -260,10 +264,9 @@
 
 ## Next Steps
 
-1. Tiếp tục kiểm thử đa thiết bị, responsive, UI/UX.
-2. Hoàn thiện click-to-edit, styling cho LatexNode, MathLive initial display.
-3. Duy trì tối ưu hóa hiệu suất, kiểm thử, versioning, audit trail.
-4. Đảm bảo mọi thay đổi lớn đều cập nhật Memory Bank ngay lập tức.
+- Hoàn tất việc cập nhật Memory Bank (Bước 2 của "re-update mode 2").
+- Tiến hành Bước 3: Git Commit & Push.
+- Tiến hành Bước 4: Cập nhật `version.json`.
 
 ## Active Decisions & Considerations
 
