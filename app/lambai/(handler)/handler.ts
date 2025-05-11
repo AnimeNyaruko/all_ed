@@ -150,25 +150,44 @@ export async function submitAnswers(
 		});
 
 		if (!response.ok) {
+			const errorText = await response.text();
 			console.error(
 				"Nopbai API error:",
 				response.status,
-				await response.text(),
+				errorText,
 			);
+			return {
+				status: "error",
+				message: `API Error: ${response.status} - ${errorText}`,
+			};
 		}
+
+		// Giả sử API /api/nopbai trả về JSON có chứa submissionId khi thành công
+		const responseData = await response.json(); 
+
+		// TODO: Xác minh cấu trúc của responseData và submissionId thực tế từ API
+		// Ví dụ: if (responseData && responseData.submissionId)
+		// Vì không có thông tin về API response, tạm thời giả định nó có submissionId
+		const submissionId = responseData.submissionId || "unknown_submission_id";
+
+		return {
+			status: "success",
+			submissionId: submissionId, // Trả về submissionId để client xử lý redirect
+		};
+
 	} catch (error) {
 		console.error("Error in submitAnswers:", error);
 		return {
-			success: false,
-			error: error,
+			status: "error", // Thay 'success: false' bằng 'status: "error"'
+			message: error instanceof Error ? error.message : "Unknown error during submission", // Thay 'error: error' bằng 'message'
 		};
 	}
-	redirect("/ketqua");
+	// redirect("/ketqua"); // Xóa redirect ở đây, client sẽ xử lý
 }
 
 export async function saveWorkProgress(
 	jsonData: string,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ status: "success" | "error"; message?: string }> { // Thay đổi kiểu trả về
 	const username = await getCookie("session");
 	const assignmentID = await getCookie("assignment_id");
 
@@ -176,7 +195,7 @@ export async function saveWorkProgress(
 		console.error(
 			"Save progress failed: Missing username or assignmentID cookie.",
 		);
-		return { success: false, error: "Missing session info" };
+		return { status: "error", message: "Missing session info" };
 	}
 
 	const sanitizedTableName = sanitizeUsername(username);
@@ -184,9 +203,10 @@ export async function saveWorkProgress(
 	try {
 		const query = `UPDATE "User Infomation"."${sanitizedTableName}" SET "work" = $1 WHERE "assignment_id" = $2`;
 		await sql(query, [jsonData, assignmentID]);
-		return { success: true };
+		return { status: "success" }; // Giữ nguyên khi thành công
 	} catch (error) {
 		console.error("Error saving work progress:", error);
-		return { success: false, error: "Database error saving progress" };
+		// Trả về message thay vì error, và status là "error"
+		return { status: "error", message: "Database error saving progress" }; 
 	}
 }

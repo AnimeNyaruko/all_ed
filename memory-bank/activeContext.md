@@ -230,11 +230,33 @@
 
 ## Recent Changes
 
+- **Re-update Mode 2 - Linting & Optimization:**
+    - **`app/lambai/(UI)/components/Tutorial.tsx` (Lint Fix):**
+        - Resolved `react-hooks/exhaustive-deps` warning for `useEffect` handling Escape key.
+        - Wrapped `openModal` and `closeModal` functions in `useCallback` with `onModalToggle` as a dependency.
+        - Added the memoized `closeModal` to the `useEffect` dependency array.
+    - **`app/lambai/(handler)/handler.ts` (Logic & Return Type Update):**
+        - Modified `submitAnswers` server action:
+            - It now returns an object `{ status: "success", submissionId: string }` upon successful API call to `/api/nopbai` and retrieval of `submissionId`.
+            - Or returns `{ status: "error", message: string }` on failure.
+            - Removed the direct `redirect("/ketqua")` call; redirection is now handled by the client based on the returned `submissionId`.
+        - Modified `saveWorkProgress` server action:
+            - Updated return type to `Promise<{ status: "success" | "error"; message?: string }>` for consistency.
+            - Returns `{ status: "success" }` or `{ status: "error", message: "..." }`.
+    - **`app/lambai/(UI)/lambai.tsx` (Optimization & Handler Update):**
+        - `handleSubmit` function:
+            - Updated to call the modified `submitAnswers` server action with all four required arguments: `timer`, `taskContent.de_bai`, `questions`, and `answersRef.current`.
+            - Now correctly handles the new return object from `submitAnswers` to perform client-side redirection using `window.location.href = \`/ketqua?id=\${result.submissionId}\`;`.
+            - Wrapped in `useCallback` with dependencies `[timer, taskContent.de_bai, questions]`.
+        - `handleSaveProgress` function:
+            - Updated to call the modified `saveWorkProgress` server action with `JSON.stringify(answersRef.current)` as the sole argument.
+            - Now correctly handles the new return object.
+            - Wrapped in `useCallback` with an empty dependency array `[]` as its core logic depends on refs and state setters.
+        - `handleAnswersChange` function:
+            - Remains wrapped in `useCallback` with `[handleSaveProgress]` as its dependency, ensuring it uses the memoized version of `handleSaveProgress`.
+    - **Linting:** Ran `pnpm run lint` successfully after all changes, confirming no new lint errors or warnings were introduced.
 - **Refactor (`lambai.tsx`):**
-  - Extracted panel resizing logic (state, refs, handlers, effect) into a new custom hook `app/lambai/(UI)/hooks/usePanelResizer.ts`.
-  - Updated `lambai.tsx` to import and use the `usePanelResizer` hook.
-- **Linting:** Passed lint checks after refactoring.
-- **Previous (Fix Mode):** Fixed the header toggle arrow bug for new users.
+    - Extracted panel resizing logic (state, refs, handlers, effect) into a new custom hook `app/lambai/(UI)/hooks/usePanelResizer.ts`.
 
 ## Next Steps
 

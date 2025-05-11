@@ -85,19 +85,26 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
 - Layout: CSS Grid, overflow management, responsive design
 - Lexical editor configuration with plugin-based extensibility
 - Custom Lexical nodes for LaTeX
-- Context for cross-component communication
+- Context for cross-component communication (e.g., `LatexPluginContext`, though direct prop drilling is also used)
 - Custom hooks for encapsulating logic (`useMathLiveManager`, `usePanelResizer`)
-- API interaction via RESTful endpoints
+- API interaction via RESTful endpoints and Server Actions:
+    - Server Actions (e.g., `submitAnswers`, `saveWorkProgress` in `app/lambai/(handler)/handler.ts`) are called directly from client components (`lambai.tsx`).
+    - Server Actions are designed to return structured data (e.g., `{ status: 'success', submissionId: '...' }` or `{ status: 'error', message: '...' }`) rather than performing side effects like redirection directly.
+    - Client components handle side effects (like redirection or UI updates) based on the data returned by Server Actions.
 - AI integration via dynamic API route
-- Memoization (`React.memo`, `useMemo`, `useCallback`) for performance
-- Error boundary and fallback UI for robustness
 
 ### API Patterns
 
-- RESTful API with dynamic route segments
-- Centralized error handling and validation
-- Separation of handler/data_handler logic
-- Prompt engineering for AI endpoints
+- RESTful API with dynamic route segments (for traditional API routes like `/api/taobai`, `/api/nopbai` if still used directly).
+- **Server Actions (`app/lambai/(handler)/handler.ts`):**
+    - Preferred method for client-server mutations (e.g., submitting answers, saving progress).
+    - Encapsulate specific server-side logic (database interaction, cookie management).
+    - Designed to be callable directly from client components.
+    - Return structured JSON responses (e.g., `{ status: 'success', data: ... }`, `{ status: 'error', message: '...' }`) to the client.
+    - Avoid performing direct page redirections; redirection logic is handled by the client based on the action's response.
+- Centralized error handling and validation within API routes and Server Actions.
+- Separation of handler/data_handler logic (though `handler.ts` combines some of this for specific lambai actions).
+- Prompt engineering for AI endpoints.
 
 ### Testing & Maintenance Patterns
 

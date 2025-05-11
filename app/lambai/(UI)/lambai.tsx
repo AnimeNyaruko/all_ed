@@ -21,6 +21,7 @@ import QuestionContent from "./components/QuestionContent";
 import { usePanelResizer } from "./hooks/usePanelResizer";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import clsx from "clsx";
+import TutorialModal from "./components/Tutorial";
 
 export default function Home() {
 	const [isBounded, setBounding] = useState<boolean>(false);
@@ -246,92 +247,115 @@ export default function Home() {
 	};
 
 	// Hàm xử lý nộp bài
-	const handleSubmit = async () => {
-		if (isSubmitting) return;
+	const handleSubmit = useCallback(async () => {
 		setIsSubmitting(true);
-		if (timerRef.current) {
-			clearInterval(timerRef.current);
-		}
 		setIsTimerRunning(false);
-		try {
-			await submitAnswers(timer, taskContent.de_bai || "", questions, answers);
-		} catch (error) {
-			console.error("An error occurred during submission:", error);
-			setIsSubmitting(false);
-		}
-	};
-
-	// Define the answer update handler
-	const handleAnswersChange = useCallback(
-		(newAnswers: Record<string, AnswerBlock[]>) => {
-			setAnswers((prev) => ({ ...prev, ...newAnswers }));
-		},
-		[],
-	);
-
-	// Hàm Lưu bài làm (cập nhật)
-	const handleSave = useCallback(async () => {
-		if (isLoading || !answersRef.current) return;
-
-		// Xóa timeout cũ nếu đang hiển thị "Đã lưu"
-		if (saveStatusTimeoutRef.current) {
-			clearTimeout(saveStatusTimeoutRef.current);
-			saveStatusTimeoutRef.current = null;
-		}
-
-		setSaveStatus("saving"); // Bắt đầu lưu
-
-		const currentAnswers = answersRef.current;
-		const jsonData = JSON.stringify(currentAnswers);
+		setIsTimerPaused(false);
 
 		try {
-			const result = await saveWorkProgress(jsonData); // <<< Gọi và await server action
-			if (result.success) {
-				setSaveStatus("saved");
-				// Tự động ẩn sau 2 giây
-				saveStatusTimeoutRef.current = setTimeout(() => {
-					setSaveStatus("idle");
-					saveStatusTimeoutRef.current = null;
-				}, 2000);
+			const allAnswersValid = Object.values(answersRef.current).every(
+				(answerBlockArray) =>
+					answerBlockArray.length > 0 &&
+					answerBlockArray.every(
+						(block) =>
+							block.content.trim() !== "" || block.type === "latex",
+					),
+			);
+
+			if (!allAnswersValid) {
+				alert(
+					"Vui lòng trả lời tất cả các câu hỏi trước khi nộp bài. " +
+					"Nếu bạn muốn chèn một công thức toán học, hãy đảm bảo nó không rỗng.",
+				);
+				setIsSubmitting(false);
+				return;
+			}
+
+			const result = await submitAnswers(
+				timer,
+				taskContent.de_bai,
+				questions,
+				answersRef.current,
+			);
+
+			if (result.status === "success") {
+				localStorage.removeItem("currentTaskAnswers");
+				localStorage.removeItem("currentTaskTimer");
+				localStorage.removeItem("currentTaskId");
+				if (result.submissionId) {
+					window.location.href = `/ketqua?id=${result.submissionId}`;
+				} else {
+					alert("Nộp bài thành công nhưng không nhận được ID bài làm. Sẽ chuyển về trang chủ.");
+					window.location.href = "/";
+				}
 			} else {
-				console.error("Save failed (server action):", result.error);
-				setSaveStatus("error");
-				// Tự động ẩn lỗi sau 3 giây
-				saveStatusTimeoutRef.current = setTimeout(() => {
-					setSaveStatus("idle");
-					saveStatusTimeoutRef.current = null;
-				}, 3000);
+				alert("Có lỗi xảy ra khi nộp bài: " + (result.message || "Lỗi không xác định"));
 			}
 		} catch (error) {
-			console.error("Error calling saveWorkProgress:", error);
+			console.error("Submit error:", error);
+			alert("Có lỗi nghiêm trọng xảy ra khi nộp bài.");
+		} finally {
+			setIsSubmitting(false);
+		}
+	}, [timer, taskContent.de_bai, questions]);
+
+	// Hàm lưu tiến độ bài làm
+	const handleSaveProgress = useCallback(async () => {
+		setSaveStatus("saving");
+		if (saveStatusTimeoutRef.current) {
+			clearTimeout(saveStatusTimeoutRef.current);
+		}
+		try {
+			const jsonData = JSON.stringify(answersRef.current);
+			const result = await saveWorkProgress(jsonData);
+
+			if (result.status === "success") {
+				setSaveStatus("saved");
+			} else {
+				console.error("Save progress error:", result.message);
+				setSaveStatus("error");
+			}
+		} catch (error) {
+			console.error("Failed to save progress:", error);
 			setSaveStatus("error");
-			// Tự động ẩn lỗi sau 3 giây
+		} finally {
 			saveStatusTimeoutRef.current = setTimeout(() => {
 				setSaveStatus("idle");
-				saveStatusTimeoutRef.current = null;
-			}, 3000);
+			}, 2000);
 		}
-	}, [isLoading]); // Dependency vẫn là isLoading
+	}, []);
+
+	// Debounced handler for answer changes from AnswerArea
+	const handleAnswersChange = useCallback(
+		(newAnswerData: Record<string, AnswerBlock[]>) => {
+			setAnswers((prevAnswers) => {
+				const updatedAnswers = { ...prevAnswers, ...newAnswerData };
+				return updatedAnswers;
+			});
+			handleSaveProgress();
+		},
+		[handleSaveProgress],
+	);
 
 	// Lưu tự động (useEffect giữ nguyên, chỉ gọi handleSave mới)
 	useEffect(() => {
 		const intervalId = setInterval(() => {
-			handleSave();
+			handleSaveProgress();
 		}, 10000);
 		return () => clearInterval(intervalId);
-	}, [handleSave]);
+	}, [handleSaveProgress]);
 
 	// Lưu thủ công Ctrl+S (useEffect giữ nguyên, chỉ gọi handleSave mới)
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
 			if (event.ctrlKey && event.key === "s") {
 				event.preventDefault();
-				handleSave();
+				handleSaveProgress();
 			}
 		};
 		document.addEventListener("keydown", handleKeyDown);
 		return () => document.removeEventListener("keydown", handleKeyDown);
-	}, [handleSave]);
+	}, [handleSaveProgress]);
 
 	// Bỏ cảnh báo beforeunload (useEffect giữ nguyên)
 	useEffect(() => {
@@ -480,7 +504,7 @@ export default function Home() {
 								</div>
 
 								{/* Right side buttons */}
-								<div className="space-x-4 flex items-center">
+								<div className="space-x-3 flex items-center">
 									{/* Timer Controls */}
 									<div className="space-x-2 flex items-center">
 										<button
@@ -551,6 +575,9 @@ export default function Home() {
 									>
 										{isSubmitting ? "Đang nộp..." : "Nộp bài"}
 									</button>
+
+									{/* <<< TutorialModal moved here (right of Submit button) */}
+									<TutorialModal />
 								</div>
 
 								{/* <<< THÊM Chỉ báo trạng thái lưu */}
