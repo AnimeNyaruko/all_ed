@@ -1,10 +1,13 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import { register } from "../(Handler)/handler";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function EmailRegisterForm() {
 	const [error, setError] = useState("");
 	const [passwordMatch, setPasswordMatch] = useState(true);
+	const router = useRouter();
+	const { refreshAuthState } = useAuth();
 
 	const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const password = (document.getElementById("password") as HTMLInputElement)
@@ -37,7 +40,8 @@ export default function EmailRegisterForm() {
 		const result = await register(formData);
 
 		if (result === "") {
-			redirect("/");
+			await refreshAuthState();
+			router.push("/");
 		} else {
 			setError(result);
 		}

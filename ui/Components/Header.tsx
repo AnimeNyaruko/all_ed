@@ -1,266 +1,306 @@
 "use client";
 import Link from "next/link";
-import { useState, useEffect, useCallback } from "react";
-import { checkCookie, deleteCookie } from "@/utils/cookie";
+import { useState, useEffect, useCallback, useRef, memo } from "react";
 import Image from "next/image";
-import { signOut } from "next-auth/react";
+import { useAuth } from "@/context/AuthContext";
+import { scrollToElementById } from "@/utils/scrollUtils";
 
-// Định nghĩa interface cho cờ
-interface Flag {
-	id: string;
-	left: number;
-	size: number;
-	delay: number;
-	duration: number;
-	rotation: number;
-	wobbleStrength: number;
-}
+// Tách hàm easing ra khỏi component chính để tránh tạo lại khi re-render
+// const easeInOutQuad = (t: number, b: number, c: number, d: number) => { // Đã chuyển sang scrollUtils.ts
+// 	t /= d / 2;
+// 	if (t < 1) return (c / 2) * t * t + b;
+// 	t--;
+// 	return (-c / 2) * (t * (t - 2) - 1) + b;
+// };
 
-// Component FallingFlags để tạo hiệu ứng cờ rơi
-const FallingFlags = ({
-	flagImage,
-	count = 20,
-}: {
-	flagImage: string;
-	count?: number;
+// Tối ưu hóa component con AuthSection bằng memo
+const AuthSection = memo(({ 
+	isMobile = false,
+	effectiveAuthState,
+	isAuthLoading,
+	cachedAuthState,
+	shouldShowSkeleton,
+	isDropdownOpen,
+	setIsDropdownOpen,
+	logout,
+}: { 
+	isMobile?: boolean,
+	effectiveAuthState: boolean | null,
+	isAuthLoading: boolean,
+	cachedAuthState: boolean | null,
+	shouldShowSkeleton: boolean,
+	isDropdownOpen: boolean,
+	setIsDropdownOpen: (value: boolean) => void,
+	logout: () => Promise<void>,
 }) => {
-	const [flags, setFlags] = useState<Flag[]>([]);
-
-	const createFlag = useCallback((): Flag => {
-		return {
-			id: Math.random().toString(36).substring(7),
-			left: Math.random() * 100, // Vị trí ngang (%)
-			size: Math.random() * (30 - 10) + 10, // Kích thước cờ (10-30px)
-			delay: Math.random() * 1, // Độ trễ bắt đầu rơi (0-1s)
-			duration: Math.random() * (15 - 8) + 8, // Thời gian rơi (8-15s)
-			rotation: Math.random() + 360, // Góc xoay ngẫu nhiên
-			wobbleStrength: Math.random() * 2 + 1, // Cường độ đung đưa
-		};
-	}, []);
-
-	useEffect(() => {
-		const newFlags: Flag[] = [];
-		for (let i = 0; i < count; i++) {
-			newFlags.push(createFlag());
-		}
-		setFlags(newFlags);
-
-		// Tạo cờ mới sau khi một lá cờ đã rơi xong
-		const interval = setInterval(() => {
-			setFlags((prevFlags) => {
-				if (prevFlags.length < count) {
-					return [...prevFlags, createFlag()];
-				} else {
-					const newFlags = [...prevFlags];
-					newFlags[Math.floor(Math.random() * newFlags.length)] = createFlag();
-					return newFlags;
-				}
-			});
-		}, 3000);
-
-		return () => clearInterval(interval);
-	}, [count, createFlag]);
-
-	return (
-		<div className="inset-0 pointer-events-none absolute overflow-hidden">
-			{flags.map((flag) => (
-				<div
-					key={flag.id}
-					className="top-0 absolute z-10"
-					style={{
-						left: `${flag.left}%`,
-						width: `${flag.size}px`,
-						height: `${flag.size}px`,
-						animation: `fall ${flag.duration}s linear ${flag.delay}s infinite, wobble ${flag.wobbleStrength}s ease-in-out infinite alternate`,
-						transform: `rotate(${flag.rotation}deg)`,
-					}}
+	// Kết hợp logic skeleton và trạng thái hiệu quả
+	if (shouldShowSkeleton && cachedAuthState === null) {
+		return (
+			<div className="w-24 h-10 bg-gray-200 animate-pulse rounded-lg"></div>
+		);
+	}
+	
+	// Xử lý trường hợp isAuthLoading && cachedAuthState === null nhưng chưa tới thời điểm hiển thị skeleton
+	if (isAuthLoading && cachedAuthState === null && !shouldShowSkeleton) {
+		// Trả về một phần tử trống với kích thước tương đương để tránh nhảy layout
+		return <div className="w-24 h-10 opacity-0"></div>;
+	}
+	
+	// Sử dụng trạng thái hiệu quả (cached hoặc isLoggedIn)
+	// Nếu effectiveAuthState là null (chưa xác định), ẩn nút
+	if (effectiveAuthState === null) {
+		return <div className="w-24 h-10 opacity-0"></div>;
+	}
+	
+	// Tối ưu callbacks cho các sự kiện
+	const handleDropdownToggle = useCallback((e: React.MouseEvent) => {
+		e.stopPropagation(); // Ngăn sự kiện lan ra document
+		setIsDropdownOpen(!isDropdownOpen);
+	}, [isDropdownOpen, setIsDropdownOpen]);
+	
+	return effectiveAuthState ? (
+		<div className="profile-dropdown relative">
+			<button
+				onClick={handleDropdownToggle}
+				className="w-10 h-10 bg-white border-gray-200 hover:border-blue-500 flex cursor-pointer items-center justify-center rounded-full border-2 transition-colors"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					className="h-6 w-6 text-gray-500"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
 				>
-					{flagImage && (
-						<Image
-							src={flagImage}
-							alt="Lá cờ"
-							width={flag.size}
-							height={flag.size}
-							className="h-auto w-full"
-						/>
-					)}
+					<path
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						strokeWidth={2}
+						d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+					/>
+				</svg>
+			</button>
+			{isDropdownOpen && (
+				<div
+					className={`${isMobile ? "relative" : "absolute"} right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50`}
+				>
+					<Link
+						href="/lambai/selection"
+						className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 block cursor-pointer"
+					>
+						Lịch sử làm bài
+					</Link>
+					<div
+						onClick={() => logout()}
+						className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 block cursor-pointer"
+					>
+						Đăng xuất
+					</div>
 				</div>
-			))}
-			<style jsx global>{`
-				@keyframes fall {
-					0% {
-						transform: translateY(-100px) rotate(${Math.random() * 360}deg);
-						opacity: 0;
-					}
-					10% {
-						opacity: 1;
-					}
-					95% {
-						opacity: 1;
-					}
-					100% {
-						transform: translateY(100vh) rotate(${Math.random() * 360}deg);
-						opacity: 0;
-					}
-				}
-				@keyframes wobble {
-					0% {
-						margin-left: -5px;
-					}
-					100% {
-						margin-left: 5px;
-					}
-				}
-			`}</style>
+			)}
 		</div>
+	) : (
+		<Link
+			href="/dangnhap"
+			className="from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg hover:from-blue-700 hover:to-purple-700 font-medium shadow-md inline-block bg-gradient-to-r transition-colors"
+		>
+			Đăng nhập
+		</Link>
 	);
-};
+});
+
+AuthSection.displayName = 'AuthSection';
+
+// Tối ưu hóa component con NavLinks bằng memo
+const NavLinks = memo(({ 
+	isMobile = false,
+	scrollToFooter,
+	effectiveAuthState,
+	isAuthLoading,
+	cachedAuthState,
+	shouldShowSkeleton,
+	isDropdownOpen,
+	setIsDropdownOpen,
+	logout,
+}: { 
+	isMobile?: boolean,
+	scrollToFooter: (e: React.MouseEvent) => void,
+	effectiveAuthState: boolean | null,
+	isAuthLoading: boolean,
+	cachedAuthState: boolean | null,
+	shouldShowSkeleton: boolean,
+	isDropdownOpen: boolean,
+	setIsDropdownOpen: (value: boolean) => void,
+	logout: () => Promise<void>,
+}) => (
+	<div
+		className={`${isMobile ? "space-y-4 flex flex-col" : "space-x-8 flex items-center"}`}
+	>
+		<Link
+			href="/"
+			className="text-gray-700 hover:text-blue-600 font-medium py-2 transition-colors"
+		>
+			Trang chủ
+		</Link>
+		<Link
+			href="/taobai"
+			className="text-gray-700 hover:text-blue-600 font-medium py-2 transition-colors"
+		>
+			Tạo bài tập
+		</Link>
+		<Link
+			href="/ve-chung-toi"
+			className="text-gray-700 hover:text-blue-600 font-medium py-2 transition-colors"
+		>
+			Về chúng tôi
+		</Link>
+		<a
+			onClick={scrollToFooter}
+			className="text-gray-700 hover:text-blue-600 font-medium py-2 cursor-pointer transition-colors"
+		>
+			Liên hệ
+		</a>
+		<AuthSection 
+			isMobile={isMobile}
+			effectiveAuthState={effectiveAuthState}
+			isAuthLoading={isAuthLoading}
+			cachedAuthState={cachedAuthState}
+			shouldShowSkeleton={shouldShowSkeleton}
+			isDropdownOpen={isDropdownOpen}
+			setIsDropdownOpen={setIsDropdownOpen}
+			logout={logout}
+		/>
+	</div>
+));
+
+NavLinks.displayName = 'NavLinks';
 
 export default function Header() {
-	const [hasSession, setHasSession] = useState(false);
+	const { isLoggedIn, isAuthLoading, logout: authLogout } = useAuth();
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 	const [isMounted, setIsMounted] = useState(false);
-	// Đường dẫn hình ảnh cờ - cần thay thế bằng đường dẫn thực tế
-	const flagImagePath = "/images/flag.png"; // Giả định đường dẫn
+	const [cachedAuthState, setCachedAuthState] = useState<boolean | null>(null);
+	
+	// Thêm state để quản lý việc hiển thị skeleton
+	const [shouldShowSkeleton, setShouldShowSkeleton] = useState(false);
+	const skeletonTimerRef = useRef<NodeJS.Timeout | null>(null);
+	const mobileMenuRef = useRef<HTMLDivElement>(null);
 
+	// Đọc trạng thái auth từ sessionStorage khi component được mount
 	useEffect(() => {
 		setIsMounted(true);
+		
+		// Đọc trạng thái auth từ sessionStorage
+		if (typeof window !== 'undefined') {
+			try {
+				const savedState = sessionStorage.getItem('AUTH_STATE');
+				if (savedState !== null) {
+					setCachedAuthState(JSON.parse(savedState));
+				}
+			} catch (error) {
+				console.error("Error reading from sessionStorage:", error);
+			}
+		}
 	}, []);
 
+	// Lưu trạng thái auth vào sessionStorage và cập nhật cachedAuthState
 	useEffect(() => {
-		const checkSession = async () => {
-			const hasSessionCookie = await checkCookie("session");
-			setHasSession(hasSessionCookie);
-		};
-		checkSession();
-	}, []);
-
+		if (!isAuthLoading && isLoggedIn !== null) {
+			setCachedAuthState(isLoggedIn);
+			
+			// Lưu vào sessionStorage để tái sử dụng cho lần sau
+			try {
+				sessionStorage.setItem('AUTH_STATE', JSON.stringify(isLoggedIn));
+			} catch (error) {
+				console.error("Error writing to sessionStorage:", error);
+			}
+		}
+	}, [isLoggedIn, isAuthLoading]);
+	
+	// Quản lý hiển thị skeleton với một khoảng thời gian tối thiểu
 	useEffect(() => {
-		const handleClickOutside = (event: MouseEvent) => {
-			const target = event.target as HTMLElement;
-			if (!target.closest(".profile-dropdown")) {
-				setIsDropdownOpen(false);
+		// Nếu bắt đầu loading và không có dữ liệu cache
+		if (isAuthLoading && cachedAuthState === null) {
+			// Đặt một timer để chỉ hiển thị skeleton sau 150ms
+			// Điều này giúp tránh hiển thị skeleton cho các trường hợp loading rất nhanh
+			if (skeletonTimerRef.current) {
+				clearTimeout(skeletonTimerRef.current);
+			}
+			
+			skeletonTimerRef.current = setTimeout(() => {
+				if (isAuthLoading) { // Kiểm tra lại xem vẫn đang loading không
+					setShouldShowSkeleton(true);
+				}
+			}, 150);
+		} else {
+			// Nếu không còn loading hoặc đã có dữ liệu cache
+			if (skeletonTimerRef.current) {
+				clearTimeout(skeletonTimerRef.current);
+			}
+			
+			// Sử dụng thời gian chuyển đổi nhẹ nhàng để tránh việc thay đổi đột ngột
+			// Điều này giúp tránh hiệu ứng nhấp nháy
+			setTimeout(() => {
+				setShouldShowSkeleton(false);
+			}, 50);
+		}
+		
+		return () => {
+			if (skeletonTimerRef.current) {
+				clearTimeout(skeletonTimerRef.current);
 			}
 		};
+	}, [isAuthLoading, cachedAuthState]);
 
+	// Tối ưu xử lý click outside dropdown
+	const handleClickOutside = useCallback((event: MouseEvent) => {
+		const target = event.target as HTMLElement;
+		if (!target.closest(".profile-dropdown") && isDropdownOpen) {
+			setIsDropdownOpen(false);
+		}
+	}, [isDropdownOpen]);
+
+	useEffect(() => {
 		document.addEventListener("click", handleClickOutside);
 		return () => document.removeEventListener("click", handleClickOutside);
+	}, [handleClickOutside]);
+
+	// Tối ưu hàm cuộn mượt đến footer
+	const scrollToFooter = useCallback((e: React.MouseEvent) => {
+		e.preventDefault();
+		// const footer = document.getElementById("footer"); // Logic cũ
+		// if (!footer) return;
+
+		// const duration = 800; 
+		// const startPosition = window.scrollY;
+		// const targetPosition = footer.getBoundingClientRect().top + window.scrollY;
+		// const distance = targetPosition - startPosition;
+		// let startTime: number | null = null;
+
+		// function animation(currentTime: number) {
+		// 	if (startTime === null) startTime = currentTime;
+		// 	const timeElapsed = currentTime - startTime;
+		// 	const run = easeInOutQuad(timeElapsed, startPosition, distance, duration); // Sử dụng easeInOutQuad từ scrollUtils
+		// 	window.scroll({ top: run, behavior: "smooth" });
+		// 	if (timeElapsed < duration) requestAnimationFrame(animation);
+		// }
+
+		// requestAnimationFrame(animation);
+		scrollToElementById("footer", 800); // Sử dụng hàm tiện ích mới
 	}, []);
 
-	const scrollToFooter = (e: React.MouseEvent) => {
-		e.preventDefault();
-		const footer = document.getElementById("footer");
-		if (!footer) return;
+	// Đơn giản hóa logic xác định trạng thái hiển thị auth - ưu tiên sử dụng dữ liệu cache khi đang loading
+	const effectiveAuthState = isAuthLoading ? cachedAuthState : isLoggedIn;
 
-		const duration = 800; // Thời gian cuộn: 800ms (0.8s)
-		const startPosition = window.scrollY;
-		const targetPosition = footer.getBoundingClientRect().top + window.scrollY;
-		const distance = targetPosition - startPosition;
-		let startTime: number | null = null;
+	// Tối ưu toggle mobile menu với hiệu ứng mở/đóng mượt mà
+	const toggleMobileMenu = useCallback(() => {
+		setIsMobileMenuOpen(prev => !prev);
+	}, []);
 
-		function animation(currentTime: number) {
-			if (startTime === null) startTime = currentTime;
-			const timeElapsed = currentTime - startTime;
-			const run = easeInOutQuad(timeElapsed, startPosition, distance, duration);
-			window.scroll({ top: run, behavior: "smooth" });
-			if (timeElapsed < duration) requestAnimationFrame(animation);
-		}
-
-		// Hàm easing để làm cho cuộn mượt mà hơn
-		function easeInOutQuad(t: number, b: number, c: number, d: number) {
-			t /= d / 2;
-			if (t < 1) return (c / 2) * t * t + b;
-			t--;
-			return (-c / 2) * (t * (t - 2) - 1) + b;
-		}
-
-		requestAnimationFrame(animation);
+	const logout = async () => {
+		await authLogout();
+		window.location.href = '/';
 	};
-
-	const NavLinks = ({ isMobile = false }) => (
-		<div
-			className={`${isMobile ? "space-y-4 flex flex-col" : "space-x-8 flex items-center"}`}
-		>
-			<Link
-				href="/"
-				className="text-gray-700 hover:text-blue-600 font-medium py-2 transition-colors"
-			>
-				Trang chủ
-			</Link>
-			<Link
-				href="/taobai"
-				className="text-gray-700 hover:text-blue-600 font-medium py-2 transition-colors"
-			>
-				Tạo bài tập
-			</Link>
-			<Link
-				href="/ve-chung-toi"
-				className="text-gray-700 hover:text-blue-600 font-medium py-2 transition-colors"
-			>
-				Về chúng tôi
-			</Link>
-			<a
-				onClick={scrollToFooter}
-				className="text-gray-700 hover:text-blue-600 font-medium py-2 cursor-pointer transition-colors"
-			>
-				Liên hệ
-			</a>
-			{hasSession ? (
-				<div className="profile-dropdown relative">
-					<button
-						onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-						className="w-10 h-10 bg-white border-gray-200 hover:border-blue-500 flex cursor-pointer items-center justify-center rounded-full border-2 transition-colors"
-					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							className="h-6 w-6 text-gray-500"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-								d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-							/>
-						</svg>
-					</button>
-					{isDropdownOpen && (
-						<div
-							className={`${isMobile ? "relative" : "absolute"} right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50`}
-						>
-							<Link
-								href="/lambai/selection"
-								className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 block cursor-pointer"
-							>
-								Lịch sử làm bài
-							</Link>
-							<div
-								onClick={async () => {
-									await deleteCookie("session");
-									await deleteCookie("assignment_id");
-									await signOut();
-									window.location.href = "/";
-								}}
-								className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 block cursor-pointer"
-							>
-								Đăng xuất
-							</div>
-						</div>
-					)}
-				</div>
-			) : (
-				<Link
-					href="/dangnhap"
-					className="from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg hover:from-blue-700 hover:to-purple-700 font-medium shadow-md inline-block bg-gradient-to-r transition-colors"
-				>
-					Đăng nhập
-				</Link>
-			)}
-		</div>
-	);
 
 	return (
 		<header className="bg-white/95 backdrop-blur-md shadow-lg fixed z-50 w-full">
@@ -275,11 +315,21 @@ export default function Header() {
 						</div>
 					</Link>
 					<div className="md:flex hidden">
-						<NavLinks />
+						<NavLinks 
+							scrollToFooter={scrollToFooter}
+							effectiveAuthState={effectiveAuthState}
+							isAuthLoading={isAuthLoading}
+							cachedAuthState={cachedAuthState}
+							shouldShowSkeleton={shouldShowSkeleton}
+							isDropdownOpen={isDropdownOpen}
+							setIsDropdownOpen={setIsDropdownOpen}
+							logout={logout}
+						/>
 					</div>
 					<button
-						onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+						onClick={toggleMobileMenu}
 						className="md:hidden text-gray-700 hover:text-blue-600 p-2"
+						aria-label={isMobileMenuOpen ? "Đóng menu" : "Mở menu"}
 					>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
@@ -292,17 +342,35 @@ export default function Header() {
 								strokeLinecap="round"
 								strokeLinejoin="round"
 								strokeWidth={2}
-								d="M4 6h16M4 12h16M4 18h16"
+								d={isMobileMenuOpen 
+                  ? "M6 18L18 6M6 6l12 12" // X icon khi menu đã mở
+                  : "M4 6h16M4 12h16M4 18h16" // Hamburger icon khi menu đóng
+                }
 							/>
 						</svg>
 					</button>
 				</div>
-				{isMobileMenuOpen && (
-					<div className="md:hidden mt-4 px-2 py-4 border-t">
-						<NavLinks isMobile={true} />
-					</div>
-				)}
-				{isMounted && <FallingFlags flagImage={flagImagePath} count={15} />}
+				<div
+					ref={mobileMenuRef}
+					className={`md:hidden mt-4 px-2 py-4 border-t transition-all duration-300 overflow-hidden ${
+						isMobileMenuOpen 
+							? "max-h-96 opacity-100" 
+							: "max-h-0 opacity-0 border-t-0"
+					}`}
+				>
+					{/* Luôn render NavLinks nhưng ẩn bằng CSS để có hiệu ứng mượt mà */}
+					<NavLinks 
+						isMobile={true}
+						scrollToFooter={scrollToFooter}
+						effectiveAuthState={effectiveAuthState}
+						isAuthLoading={isAuthLoading}
+						cachedAuthState={cachedAuthState}
+						shouldShowSkeleton={shouldShowSkeleton}
+						isDropdownOpen={isDropdownOpen}
+						setIsDropdownOpen={setIsDropdownOpen}
+						logout={logout}
+					/>
+				</div>
 			</nav>
 		</header>
 	);

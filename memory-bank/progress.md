@@ -15,27 +15,35 @@
 - Global scroll prevention.
 - Conflict resolution cho single active MathLive input.
 - Editor instance reference (`editorRefMap`) cập nhật ngay khi mount qua `EditorRefPlugin`.
-- Performance optimizations: Memoization (`React.memo`, `useMemo`, `useCallback`) cho các component và hàm tính toán quan trọng, bao gồm các event handlers chính trong `lambai.tsx` (`handleSubmit`, `handleSaveProgress`, `handleAnswersChange`) và `Tutorial.tsx` (`openModal`, `closeModal`).
+- Performance optimizations: Memoization (`React.memo`, `useMemo`, `useCallback`) cho các component và hàm tính toán quan trọng.
+- Cải tiến UX cho user auth và mobile navigation thông qua transition và animation mượt mà trong `Header.tsx`.
 - RESTful API động, xác thực NextAuth, middleware bảo vệ route, AI bot, versioning, audit trail.
 - **Logic gọi Server Action (`handler.ts`, `lambai.tsx`):**
-  - `submitAnswers` và `saveWorkProgress` trong `handler.ts` trả về kết quả có cấu trúc (status, message/submissionId) thay vì tự redirect.
-  - Client (`lambai.tsx`) gọi các server actions này với tham số chính xác và xử lý kết quả trả về một cách nhất quán.
-- **Click-to-Edit LaTeX Blocks:** Chức năng nhấp và sửa các khối LaTeX hiện có đã hoạt động trở lại sau khi khắc phục sự cố `editingNodeKey` bị xóa sớm trong `useMathLiveManager`.
-- **Linting:** Codebase vượt qua tất cả các kiểm tra lint sau các thay đổi gần đây.
+  - `submitAnswers` và `saveWorkProgress` trong `handler.ts` trả về kết quả có cấu trúc.
+  - Client (`lambai.tsx`) gọi các server actions này và xử lý kết quả trả về.
+- **Click-to-Edit LaTeX Blocks:** Hoạt động.
+- **Linting:** Codebase vượt qua tất cả các kiểm tra lint.
+- **Scroll Utility:**
+    - Tạo `utils/scrollUtils.ts` với hàm `easeInOutQuad` và `scrollToElementById`.
+    - `ui/Components/Header.tsx` và `app/page.tsx` sử dụng tiện ích cuộn này.
+- **UI `app/page.tsx`:**
+    - Emoji icons được thay thế bằng SVG icons.
 
 ## What's Left to Build / Fix
 
 - **Responsive/cross-device:** Cần kiểm thử thực tế trên mobile/tablet.
 - **Styling:** Thêm visual styling cho `LatexNode` (background, border khi active/hovered).
 - **MathLive Initial Display:** Cần kiểm thử thêm (có thể liên quan đến overflow hoặc timing).
+- **SVG Icons in `app/page.tsx`**: Các SVG hiện tại là placeholder, cần được thay thế bằng icons chính thức nếu có.
+- **`next/image` in `app/page.tsx`**: Kiểm tra và tối ưu hóa việc sử dụng `next/image` cho các hình ảnh (ví dụ: avatars trong Testimonials nếu chúng được uncomment).
 
 ## Current Status
 
-- **Hoàn thành Bước 1 của "re-update mode 2" (Chu trình hiện tại):**
-  - Quét mã nguồn (`app/`) không tìm thấy cơ hội refactor/optimize.
-  - `pnpm run lint` không có lỗi.
-  - Không có thay đổi mã nào được thực hiện.
-- **Đang thực hiện Bước 2 của "re-update mode 2":** Cập nhật Memory Bank.
+- **Hoàn thành Bước 1 và một phần Bước 2 của "re-update mode 2" (Chu trình hiện tại):**
+    - Refactor scroll functions và tối ưu hóa UI trong `app/page.tsx` đã hoàn tất.
+    - `pnpm run lint` không có lỗi.
+    - Đã cập nhật `activeContext.md` và `progress.md`.
+- **Đang thực hiện Bước 2 của "re-update mode 2":** Hoàn tất cập nhật các file còn lại trong Memory Bank (`systemPatterns.md`, `techContext.md`).
 - Sẵn sàng cho Bước 3 (Git Commit & Push) sau khi hoàn tất cập nhật Memory Bank.
 
 ## Known Issues
@@ -43,59 +51,42 @@
 - Responsive/cross-device: Cần kiểm thử thực tế trên mobile/tablet.
 - Styling cho LatexNode: Đang hoàn thiện.
 - MathLive initial display: Cần kiểm thử thêm.
+- SVG icons trong `app/page.tsx` là placeholders.
 
 ## Recently Completed (Reflects `activeContext.md`)
 
-- **Re-update Mode 2 (Chu trình hiện tại) - Bước 1: Scan, Propose, Implement:**
-  - Quá trình quét mã nguồn trong `app/` không phát hiện cơ hội refactoring hoặc tối ưu hóa nào cần thiết.
-  - Chạy `pnpm run lint` cho kết quả không có lỗi hay cảnh báo ESLint.
-  - Không có thay đổi mã nào được đề xuất hay triển khai.
+- **Re-update Mode 2 (Chu trình hiện tại) - Bước 1 & 2 (một phần):**
+    - **Refactor Scroll Functions:**
+        - Tạo `utils/scrollUtils.ts` với `easeInOutQuad` và `scrollToElementById`.
+        - `ui/Components/Header.tsx` và `app/page.tsx` được cập nhật để sử dụng tiện ích này.
+    - **Optimize `app/page.tsx`:**
+        - Thay thế emoji icons bằng SVG icons (placeholders).
+    - Chạy `pnpm run lint`: Không có lỗi mới.
 
-1.  **Re-update Mode 2 - Linting & Optimization (Chu trình TRƯỚC ĐÓ):**
-    - **`app/lambai/(UI)/components/Tutorial.tsx` (Lint Fix):**
-      - Resolved `react-hooks/exhaustive-deps` by memoizing `openModal`/`closeModal` and updating `useEffect` deps.
-    - **`app/lambai/(handler)/handler.ts` (Logic & Return Update):**
-      - `submitAnswers`: Returns structured result (status, submissionId) instead of redirecting.
-      - `saveWorkProgress`: Returns structured result (status, message).
-    - **`app/lambai/(UI)/lambai.tsx` (Optimization & Handler Update):**
-      - `handleSubmit`, `handleSaveProgress`, `handleAnswersChange` updated to use new handler logic and wrapped in `useCallback`.
-    - **Linting:** All checks passed post-changes.
-2.  **UI/Layout Adjustments (`app/lambai/(UI)/lambai.tsx` - Update Mode):**
-    - Fixed CSS class logic for the timer button.
-3.  **Refactor (`lambai.tsx`):** Extracted panel resizing logic into `usePanelResizer` hook.
-4.  **Previous Fix (Header Toggle):** Corrected header toggle arrow behavior for new users.
-5.  **Virtual Keyboard Enter Attempt (`onBeforeInput`)**: Thêm trình xử lý sự kiện `onBeforeInput` vào `math-field`.
-6.  **Reverted Virtual Keyboard Command Customization:** Loại bỏ việc thay đổi `command` của keycap Enter ảo.
-7.  **Removed `focusout` Logic:** Loại bỏ logic commit dựa trên sự kiện `focusout`.
-8.  **LaTeX Click-to-Edit Fix (`useMathLiveManager.ts`):**
-    - Khắc phục lỗi logic trong `handleMathfieldInput` nơi `editingNodeKey` bị xóa (set về `null`) mỗi khi người dùng nhập liệu vào MathLive. Điều này ngăn cản việc cập nhật node LaTeX hiện có.
-    - Sau khi xóa dòng `setEditingNodeKey(...)` không cần thiết khỏi `handleMathfieldInput`, tính năng click và sửa khối LaTeX đã hoạt động chính xác.
-9.  **Previous Refactoring:**
-    - Hoàn nguyên Portal cho MathLive positioning.
-    - Triển khai lưu/khôi phục newline.
-    - Xử lý lỗi API và tinh chỉnh prompt.
+- **Các thay đổi TRƯỚC ĐÓ (tóm tắt từ `activeContext.md`):**
+    - Tối ưu hóa `Header.tsx`.
+    - Tối ưu hóa `Tutorial.tsx` (lint fix).
+    - Cập nhật logic và return type cho Server Actions trong `app/lambai/(handler)/handler.ts`.
+    - Tối ưu hóa các hàm xử lý trong `app/lambai/(UI)/lambai.tsx`.
+    - Sửa lỗi CSS cho timer button.
+    - Refactor logic resize panel vào hook `usePanelResizer`.
+    - Sửa lỗi header toggle arrow.
+    - Các nỗ lực và giải pháp cho virtual keyboard enter.
+    - Sửa lỗi Click-to-Edit LaTeX trong `useMathLiveManager.ts`.
+    - Hoàn nguyên Portal cho MathLive, triển khai lưu/khôi phục newline, xử lý lỗi API, etc.
 
 ## Next Steps
 
-1. Tiếp tục kiểm thử đa thiết bị, responsive, UI/UX.
-2. Hoàn thiện click-to-edit, styling cho LatexNode, MathLive initial display.
-3. Duy trì tối ưu hóa hiệu suất, kiểm thử, versioning, audit trail.
-4. Đảm bảo mọi thay đổi lớn đều cập nhật Memory Bank ngay lập tức.
+1. Hoàn tất cập nhật Memory Bank.
+2. Thực hiện Git commit và push.
+3. Cập nhật `version.json`.
+4. Tiếp tục kiểm thử đa thiết bị, responsive, UI/UX.
+5. Hoàn thiện click-to-edit, styling cho LatexNode, MathLive initial display.
+6. Thay thế SVG placeholders bằng icons chính thức.
 
 ## Testing Status
 
-- **Panel Resizing:** Refactored using `usePanelResizer` hook, basic functionality seems intact.
-- Layout scrolling seems fixed.
-- `Ctrl+Q` shortcut implemented.
-- Single MathLive focus/scroll logic implemented.
-- Editor disabling implemented.
-- `!!` trigger works.
-- Physical Enter key works.
-- Client-side parsing/rendering in `@ketqua` works.
-- Newline saving and restoration works.
-- API `/api/nopbai` JSON parsing and formatting seems stable.
-- API `/api/taobai` JSON validity and Chem std cond seems stable.
-- **Header Toggle Arrow:** Works correctly for new users after fix.
+- Scroll functions refactored and tested.
+- Emoji icons replaced with SVGs on `app/page.tsx`.
+- **Các mục đã test trước đó:** Panel Resizing, Layout scrolling, `Ctrl+Q`, Single MathLive focus, Editor disabling, `!!` trigger, Physical Enter, Client-side parsing/rendering in `@ketqua`, Newline saving/restoration, API stability, Header Toggle Arrow, Click-to-Edit.
 - **Linting:** All checks pass.
-- **Virtual Keyboard Enter:** Needs testing with `onBeforeInput`.
-- **Click-to-Edit:** Hoạt động sau khi sửa lỗi `editingNodeKey` trong `useMathLiveManager`.

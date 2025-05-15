@@ -25,7 +25,7 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
 
 ### Client Components
 
-1. **UI Layout (`lambai.tsx`, `ui/Style/index.css`)**
+1. **UI Layout (`lambai.tsx`, `ui/Style/index.css`, `app/page.tsx`)**
 
    - **CSS Grid Layout:** Main content area uses `display: grid` with columns defined by `gridTemplateColumns: \\`${leftWidth}px 1fr\\``. The main container (`h-screen flex flex-col`) and the grid container (`flex-grow`) manage height dynamically, allowing the content area to fill available space below the header. Container has `overflow: hidden`.
    - **Independent Scrolling:** Left and right panels achieve independent scrolling.
@@ -34,6 +34,7 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
    - **Global Styles:** `html, body` have `height: 100%`, `overflow: hidden`.
    - Modern header & Timer controls.
    - **Responsive Design:** Layout adapts for desktop, tablet, and mobile (cross-platform, needs further testing).
+   - **Landing Page (`app/page.tsx`):** Uses TailwindCSS for styling, includes multiple sections. Emoji icons replaced by SVGs.
 
 2. **Content Management & Editing (`AnswerArea.tsx`, `editor/`)**
 
@@ -71,6 +72,10 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
    - Error handling and validation
    - Prompt engineering for LaTeX and answer formatting
 
+6.  **Utilities (`utils/`)**
+    -   `scrollUtils.ts`: Contains `easeInOutQuad` for smooth scrolling animation and `scrollToElementById` for navigating to specific page elements. Used by `Header.tsx` and `app/page.tsx`.
+    -   `latexParser.ts`: Parses text strings containing LaTeX markup.
+
 ## Design Patterns
 
 ### Server-Side Patterns
@@ -92,6 +97,7 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
     - Server Actions are designed to return structured data (e.g., `{ status: 'success', submissionId: '...' }` or `{ status: 'error', message: '...' }`) rather than performing side effects like redirection directly.
     - Client components handle side effects (like redirection or UI updates) based on the data returned by Server Actions.
 - AI integration via dynamic API route
+- **Utility Functions:** Common, reusable functions (e.g., scrolling, parsing) are placed in the `utils/` directory.
 
 ### API Patterns
 

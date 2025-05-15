@@ -3,37 +3,12 @@ import Image from "next/image";
 import Header from "@/ui/Components/Header";
 import Footer from "@/ui/Components/Footer";
 import Link from "next/link";
+import { scrollToElementById } from "@/utils/scrollUtils";
 
 export default function Home() {
 	const scrollToFooter = (e: React.MouseEvent) => {
 		e.preventDefault();
-		const footer = document.getElementById("features");
-		if (!footer) return;
-
-		const duration = 800; // Thời gian cuộn: 800ms (0.8s)
-		const startPosition = window.pageYOffset;
-		const targetPosition =
-			footer.getBoundingClientRect().top + window.pageYOffset;
-		const distance = targetPosition - startPosition;
-		let startTime: number | null = null;
-
-		function animation(currentTime: number) {
-			if (startTime === null) startTime = currentTime;
-			const timeElapsed = currentTime - startTime;
-			const run = easeInOutQuad(timeElapsed, startPosition, distance, duration);
-			window.scrollTo(0, run);
-			if (timeElapsed < duration) requestAnimationFrame(animation);
-		}
-
-		// Hàm easing để làm cho cuộn mượt mà hơn
-		function easeInOutQuad(t: number, b: number, c: number, d: number) {
-			t /= d / 2;
-			if (t < 1) return (c / 2) * t * t + b;
-			t--;
-			return (-c / 2) * (t * (t - 2) - 1) + b;
-		}
-
-		requestAnimationFrame(animation);
+		scrollToElementById("features", 800);
 	};
 
 	return (

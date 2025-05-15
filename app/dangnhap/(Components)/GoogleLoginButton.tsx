@@ -1,8 +1,13 @@
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { signIn } from "next-auth/react";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function GoogleLoginButton() {
+	const { refreshAuthState } = useAuth();
+	const router = useRouter();
+
 	const handleGoogleLogin = async () => {
 		try {
 			const emailInput = document.querySelector(
@@ -11,9 +16,15 @@ export default function GoogleLoginButton() {
 			const email = emailInput?.value;
 
 			if (!email) {
-				await signIn("google", {
+				const result = await signIn("google", {
+					redirect: false,
 					callbackUrl: "/",
 				});
+				
+				if (result?.ok) {
+					await refreshAuthState();
+					router.push("/");
+				}
 				return;
 			}
 
@@ -42,12 +53,19 @@ export default function GoogleLoginButton() {
 
 				if (cookieResponse.ok) {
 					await new Promise((resolve) => setTimeout(resolve, 100));
-					window.location.href = "/";
+					await refreshAuthState();
+					router.push("/");
 				}
 			} else {
-				await signIn("google", {
+				const result = await signIn("google", {
+					redirect: false,
 					callbackUrl: "/",
 				});
+				
+				if (result?.ok) {
+					await refreshAuthState();
+					router.push("/");
+				}
 			}
 		} catch (error) {
 			console.error("Google sign-in error:", error);

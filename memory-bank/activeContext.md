@@ -14,50 +14,40 @@
 ## Recent Changes
 
 - **Re-update Mode 2 (Chu trình hiện tại) - Bước 1: Scan, Propose, Implement:**
-    - Quá trình quét mã nguồn trong `app/` không phát hiện cơ hội refactoring hoặc tối ưu hóa nào cần thiết vào lúc này, do mã nguồn đã được dọn dẹp và tối ưu trong các chu trình trước.
-    - Chạy `pnpm run lint` cho kết quả không có lỗi hay cảnh báo ESLint.
-    - Không có thay đổi mã nào được đề xuất hay triển khai trong bước này.
-1.  **Hiển thị Kết quả (`app/ketqua`)**
-    - Triển khai hàm `utils/latexParser.ts` để phân tích chuỗi text chứa markup LaTeX (`$...$`).
-    - Tạo component `app/ketqua/(UI)/MixedContentRenderer.tsx` để hiển thị nội dung hỗn hợp text/LaTeX, sử dụng `react-katex`.
-    - Cập nhật `app/ketqua/(UI)/ResultPage.tsx` để sử dụng parser và renderer cho các trường `de_bai`, `subQuestion`, `userAnswer`, `correctAnswer`.
-    - Đã sửa lỗi hiển thị xuống dòng không mong muốn bằng cách loại bỏ layout flexbox khỏi `MixedContentRenderer`.
-2.  **API (`/api/nopbai/route.ts`)**
-    - Sửa lỗi `JSON.parse` nghiêm trọng bằng cách parse kết quả AI và xây dựng đối tượng JSON hoàn chỉnh trước khi `stringify` để lưu vào DB.
-    - Tinh chỉnh prompt cho AI nhiều lần để cải thiện việc quản lý xuống dòng (đặc biệt là `\n\n` trước mũi tên và tránh `\n` không cần thiết).
-3.  **Gửi Bài (`app/lambai/(handler)/handler.ts`)**
-    - Cập nhật hàm `answerBlocksToLatex` để tự động bao bọc các khối LaTeX bằng dấu `$` khi tạo chuỗi gửi đi.
-4.  **Trước đó (Carry-over):**
+    - **Refactor Scroll Functions:**
+        - Tạo file `utils/scrollUtils.ts`.
+        - Di chuyển hàm `easeInOutQuad` vào `utils/scrollUtils.ts`.
+        - Tạo hàm `scrollToElementById(elementId: string, duration: number = 800, offset: number = 0)` trong `utils/scrollUtils.ts`.
+        - Cập nhật `ui/Components/Header.tsx` để `scrollToFooter` gọi `scrollToElementById('footer')`.
+        - Cập nhật `app/page.tsx` để `scrollToFooter` gọi `scrollToElementById('features')`.
+    - **Optimize `app/page.tsx`:**
+        - Thay thế các emoji icons (🧠, 🎯, ✍️, 🤝, 💡, 📊, etc.) bằng SVG icons.
+        - Đảm bảo các hình ảnh hiện có (nếu có và không bị comment) sử dụng `next/image` đúng cách (hiện tại các avatar testimonials đang được comment).
+    - Chạy `pnpm run lint`: Không có lỗi mới phát sinh.
+- **Trước đó (Carry-over from previous sessions):**
+    - Đã tối ưu hóa component `Header.tsx`.
+    - Triển khai hiển thị kết quả LaTeX trong `app/ketqua`.
+    - Sửa lỗi API (`/api/nopbai/route.ts`) liên quan đến `JSON.parse` và tinh chỉnh prompt AI.
+    - Cập nhật `app/lambai/(handler)/handler.ts` để bao bọc LaTeX.
     - Tối ưu hiệu năng resize bằng custom ghost drag.
     - Dọn dẹp lint.
-    - Cải tiến trình soạn thảo LaTeX/MathLive.
-    - Refactor layout sang CSS Grid.
-5.  **MathLive Positioning Fix (`@lambai`)**
-    - Hoàn nguyên việc sử dụng `ReactDOM.createPortal` cho `<math-field>`.
-    - MathLive input giờ đây được render trực tiếp và định vị chính xác.
-6.  **Newline Saving/Restoration (`@lambai`)**
-    - Cập nhật `lexicalStateToAnswerBlocks` trong `AnswerArea.tsx` để chèn `\n` giữa các đoạn.
-    - Cập nhật `InitialContentPlugin.tsx` để tái tạo các đoạn từ `\n` khi khôi phục.
-7.  **API Error Handling & Prompt Refinement (`/api/nopbai`)**
-    - Sửa lỗi `JSON.parse` (escape backslash, newline thực tế).
-    - Sửa lỗi định dạng đơn vị (`%...%`).
-    - Yêu cầu AI chỉ trả về kết quả cuối cùng.
-    - Yêu cầu AI bao quanh LaTeX/công thức bằng `$ ... $`.
-    - Cải thiện định dạng prompt.
-8.  **API Error Handling & Prompt Refinement (`/api/taobai`)**
-    - Sửa lỗi `JSON.parse` phía client (trả về chuỗi JSON chuẩn, không escape `\"`).
-    - Thêm quy tắc 24.79 L/mol cho môn Hóa.
-    - Cải thiện định dạng prompt.
+    - Cải tiến trình soạn thảo LaTeX/MathLive (bao gồm fix vị trí MathLive, lưu/khôi phục newline, fix lỗi API, fix lỗi "Editor instance not found", fix "Click-to-Edit").
 
-- Removed conflicting `interface Window` declaration in `app/lambai/(UI)/AnswerArea.tsx`.
-- Added missing `handleMathfieldKeyDown` prop to `QuestionEditorInstanceProps` in `app/lambai/(UI)/editor/components/QuestionEditorInstance.tsx`.
-- Verified fixes by running `pnpm run lint`.
+## Next Steps
 
-## Active Decisions
+- Hoàn tất việc cập nhật Memory Bank (Bước 2 của "re-update mode 2").
+    - Cập nhật `progress.md`.
+    - Cập nhật `systemPatterns.md`.
+    - Cập nhật `techContext.md`.
+    - Rà soát `projectBrief.md` và `productContext.md` (ít có khả năng thay đổi).
+- Tiến hành Bước 3: Git Commit & Push.
+- Tiến hành Bước 4: Cập nhật `version.json`.
 
-1.  **Prioritize Editor Testing:** Focus on verifying editor interactions after recent changes.
-2.  **Monitor AI Formatting:** Observe AI output for potential regressions or edge cases.
-3.  **API Stability:** Assume API parsing/formatting issues are resolved unless new problems arise.
+## Active Decisions/Considerations
+
+- Việc tách các section trong `app/page.tsx` đã được bỏ qua theo yêu cầu.
+- SVG icons được sử dụng là placeholder, có thể cần cập nhật sau với thiết kế cụ thể.
+- Tối ưu hóa `next/image` cho các avatar trong Testimonials sẽ được thực hiện nếu chúng được uncomment và sử dụng.
 
 ## Current Issues
 

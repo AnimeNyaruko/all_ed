@@ -80,14 +80,15 @@ app/
       ResultPage.tsx      # Displays overall result and detailed answers
       MixedContentRenderer.tsx # Renders mixed text/LaTeX using react-katex (results page)
     page.tsx
+  page.tsx                # Landing page, uses TailwindCSS, SVG icons.
 public/
   # Static assets
 ui/
   Style/
     index.css             # Global styles (tailwind import, html/body scroll fix)
 utils/
+  scrollUtils.ts          # Smooth scrolling utilities (easeInOutQuad, scrollToElementById)
   latexParser.ts          # Utility for parsing mixed text/LaTeX strings
-  # Utility functions
 .cursorrules              # Project intelligence file
 projectbrief.md           # Core Memory Bank file
 # ... other config files (tsconfig, next.config, etc.)

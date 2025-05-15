@@ -1,9 +1,12 @@
 import { FormEvent, useState } from "react";
 import { login } from "../(Handler)/handler";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function EmailLoginForm() {
 	const [error, setError] = useState("");
+	const router = useRouter();
+	const { refreshAuthState } = useAuth();
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -11,7 +14,8 @@ export default function EmailLoginForm() {
 		const result = await login(formData);
 
 		if (result === "") {
-			redirect("/");
+			await refreshAuthState();
+			router.push("/");
 		} else {
 			setError(result);
 		}
