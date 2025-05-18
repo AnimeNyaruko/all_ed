@@ -268,12 +268,9 @@ export default function Home() {
 			if (result.status === "success") {
 				showToast("Nộp bài thành công!", "success");
 				redirect("/ketqua");
-			} else {
-				showToast("Lỗi: Không thể nộp bài", "error");
 			}
 		} catch (error) {
 			console.error("Submit error:", error);
-			showToast("Lỗi: Không thể nộp bài", "error");
 		} finally {
 			setIsSubmitting(false);
 		}
