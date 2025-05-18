@@ -212,3 +212,17 @@ projectbrief.md           # Core Memory Bank file
 - Cross-browser testing for layout and editor features.
 - Timer functionality testing.
 - Integration testing.
+
+## Code Organization Patterns
+
+- **Component Structure:**
+  - Self-contained components với local state management.
+  - Separation of presentational và container components.
+  - Centralized context providers cho global state.
+  - Custom hooks cho reusable logic.
+
+- **Constants & Error Handling:**
+  - API URLs và navigation paths được tách thành constants.
+  - Try/catch blocks cho xử lý lỗi async operations.
+  - Chi tiết hóa error messages cho debugging và user feedback.
+  - Error logging trong console kết hợp với user-friendly toast messages.

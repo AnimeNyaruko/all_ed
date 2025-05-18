@@ -2,6 +2,7 @@
 
 ## Current Focus
 
+- Đã hoàn tất refactoring của component `GoogleLoginButton.tsx`.
 - Đang thực hiện Bước 2 (Cập nhật Memory Bank) của quy trình "re-update mode 2".
 - Chuẩn bị cho Bước 3 (Git Commit & Push).
 
@@ -13,7 +14,12 @@
 
 ## Recent Changes
 
-- **Re-update Mode 2 (Chu trình hiện tại) - Bước 1: Scan, Propose, Implement:**
+- **Re-update Mode 2 (Chu trình hiện tại):**
+    - **Refactor `GoogleLoginButton.tsx`:**
+        - Tạo hàm `handleLoginSuccess` để xử lý logic sau khi đăng nhập thành công, loại bỏ lặp code.
+        - Tạo các hằng số `API_CHECK_EMAIL`, `API_COOKIE`, và `HOME_PATH` để dễ bảo trì.
+        - Cải thiện xử lý lỗi với các thông báo chi tiết hơn.
+        - Thêm block `try/catch` cho các API fetch để xử lý lỗi riêng biệt.
     - **Refactor Scroll Functions:**
         - Tạo file `utils/scrollUtils.ts`.
         - Di chuyển hàm `easeInOutQuad` vào `utils/scrollUtils.ts`.
@@ -48,6 +54,7 @@
 - Việc tách các section trong `app/page.tsx` đã được bỏ qua theo yêu cầu.
 - SVG icons được sử dụng là placeholder, có thể cần cập nhật sau với thiết kế cụ thể.
 - Tối ưu hóa `next/image` cho các avatar trong Testimonials sẽ được thực hiện nếu chúng được uncomment và sử dụng.
+- Cải thiện xử lý lỗi trong `GoogleLoginButton.tsx` giúp người dùng hiểu rõ hơn về vấn đề khi đăng nhập thất bại.
 
 ## Current Issues
 

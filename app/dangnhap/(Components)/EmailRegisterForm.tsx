@@ -2,12 +2,14 @@ import { ChangeEvent, FormEvent, useState } from "react";
 import { register } from "../(Handler)/handler";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/context/ToastContext";
 
 export default function EmailRegisterForm() {
 	const [error, setError] = useState("");
 	const [passwordMatch, setPasswordMatch] = useState(true);
 	const router = useRouter();
 	const { refreshAuthState } = useAuth();
+	const { showToast } = useToast();
 
 	const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const password = (document.getElementById("password") as HTMLInputElement)
@@ -34,16 +36,20 @@ export default function EmailRegisterForm() {
 
 		if (!passwordMatch) {
 			setError("Mật khẩu không khớp");
+			showToast("Mật khẩu không khớp", "error");
 			return;
 		}
 
+		showToast("Đang đăng ký tài khoản...", "loading");
 		const result = await register(formData);
 
 		if (result === "") {
 			await refreshAuthState();
+			showToast("Đăng ký thành công!", "success");
 			router.push("/");
 		} else {
 			setError(result);
+			showToast(`Lỗi: ${result}`, "error");
 		}
 	};
 

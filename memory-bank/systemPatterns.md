@@ -76,6 +76,23 @@ The Assignment Submission Handler is built as a Next.js application using the Ap
     -   `scrollUtils.ts`: Contains `easeInOutQuad` for smooth scrolling animation and `scrollToElementById` for navigating to specific page elements. Used by `Header.tsx` and `app/page.tsx`.
     -   `latexParser.ts`: Parses text strings containing LaTeX markup.
 
+## Authentication & Authorization
+
+- **NextAuth.js Integration:**
+  - Cấu hình trong `next-auth.ts` và `/api/auth/[...nextauth]`.
+  - Custom provider cho Google OAuth.
+  - Server-side session handling thông qua middleware.
+  
+- **Login Process:**
+  - Social Login với Google trong `GoogleLoginButton.tsx`.
+  - Sử dụng pattern:
+    - Constants cho API endpoints và redirects.
+    - Extracted functions cho xử lý logic lặp lại (vd: `handleLoginSuccess`).
+    - Nested try/catch blocks cho xử lý lỗi chi tiết.
+    - Toast notifications cho user feedback.
+  - Authentication state management với custom hooks (`useAuth`).
+  - Cookie-based persistence thông qua `/api/cookie` endpoint.
+
 ## Design Patterns
 
 ### Server-Side Patterns

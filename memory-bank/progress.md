@@ -28,6 +28,10 @@
     - `ui/Components/Header.tsx` và `app/page.tsx` sử dụng tiện ích cuộn này.
 - **UI `app/page.tsx`:**
     - Emoji icons được thay thế bằng SVG icons.
+- **Error handling và code organization:**
+    - `GoogleLoginButton.tsx` với xử lý lỗi chi tiết và tổ chức code tốt hơn.
+    - Sử dụng constants cho API URLs và đường dẫn.
+    - Trích xuất logic lặp lại vào các hàm riêng biệt.
 
 ## What's Left to Build / Fix
 
@@ -40,6 +44,7 @@
 ## Current Status
 
 - **Hoàn thành Bước 1 và một phần Bước 2 của "re-update mode 2" (Chu trình hiện tại):**
+    - Refactor `GoogleLoginButton.tsx` để cải thiện tổ chức code và xử lý lỗi.
     - Refactor scroll functions và tối ưu hóa UI trong `app/page.tsx` đã hoàn tất.
     - `pnpm run lint` không có lỗi.
     - Đã cập nhật `activeContext.md` và `progress.md`.
@@ -56,6 +61,11 @@
 ## Recently Completed (Reflects `activeContext.md`)
 
 - **Re-update Mode 2 (Chu trình hiện tại) - Bước 1 & 2 (một phần):**
+    - **Refactor `GoogleLoginButton.tsx`:**
+        - Tạo hàm `handleLoginSuccess` để xử lý logic sau khi đăng nhập thành công.
+        - Tạo constants cho API URLs và đường dẫn chuyển hướng.
+        - Cải thiện xử lý lỗi với thông báo cụ thể hơn.
+        - Thêm block try/catch cho các API fetch.
     - **Refactor Scroll Functions:**
         - Tạo `utils/scrollUtils.ts` với `easeInOutQuad` và `scrollToElementById`.
         - `ui/Components/Header.tsx` và `app/page.tsx` được cập nhật để sử dụng tiện ích này.

@@ -10,6 +10,7 @@ import {
 import Header from "@/ui/Components/Header";
 import Footer from "@/ui/Components/Footer";
 import { handler } from "./(data_handler)/handler";
+import { useToast } from "@/context/ToastContext";
 
 interface CardData {
 	id: number;
@@ -41,6 +42,7 @@ export default function Page() {
 	]);
 	const [isDraggingSlider, setIsDraggingSlider] = useState(false);
 	const [quantity, setQuantity] = useState(1);
+	const { showToast } = useToast();
 
 	// Đảm bảo isDraggingSlider được reset khi người dùng thả chuột hoặc ngón tay bất cứ đâu
 	useEffect(() => {
@@ -153,10 +155,13 @@ export default function Page() {
 					e.preventDefault();
 					const formData = new FormData(e.currentTarget);
 					setIsLoading(true);
+					showToast("Đang tạo bài...", "loading");
 					const result = await handler(formData);
 					if (result) {
 						setIsLoading(false);
+						showToast(`Lỗi: ${result}`, "error");
 					}
+					// Nếu thành công, handler sẽ redirect và toast thành công sẽ được hiển thị ở trang đích
 				}}
 				className="from-gray-50 to-white min-h-screen bg-gradient-to-b"
 			>

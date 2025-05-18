@@ -24,6 +24,7 @@ import clsx from "clsx";
 import TutorialModal from "./components/Tutorial";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { useToast } from "@/context/ToastContext";
 
 export default function Home() {
 	const [isBounded, setBounding] = useState<boolean>(false);
@@ -31,6 +32,7 @@ export default function Home() {
 	const [isHeaderVisible, setHeaderVisibility] = useState(false);
 	const HeaderComponent = useRef<HTMLDivElement>(null);
 	const HeaderInitialHeight = useRef<number>(0);
+	const { showToast } = useToast();
 
 	// Default width for server-side and initial client render
 	const SERVER_DEFAULT_LEFT_WIDTH = 500;
@@ -253,6 +255,7 @@ export default function Home() {
 		setIsSubmitting(true);
 		setIsTimerRunning(false);
 		setIsTimerPaused(false);
+		showToast("Đang nộp bài...", "loading");
 
 		try {
 			const result = await submitAnswers(
@@ -263,14 +266,18 @@ export default function Home() {
 			);
 
 			if (result.status === "success") {
+				showToast("Nộp bài thành công!", "success");
 				redirect("/ketqua");
+			} else {
+				showToast("Lỗi: Không thể nộp bài", "error");
 			}
 		} catch (error) {
 			console.error("Submit error:", error);
+			showToast("Lỗi: Không thể nộp bài", "error");
 		} finally {
 			setIsSubmitting(false);
 		}
-	}, [timer, taskContent.de_bai, questions]);
+	}, [timer, taskContent.de_bai, questions, showToast]);
 
 	// Hàm lưu tiến độ bài làm
 	const handleSaveProgress = useCallback(async () => {

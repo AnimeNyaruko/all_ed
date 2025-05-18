@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef, memo } from "react";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { scrollToElementById } from "@/utils/scrollUtils";
+import { useToast } from "@/context/ToastContext";
 
 // Tách hàm easing ra khỏi component chính để tránh tạo lại khi re-render
 // const easeInOutQuad = (t: number, b: number, c: number, d: number) => { // Đã chuyển sang scrollUtils.ts
@@ -180,6 +181,7 @@ export default function Header() {
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 	const [isMounted, setIsMounted] = useState(false);
 	const [cachedAuthState, setCachedAuthState] = useState<boolean | null>(null);
+	const { showToast } = useToast();
 	
 	// Thêm state để quản lý việc hiển thị skeleton
 	const [shouldShowSkeleton, setShouldShowSkeleton] = useState(false);
@@ -298,7 +300,9 @@ export default function Header() {
 	}, []);
 
 	const logout = async () => {
+		showToast("Đang đăng xuất...", "loading");
 		await authLogout();
+		showToast("Đăng xuất thành công!", "success");
 		window.location.href = '/';
 	};
 
