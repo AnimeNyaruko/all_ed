@@ -43,13 +43,14 @@
 
 ## Current Status
 
-- **Hoàn thành Bước 1 và một phần Bước 2 của "re-update mode 2" (Chu trình hiện tại):**
+- **Đã hoàn tất "re-update mode 2":**
     - Refactor `GoogleLoginButton.tsx` để cải thiện tổ chức code và xử lý lỗi.
-    - Refactor scroll functions và tối ưu hóa UI trong `app/page.tsx` đã hoàn tất.
+    - Refactor scroll functions và tối ưu hóa UI trong `app/page.tsx`.
+    - Cập nhật Memory Bank đầy đủ.
+    - Commit và push các thay đổi lên repository.
+    - Cập nhật `version.json` (timestamp: Sun May 18 09:03:04 2025).
     - `pnpm run lint` không có lỗi.
-    - Đã cập nhật `activeContext.md` và `progress.md`.
-- **Đang thực hiện Bước 2 của "re-update mode 2":** Hoàn tất cập nhật các file còn lại trong Memory Bank (`systemPatterns.md`, `techContext.md`).
-- Sẵn sàng cho Bước 3 (Git Commit & Push) sau khi hoàn tất cập nhật Memory Bank.
+- **Sẵn sàng cho các yêu cầu tiếp theo.**
 
 ## Known Issues
 
@@ -60,7 +61,7 @@
 
 ## Recently Completed (Reflects `activeContext.md`)
 
-- **Re-update Mode 2 (Chu trình hiện tại) - Bước 1 & 2 (một phần):**
+- **Re-update Mode 2 (Đã hoàn tất):**
     - **Refactor `GoogleLoginButton.tsx`:**
         - Tạo hàm `handleLoginSuccess` để xử lý logic sau khi đăng nhập thành công.
         - Tạo constants cho API URLs và đường dẫn chuyển hướng.
@@ -71,7 +72,10 @@
         - `ui/Components/Header.tsx` và `app/page.tsx` được cập nhật để sử dụng tiện ích này.
     - **Optimize `app/page.tsx`:**
         - Thay thế emoji icons bằng SVG icons (placeholders).
-    - Chạy `pnpm run lint`: Không có lỗi mới.
+    - **Memory Bank:** Cập nhật đầy đủ.
+    - **Git Operations:** Commit và push các thay đổi.
+    - **Versioning:** Cập nhật `version.json`.
+    - **Linting:** Không có lỗi.
 
 - **Các thay đổi TRƯỚC ĐÓ (tóm tắt từ `activeContext.md`):**
     - Tối ưu hóa `Header.tsx`.
@@ -87,16 +91,17 @@
 
 ## Next Steps
 
-1. Hoàn tất cập nhật Memory Bank.
-2. Thực hiện Git commit và push.
-3. Cập nhật `version.json`.
-4. Tiếp tục kiểm thử đa thiết bị, responsive, UI/UX.
-5. Hoàn thiện click-to-edit, styling cho LatexNode, MathLive initial display.
-6. Thay thế SVG placeholders bằng icons chính thức.
+1. Tiếp tục kiểm thử đa thiết bị và responsive.
+2. Hoàn thiện styling cho LatexNode (background, border khi active/hovered).
+3. Giải quyết vấn đề MathLive initial display.
+4. Cân nhắc thay thế SVG placeholders bằng icons chính thức nếu có.
+5. Tối ưu hóa `next/image` cho các hình ảnh (nếu cần).
+6. Sẵn sàng cho các yêu cầu tiếp theo.
 
 ## Testing Status
 
 - Scroll functions refactored and tested.
 - Emoji icons replaced with SVGs on `app/page.tsx`.
+- Google login error handling cải thiện.
 - **Các mục đã test trước đó:** Panel Resizing, Layout scrolling, `Ctrl+Q`, Single MathLive focus, Editor disabling, `!!` trigger, Physical Enter, Client-side parsing/rendering in `@ketqua`, Newline saving/restoration, API stability, Header Toggle Arrow, Click-to-Edit.
 - **Linting:** All checks pass.

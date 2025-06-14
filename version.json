@@ -29,8 +29,8 @@
 	},
 	{
 		"version": "beta 1.4",
-		"final_release_date": "Sun May 11 09:43:29 2025",
-		"final_git_commit_message": "feat: Optimize lambai handlers and fix Tutorial lint. Optimized key event handlers in app/lambai/(UI)/lambai.tsx and server actions in app/lambai/(handler)/handler.ts. Fixed linting issue in app/lambai/(UI)/components/Tutorial.tsx. Changes include: 1. Lint Fix (Tutorial.tsx): Resolved react-hooks/exhaustive-deps, wrapped modal functions in useCallback, updated useEffect deps. 2. Server Action Updates (handler.ts): submitAnswers now returns structured object for client-side redirection; saveWorkProgress returns consistent Promise. 3. Client Handler Updates (lambai.tsx): handleSubmit and handleSaveProgress updated for new server action logic and wrapped in useCallback with correct dependencies; handleAnswersChange uses memoized handleSaveProgress. 4. Linting: pnpm run lint passed. 5. Memory Bank Update: Updated activeContext.md, progress.md, systemPatterns.md. No changes to techContext.md, projectbrief.md, productContext.md.",
+		"final_release_date": "Sun May 18 09:03:04 2025",
+		"final_git_commit_message": "refactor: Improve GoogleLoginButton code organization and error handling. Refactored GoogleLoginButton.tsx to extract duplicate success handling logic into a separate function, moved API URLs to constants, and enhanced error handling with more specific messages. Updated Memory Bank files to document these changes and patterns.",
 		"pre_release_date": "2025-05-06 18:48:21 +0700",
 		"pre_git_commit_message": "Update: Cycle completed, Memory Bank updated. This commit marks the completion of an \"update mode\" cycle. Key activities: code scan (refactor, optimize, lint) - no changes implemented; ESLint passed. Memory Bank (activeContext.md, progress.md) updated. No functional code changes. Focus: codebase health and documentation alignment."
 	}
