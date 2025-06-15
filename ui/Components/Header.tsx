@@ -149,6 +149,12 @@ const NavLinks = memo(({
 			Tạo bài tập
 		</Link>
 		<Link
+			href="/survey"
+			className="text-gray-700 hover:text-blue-600 font-medium py-2 transition-colors"
+		>
+			Khảo sát
+		</Link>
+		<Link
 			href="/ve-chung-toi"
 			className="text-gray-700 hover:text-blue-600 font-medium py-2 transition-colors"
 		>

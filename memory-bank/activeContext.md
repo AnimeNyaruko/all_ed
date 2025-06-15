@@ -2,19 +2,22 @@
 
 ## Current Focus
 
-- Đã hoàn tất refactoring của component `GoogleLoginButton.tsx`.
-- Đang thực hiện Bước 2 (Cập nhật Memory Bank) của quy trình "re-update mode 2".
-- Chuẩn bị cho Bước 3 (Git Commit & Push).
+- Đã hoàn tất "re-update mode 2" với các cải tiến cho component `GoogleLoginButton.tsx` và cập nhật Memory Bank.
+- Đã hoàn thành đầy đủ cả 4 bước của quy trình "re-update mode 2":
+  1. Scan, Propose, Implement Changes
+  2. Update Memory Bank
+  3. Git Commit & Push
+  4. Update version.json
 
 ## Current Work Focus
 
 - Đảm bảo Memory Bank luôn là nguồn sự thật duy nhất, cập nhật ngay sau mỗi thay đổi lớn.
-- Theo dõi các vấn đề còn lại chủ yếu về UI/UX (responsive, click-to-edit, styling, MathLive initial display).
+- Theo dõi các vấn đề còn lại chủ yếu về UI/UX (responsive, styling, MathLive initial display).
 - Duy trì tối ưu hóa hiệu suất, kiểm thử đa thiết bị, versioning, audit trail.
 
 ## Recent Changes
 
-- **Re-update Mode 2 (Chu trình hiện tại):**
+- **Re-update Mode 2 (Đã hoàn tất):**
     - **Refactor `GoogleLoginButton.tsx`:**
         - Tạo hàm `handleLoginSuccess` để xử lý logic sau khi đăng nhập thành công, loại bỏ lặp code.
         - Tạo các hằng số `API_CHECK_EMAIL`, `API_COOKIE`, và `HOME_PATH` để dễ bảo trì.
@@ -29,7 +32,10 @@
     - **Optimize `app/page.tsx`:**
         - Thay thế các emoji icons (🧠, 🎯, ✍️, 🤝, 💡, 📊, etc.) bằng SVG icons.
         - Đảm bảo các hình ảnh hiện có (nếu có và không bị comment) sử dụng `next/image` đúng cách (hiện tại các avatar testimonials đang được comment).
-    - Chạy `pnpm run lint`: Không có lỗi mới phát sinh.
+    - **Memory Bank:** Cập nhật đầy đủ các file Memory Bank để phản ánh những thay đổi trên.
+    - **Linting:** Chạy `pnpm run lint` thành công mà không có lỗi.
+    - **Git Operations:** Commit và push các thay đổi lên repository.
+    - **Versioning:** Cập nhật `version.json` để cập nhật timestamp và commit message mới nhất cho phiên bản hiện tại (beta 1.4).
 - **Trước đó (Carry-over from previous sessions):**
     - Đã tối ưu hóa component `Header.tsx`.
     - Triển khai hiển thị kết quả LaTeX trong `app/ketqua`.
@@ -41,13 +47,12 @@
 
 ## Next Steps
 
-- Hoàn tất việc cập nhật Memory Bank (Bước 2 của "re-update mode 2").
-    - Cập nhật `progress.md`.
-    - Cập nhật `systemPatterns.md`.
-    - Cập nhật `techContext.md`.
-    - Rà soát `projectBrief.md` và `productContext.md` (ít có khả năng thay đổi).
-- Tiến hành Bước 3: Git Commit & Push.
-- Tiến hành Bước 4: Cập nhật `version.json`.
+- Tiếp tục kiểm thử đa thiết bị và responsive.
+- Hoàn thiện styling cho `LatexNode` (background, border khi active/hovered).
+- Giải quyết vấn đề MathLive initial display.
+- Cân nhắc thay thế SVG placeholders trong `app/page.tsx` bằng icons chính thức nếu có.
+- Tối ưu hóa `next/image` cho các hình ảnh (nếu cần).
+- Sẵn sàng cho các yêu cầu tiếp theo.
 
 ## Active Decisions/Considerations
 
@@ -62,12 +67,6 @@
 2.  **Newline Saving:** Saving/Persistence of newlines within the Lexical editor state is unstable.
 3.  **MathLive Positioning Regression:** The Portal fix resulted in the MathLive input being fixed at the bottom of the page, not near the active editor.
 4.  **AI Prompt Compliance:** (Deferred) Need to test AI output formatting.
-
-## Next Steps
-
-- Hoàn tất việc cập nhật Memory Bank (Bước 2 của "re-update mode 2").
-- Tiến hành Bước 3: Git Commit & Push.
-- Tiến hành Bước 4: Cập nhật `version.json`.
 
 ## Recent Feedback
 
@@ -100,10 +99,6 @@
 **Active Considerations:**
 
 - Potential edge cases in editor interaction with mixed content and newlines.
-
-## Current Focus
-
-- **Finalizing Editor Fixes & Testing:** Hoàn thiện các chỉnh sửa cho trình soạn thảo, đặc biệt là hành vi của phím Enter ảo, và tiến hành kiểm thử.
 
 ## Recent Changes & Decisions (Virtual Keyboard Enter Fix)
 
@@ -149,11 +144,6 @@
 - Resolved TypeScript error regarding `EventTarget` to `MathfieldElement` conversion using an intermediate `unknown` cast in `handleMathfieldKeyDown`.
 - Verified all fixes by running `pnpm run lint`.
 
-## Next Steps
-
-- Continue addressing known issues, likely starting with the MathLive initial display problem.
-- Or, proceed with the next task as directed.
-
 ## Active Decisions/Considerations
 
 - Using intermediate `unknown` casts for type assertions when direct casting or type guards fail to satisfy the linter, especially with complex external types like `EventTarget` or web components.
@@ -172,11 +162,6 @@
   - Adjusted the `useEffect` cleanup logic to satisfy the `react-hooks/exhaustive-deps` lint rule by storing `editorRefMap.current` in a local variable.
 - Ensured `LatexPluginContext` is imported correctly, resolving a previous lint error (though its usage might be redundant now).
 
-## Next Steps
-
-- Verify the fix by testing the scenario: open MathLive, type LaTeX, press Enter _without_ previously typing in the Lexical editor.
-- Proceed with `re-update mode 2` or other tasks as directed.
-
 ## Active Decisions & Considerations
 
 - The root cause was identified as the `editorRefMap` not being populated with the editor instance until the `onChange` event fired. The fix ensures the map is updated upon component mount.
@@ -191,11 +176,6 @@
 - **Bug Fix Confirmed:** The "Editor instance not found" error is resolved. Logs confirmed that `editorRefMap` is correctly populated when `commitLatexToEditor` is called, thanks to the `EditorRefPlugin`.
 - **Removed Debug Logs:** Deleted `console.log` statements added previously for debugging the ref map issue.
 - **Attempted Smoothness Optimization:** Removed the `setTimeout(..., 0)` wrapper around the state reset logic within `commitLatexToEditor` in `useMathLiveManager.ts`. The goal is to make the closing of MathLive and refocusing the editor feel more immediate.
-
-## Next Steps
-
-- User to test the commit interaction again to evaluate if removing `setTimeout` improved the perceived smoothness.
-- Address other pending issues (Click-to-Edit, Styling, Initial Display) or proceed with new tasks.
 
 ## Active Decisions & Considerations
 
@@ -218,12 +198,6 @@
   - **Consequence:** Khi nhấn Enter để commit, `commitLatexToEditor` không nhận diện được đây là một thao tác sửa (vì `editingNodeKey` là `null`), dẫn đến việc thay đổi không được lưu hoặc hành vi sai lệch (ví dụ: cố gắng chèn node mới).
   - **Solution:** Xóa dòng `setEditingNodeKey((prev) => ({ ...prev, [key]: null }));` và `setEditingNodeKey` khỏi mảng phụ thuộc trong `handleMathfieldInput`.
   - **Result:** `editingNodeKey` được duy trì đúng cách trong suốt quá trình chỉnh sửa, cho phép `commitLatexToEditor` cập nhật chính xác node hiện có. Tính năng "Click-to-Edit" hoạt động trở lại.
-
-## Next Steps
-
-- User to test the commit interaction again to confirm the `ResizeObserver` error is gone.
-- Assess if the slight lack of smoothness (due to `setTimeout`) is acceptable.
-- Proceed with other pending tasks.
 
 ## Active Decisions & Considerations
 
@@ -265,18 +239,8 @@
 - **Refactor (`lambai.tsx`):**
   - Extracted panel resizing logic (state, refs, handlers, effect) into a new custom hook `app/lambai/(UI)/hooks/usePanelResizer.ts`.
 
-## Next Steps
-
-- Hoàn tất việc cập nhật Memory Bank (Bước 2 của "re-update mode 2").
-- Tiến hành Bước 3: Git Commit & Push.
-- Tiến hành Bước 4: Cập nhật `version.json`.
-
 ## Active Decisions & Considerations
 
 - The refactoring improves the organization of `lambai.tsx` by encapsulating the resizing logic.
 - The header toggle issue was caused by the initial height not being available when the first animation ran for new users.
 - The fix ensures the initial state is correct (hidden) and animations run reliably from the first interaction.
-
-## Recent Changes
-
-- **Bug Fix Confirmed:** The "Editor instance not found" error is resolved. Logs confirmed that `editorRefMap` is correctly populated when `commitLatexToEditor` is called, thanks to the `EditorRefPlugin`.
