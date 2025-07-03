@@ -324,10 +324,10 @@ export default function Header() {
 			<nav className="px-6 py-4 container mx-auto">
 				<div className="flex items-center justify-between">
 					<Link href="/" className="space-x-2 flex items-center">
-						<div className="w-10 h-10 relative flex items-center justify-center rounded-full border-3 border-solid border-[#6B65E8]">
+						<div className="w-10 h-10 relative flex items-center justify-center rounded-full border-[3.5px] border-solid border-[#6B65E8]">
 							<Image alt="" src={logo} className="aspect-square w-3/4" />
 						</div>
-						<div className="text-2xl font-bold bg-gradient-to-r from-[#4776E6] to-[#8E54E9] bg-clip-text text-transparent">
+						<div className="text-3xl font-bold bg-gradient-to-r from-[#4776E6] to-[#8E54E9] bg-clip-text text-transparent">
 							The AllEd
 						</div>
 					</Link>

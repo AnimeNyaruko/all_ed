@@ -32,7 +32,7 @@ export default function SurveyPage() {
 		if (Object.keys(errors).length > 0) {
 			const firstErrorField = Object.keys(errors)[0];
 			const errorElement = document.getElementById(
-				`field-container-${firstErrorField}`
+				`field-container-${firstErrorField}`,
 			);
 			if (errorElement) {
 				errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -77,7 +77,7 @@ export default function SurveyPage() {
 		<>
 			<Header />
 			<main className="bg-gray-50 py-12 sm:py-16">
-				<div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+				<div className="max-w-4xl px-4 sm:px-6 lg:px-8 mx-auto">
 					<div className="bg-white p-8 sm:p-10 rounded-lg shadow-md overflow-hidden">
 						{isSubmitted ? (
 							<ThankYou />
@@ -103,9 +103,9 @@ export default function SurveyPage() {
 										{renderStep()}
 									</motion.div>
 								</AnimatePresence>
-								
+
 								{submitError && (
-									<div className="mt-4 text-center text-sm text-red-600">
+									<div className="mt-4 text-sm text-red-600 text-center">
 										{submitError}
 									</div>
 								)}
