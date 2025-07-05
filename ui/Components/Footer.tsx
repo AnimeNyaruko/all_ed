@@ -18,40 +18,7 @@ export default function Footer() {
 	return (
 		<footer className="bg-gray-100 py-12" id="footer">
 			<div className="px-6 container mx-auto">
-				{/* Nội dung kỷ niệm */}
-				<div className="mb-8 space-x-4 flex items-center justify-center">
-					{/* Icon lá cờ bên trái */}
-					<div className="h-16 w-16 p-0.5 border-yellow-400 flex flex-shrink-0 items-center justify-center overflow-hidden rounded-full border bg-[#e21c22]">
-						<Image
-							src={VietNamflag}
-							alt="Lá cờ Việt Nam"
-							width={70}
-							height={70}
-							className="object-cover"
-						/>
-					</div>
-					{/* Khối nội dung chữ */}
-					<div className="p-3 font-bold text-lg rounded-lg border-yellow-400 flex h-full items-center border bg-[#e21c22] text-center text-[#ffff00]">
-						<div>
-							<p>
-								Chào mừng kỷ niệm 50 năm Ngày Giải phóng miền Nam, thống nhất
-								đất nước
-							</p>
-							<p>30/4/1975 - 30/4/2025</p>
-						</div>
-					</div>
-					{/* Icon lá cờ bên phải */}
-					<div className="h-16 w-16 p-0.5 border-yellow-400 flex flex-shrink-0 items-center justify-center overflow-hidden rounded-full border bg-[#e21c22]">
-						<Image
-							src={VietNamflag}
-							alt="Lá cờ Việt Nam"
-							width={70}
-							height={70}
-							className="object-cover"
-						/>
-					</div>
-				</div>
-
+				
 				<div className="md:grid-cols-3 gap-8 grid grid-cols-1">
 					{/* Logo và Mô tả */}
 					<div className="space-y-4">

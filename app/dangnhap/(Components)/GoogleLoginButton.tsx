@@ -3,13 +3,29 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { signIn } from "next-auth/react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/context/ToastContext";
+
+// Constants for API endpoints
+const API_CHECK_EMAIL = "/api/auth/check-email";
+const API_COOKIE = "/api/cookie";
+const HOME_PATH = "/";
 
 export default function GoogleLoginButton() {
 	const { refreshAuthState } = useAuth();
 	const router = useRouter();
+	const { showToast } = useToast();
+
+	// Handle successful login logic
+	const handleLoginSuccess = async () => {
+		await refreshAuthState();
+		showToast("Đăng nhập thành công!", "success");
+		router.push(HOME_PATH);
+	};
 
 	const handleGoogleLogin = async () => {
 		try {
+			showToast("Đang đăng nhập với Google...", "loading");
+			
 			const emailInput = document.querySelector(
 				'input[name="email"]',
 			) as HTMLInputElement;
@@ -18,57 +34,70 @@ export default function GoogleLoginButton() {
 			if (!email) {
 				const result = await signIn("google", {
 					redirect: false,
-					callbackUrl: "/",
+					callbackUrl: HOME_PATH,
 				});
 				
 				if (result?.ok) {
-					await refreshAuthState();
-					router.push("/");
+					await handleLoginSuccess();
+				} else {
+					showToast("Đăng nhập thất bại. Vui lòng thử lại.", "error");
 				}
 				return;
 			}
 
-			const res = await fetch(`/api/auth/check-email`, {
-				method: "POST",
-				body: JSON.stringify({ email }),
-				headers: { "Content-Type": "application/json" },
-			});
-
-			const data = await res.json();
-			if (data.exists) {
-				const cookieResponse = await fetch(`/api/cookie`, {
+			try {
+				const res = await fetch(API_CHECK_EMAIL, {
 					method: "POST",
-					body: JSON.stringify({
-						username: data.username,
-						data: data.email,
-						option: {
-							httpOnly: true,
-							secure: window.location.protocol === "https:",
-							sameSite: "lax",
-							maxAge: 30 * 24 * 60 * 60,
-						},
-					}),
+					body: JSON.stringify({ email }),
 					headers: { "Content-Type": "application/json" },
 				});
 
-				if (cookieResponse.ok) {
-					await new Promise((resolve) => setTimeout(resolve, 100));
-					await refreshAuthState();
-					router.push("/");
+				if (!res.ok) {
+					throw new Error(`Kiểm tra email thất bại: ${res.status}`);
 				}
-			} else {
-				const result = await signIn("google", {
-					redirect: false,
-					callbackUrl: "/",
-				});
-				
-				if (result?.ok) {
-					await refreshAuthState();
-					router.push("/");
+
+				const data = await res.json();
+				if (data.exists) {
+					const cookieResponse = await fetch(API_COOKIE, {
+						method: "POST",
+						body: JSON.stringify({
+							username: data.username,
+							data: data.email,
+							option: {
+								httpOnly: true,
+								secure: window.location.protocol === "https:",
+								sameSite: "lax",
+								maxAge: 30 * 24 * 60 * 60,
+							},
+						}),
+						headers: { "Content-Type": "application/json" },
+					});
+
+					if (cookieResponse.ok) {
+						await new Promise((resolve) => setTimeout(resolve, 100));
+						await handleLoginSuccess();
+					} else {
+						throw new Error(`Thiết lập cookie thất bại: ${cookieResponse.status}`);
+					}
+				} else {
+					const result = await signIn("google", {
+						redirect: false,
+						callbackUrl: HOME_PATH,
+					});
+					
+					if (result?.ok) {
+						await handleLoginSuccess();
+					} else {
+						throw new Error("Đăng nhập Google thất bại");
+					}
 				}
+			} catch (fetchError) {
+				console.error("API request error:", fetchError);
+				showToast(`Lỗi kết nối: ${(fetchError as Error).message}`, "error");
 			}
 		} catch (error) {
 			console.error("Google sign-in error:", error);
+			showToast(`Lỗi đăng nhập với Google: ${(error as Error).message}`, "error");
 		}
 	};
 

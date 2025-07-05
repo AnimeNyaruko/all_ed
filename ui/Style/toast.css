@@ -1,0 +1,73 @@
+/* Tùy chỉnh container */
+.Toastify__toast-container--top-center {
+  top: 1rem;
+  width: auto;
+  max-width: 500px;
+}
+
+/* Tùy chỉnh toast */
+.Toastify__toast {
+  border-radius: 8px;
+  font-family: var(--font-geist-sans);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Tùy chỉnh thanh progress */
+.Toastify__progress-bar {
+  height: 4px;
+}
+
+/* Tùy chỉnh màu sắc cho từng loại toast */
+.Toastify__toast--success {
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  color: white;
+}
+
+.Toastify__toast--error {
+  background: linear-gradient(to right, #ef4444, #f43f5e);
+}
+
+.Toastify__toast--warning {
+  background: linear-gradient(to right, #f59e0b, #f97316);
+}
+
+.Toastify__toast--info {
+  background: linear-gradient(to right, #06b6d4, #0ea5e9);
+}
+
+/* Tùy chỉnh màu chữ */
+.Toastify__toast-body {
+  color: white;
+  font-weight: 500;
+}
+
+/* Tùy chỉnh nút đóng */
+.Toastify__close-button {
+  color: white;
+  opacity: 0.7;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1;
+}
+
+/* Tùy chỉnh hiệu ứng loading toast */
+.Toastify__toast--loading {
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+}
+
+/* Thêm animation cho toast mới xuất hiện */
+@keyframes toastSlideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.Toastify__toast--enter {
+  animation: toastSlideIn 0.3s ease forwards;
+} 
