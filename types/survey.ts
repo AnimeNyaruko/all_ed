@@ -1,60 +1,92 @@
-export type Rating = 1 | 2 | 3 | 4 | 5 | '';
-export type UXRating = 1 | 2 | 3 | 4 | 5 | 6 | 7 | '';
+export type Rating = 1 | 2 | 3 | 4 | 5 | "";
+export type UXRating = 1 | 2 | 3 | 4 | 5 | 6 | 7 | "";
+
+type ValidRating = 1 | 2 | 3 | 4 | 5;
+type ValidUXRating = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+type FormattedResponse = {
+	text: string;
+	value: ValidRating | ValidUXRating;
+};
 
 export interface SurveyFormData {
-  // Step 1: Thông tin chung
-  fullName: string;
-  school: string;
-  role: 'student' | 'teacher' | 'other' | '';
-  otherRole?: string;
-  grade?: 'elementary' | 'middle' | '10' | '11' | '12' | 'university' | 'other' | '';
-  otherGrade?: string;
-  subjectAndExperience?: string;
-  usageDuration: 'new' | '1-4w' | '1-3m' | 'over-3m' | '';
-  usageFrequency: 'daily' | 'few-times-week' | 'once-week' | 'rarely' | '';
-  
-  // Step 2: Đánh giá hiệu quả
-  effectiveness_q1?: Rating;
-  effectiveness_q2?: Rating;
-  effectiveness_q3?: Rating;
-  effectiveness_q4?: Rating;
-  effectiveness_q5?: Rating;
-  effectiveness_q6?: Rating;
-  effectiveness_q7?: Rating;
-  effectiveness_q8?: Rating;
-  biggestBenefit_q9?: string;
-  learningDifficulties_q10?: string;
+	// Step 1: Thông tin chung
+	"Họ và Tên": string;
+	Trường: string;
+	"Vai trò": "Học sinh" | "Giáo viên" | "Khác" | "";
+	"Vai trò khác"?: string;
+	"Khối lớp"?:
+		| "Tiểu học"
+		| "THCS"
+		| "Lớp 10"
+		| "Lớp 11"
+		| "Lớp 12"
+		| "Đại học"
+		| "Khác"
+		| "";
+	"Khối lớp khác"?: string;
+	"Môn học và kinh nghiệm"?: string;
+	"Thời gian sử dụng":
+		| "Mới sử dụng (Dưới 1 tuần)"
+		| "1-4 tuần"
+		| "1-3 tháng"
+		| "Trên 3 tháng"
+		| "";
+	"Tần suất sử dụng":
+		| "Hàng ngày"
+		| "Vài lần một tuần"
+		| "Một lần một tuần"
+		| "Hiếm khi"
+		| "";
 
-  // Step 3: Đánh giá trải nghiệm người dùng (UX)
-  ux_q1?: UXRating;
-  ux_q2?: UXRating;
-  ux_q3?: UXRating;
-  ux_q4?: UXRating;
-  ux_q5?: UXRating;
-  ux_q6?: UXRating;
-  ux_q7?: UXRating;
-  ux_q8?: UXRating;
-  ux_q9?: UXRating;
-  ux_q10?: UXRating;
-  ux_q11?: UXRating;
-  ux_q12?: UXRating;
-  ux_q13?: UXRating;
-  ux_q14?: UXRating;
-  ux_q15?: UXRating;
-  ux_q16?: UXRating;
-  ux_q17?: UXRating;
-  ux_q18?: UXRating;
-  ux_q19?: UXRating;
-  ux_q20?: UXRating;
-  ux_q21?: UXRating;
-  ux_q22?: UXRating;
-  ux_q23?: UXRating;
-  ux_q24?: UXRating;
-  ux_q25?: UXRating;
-  ux_q26?: UXRating;
+	// Step 2: Đánh giá hiệu quả
+	"Hiệu quả câu 1"?: Rating | FormattedResponse;
+	"Hiệu quả câu 2"?: Rating | FormattedResponse;
+	"Hiệu quả câu 3"?: Rating | FormattedResponse;
+	"Hiệu quả câu 4"?: Rating | FormattedResponse;
+	"Hiệu quả câu 5"?: Rating | FormattedResponse;
+	"Hiệu quả câu 6"?: Rating | FormattedResponse;
+	"Hiệu quả câu 7"?: Rating | FormattedResponse;
+	"Hiệu quả câu 8"?: Rating | FormattedResponse;
+	"Lợi ích lớn nhất"?: string;
+	"Khó khăn khi học"?: string;
 
-  // Step 4: Góp ý và Đề xuất
-  newFeatureSuggestion?: string;
-  recommendationLikelihood?: 'definitely-not' | 'probably-not' | 'maybe' | 'probably-yes' | 'definitely-yes' | '';
-  otherFeedback?: string;
-} 
+	// Step 3: Đánh giá trải nghiệm người dùng (UX)
+	"UX câu 1"?: UXRating | FormattedResponse;
+	"UX câu 2"?: UXRating | FormattedResponse;
+	"UX câu 3"?: UXRating | FormattedResponse;
+	"UX câu 4"?: UXRating | FormattedResponse;
+	"UX câu 5"?: UXRating | FormattedResponse;
+	"UX câu 6"?: UXRating | FormattedResponse;
+	"UX câu 7"?: UXRating | FormattedResponse;
+	"UX câu 8"?: UXRating | FormattedResponse;
+	"UX câu 9"?: UXRating | FormattedResponse;
+	"UX câu 10"?: UXRating | FormattedResponse;
+	"UX câu 11"?: UXRating | FormattedResponse;
+	"UX câu 12"?: UXRating | FormattedResponse;
+	"UX câu 13"?: UXRating | FormattedResponse;
+	"UX câu 14"?: UXRating | FormattedResponse;
+	"UX câu 15"?: UXRating | FormattedResponse;
+	"UX câu 16"?: UXRating | FormattedResponse;
+	"UX câu 17"?: UXRating | FormattedResponse;
+	"UX câu 18"?: UXRating | FormattedResponse;
+	"UX câu 19"?: UXRating | FormattedResponse;
+	"UX câu 20"?: UXRating | FormattedResponse;
+	"UX câu 21"?: UXRating | FormattedResponse;
+	"UX câu 22"?: UXRating | FormattedResponse;
+	"UX câu 23"?: UXRating | FormattedResponse;
+	"UX câu 24"?: UXRating | FormattedResponse;
+	"UX câu 25"?: UXRating | FormattedResponse;
+	"UX câu 26"?: UXRating | FormattedResponse;
+
+	// Step 4: Góp ý và Đề xuất
+	"Đề xuất tính năng mới"?: string;
+	"Khả năng giới thiệu"?:
+		| "Chắc chắn không"
+		| "Có lẽ không"
+		| "Có thể"
+		| "Có lẽ có"
+		| "Chắc chắn có"
+		| "";
+	"Góp ý khác"?: string;
+}

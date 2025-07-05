@@ -1,40 +1,65 @@
 "use client";
 
-import { useState } from 'react';
-import { SurveyFormData } from '@/types/survey';
-import { validateStep1, validateStep2, validateStep3, validateStep4 } from '../utils/validation';
+import { useState } from "react";
+import { SurveyFormData } from "@/types/survey";
+import {
+	validateStep1,
+	validateStep2,
+	validateStep3,
+	validateStep4,
+} from "../utils/validation";
 
 const TOTAL_STEPS = 4;
 
 export const useSurveyForm = () => {
-    const [currentStep, setCurrentStep] = useState(1);
+	const [currentStep, setCurrentStep] = useState(1);
 	const [formData, setFormData] = useState<Partial<SurveyFormData>>({
 		// Step 1
-		fullName: "",
-		school: "",
-		role: "",
-		usageDuration: "",
-		usageFrequency: "",
+		"Họ và Tên": "",
+		Trường: "",
+		"Vai trò": "",
+		"Thời gian sử dụng": "",
+		"Tần suất sử dụng": "",
 		// Step 2
-		effectiveness_q1: "",
-		effectiveness_q2: "",
-		effectiveness_q3: "",
-		effectiveness_q4: "",
-		effectiveness_q5: "",
-		effectiveness_q6: "",
-		effectiveness_q7: "",
-		effectiveness_q8: "",
-		biggestBenefit_q9: "",
-		learningDifficulties_q10: "",
+		"Hiệu quả câu 1": "",
+		"Hiệu quả câu 2": "",
+		"Hiệu quả câu 3": "",
+		"Hiệu quả câu 4": "",
+		"Hiệu quả câu 5": "",
+		"Hiệu quả câu 6": "",
+		"Hiệu quả câu 7": "",
+		"Hiệu quả câu 8": "",
+		"Lợi ích lớn nhất": "",
+		"Khó khăn khi học": "",
 		// Step 3
-		ux_q1: '', ux_q2: '', ux_q3: '', ux_q4: '', ux_q5: '',
-		ux_q6: '', ux_q7: '', ux_q8: '', ux_q9: '', ux_q10: '',
-		ux_q11: '', ux_q12: '', ux_q13: '', ux_q14: '', ux_q15: '',
-		ux_q16: '', ux_q17: '', ux_q18: '', ux_q19: '', ux_q20: '',
-		ux_q21: '', ux_q22: '', ux_q23: '', ux_q24: '', ux_q25: '',
-		ux_q26: '',
+		"UX câu 1": "",
+		"UX câu 2": "",
+		"UX câu 3": "",
+		"UX câu 4": "",
+		"UX câu 5": "",
+		"UX câu 6": "",
+		"UX câu 7": "",
+		"UX câu 8": "",
+		"UX câu 9": "",
+		"UX câu 10": "",
+		"UX câu 11": "",
+		"UX câu 12": "",
+		"UX câu 13": "",
+		"UX câu 14": "",
+		"UX câu 15": "",
+		"UX câu 16": "",
+		"UX câu 17": "",
+		"UX câu 18": "",
+		"UX câu 19": "",
+		"UX câu 20": "",
+		"UX câu 21": "",
+		"UX câu 22": "",
+		"UX câu 23": "",
+		"UX câu 24": "",
+		"UX câu 25": "",
+		"UX câu 26": "",
 		// Step 4
-		recommendationLikelihood: ""
+		"Khả năng giới thiệu": "",
 	});
 	const [errors, setErrors] = useState<
 		Partial<Record<keyof SurveyFormData, string>>
@@ -43,7 +68,7 @@ export const useSurveyForm = () => {
 	const [submitError, setSubmitError] = useState<string | null>(null);
 	const [isSubmitted, setIsSubmitted] = useState(false);
 
-    const handleNext = () => {
+	const handleNext = () => {
 		setErrors({});
 		let validationErrors: Partial<Record<keyof SurveyFormData, string>> = {};
 		if (currentStep === 1) {
@@ -58,14 +83,14 @@ export const useSurveyForm = () => {
 
 		if (Object.keys(validationErrors).length === 0) {
 			if (currentStep < TOTAL_STEPS) {
-				setCurrentStep(prev => prev + 1);
+				setCurrentStep((prev) => prev + 1);
 			}
 		}
 	};
 
 	const handlePrev = () => {
 		if (currentStep > 1) {
-			setCurrentStep(prev => prev - 1);
+			setCurrentStep((prev) => prev - 1);
 		}
 	};
 
@@ -82,16 +107,18 @@ export const useSurveyForm = () => {
 			setIsSubmitting(true);
 			setSubmitError(null);
 			try {
-				const response = await fetch('/api/survey', {
-					method: 'POST',
+				const response = await fetch(`http://localhost:3000/survey`, {
+					method: "POST",
 					headers: {
-						'Content-Type': 'application/json',
+						"Content-Type": "application/json",
 					},
 					body: JSON.stringify(formData),
 				});
 
 				if (!response.ok) {
-					throw new Error('Network response was not ok');
+					throw new Error("Network response was not ok");
+				} else {
+					console.log(await response.json());
 				}
 				setIsSubmitted(true);
 			} catch (error) {
@@ -103,18 +130,18 @@ export const useSurveyForm = () => {
 		}
 	};
 
-    return {
-        currentStep,
-        TOTAL_STEPS,
-        formData,
-        setFormData,
-        errors,
-        setErrors,
-        isSubmitting,
-        submitError,
-        isSubmitted,
-        handleNext,
-        handlePrev,
-        handleSubmit,
-    };
-} 
+	return {
+		currentStep,
+		TOTAL_STEPS,
+		formData,
+		setFormData,
+		errors,
+		setErrors,
+		isSubmitting,
+		submitError,
+		isSubmitted,
+		handleNext,
+		handlePrev,
+		handleSubmit,
+	};
+};
