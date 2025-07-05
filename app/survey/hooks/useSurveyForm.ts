@@ -107,13 +107,16 @@ export const useSurveyForm = () => {
 			setIsSubmitting(true);
 			setSubmitError(null);
 			try {
-				const response = await fetch(`http://localhost:3000/survey`, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
+				const response = await fetch(
+					`https://the-alled-server.onrender.com/survey`,
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify(formData),
 					},
-					body: JSON.stringify(formData),
-				});
+				);
 
 				if (!response.ok) {
 					throw new Error("Network response was not ok");
