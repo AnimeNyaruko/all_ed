@@ -40,3 +40,15 @@ body {
 .page-content-with-fixed-header {
 	padding-top: 6rem; /* Điều chỉnh giá trị này tùy theo chiều cao của header */
 }
+
+/* Hide number input arrows */
+/* Chrome, Safari, Edge, Opera */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+}
+
+/* Firefox */
+input[type="number"] {
+	-moz-appearance: textfield;
+}

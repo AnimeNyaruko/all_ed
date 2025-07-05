@@ -2,6 +2,7 @@
 import Image from "next/image";
 import LogoPTNK from "@/public/logo PTNK.svg";
 import LogoTranPhu from "@/public/logo_thpt_tran_phu.webp";
+import logo from "@/public/logo_temp.png";
 import icon from "@/public/pageIcon.svg";
 import VietNamflag from "@/public/VietNamflag.svg";
 import { useState, useEffect } from "react";
@@ -23,13 +24,13 @@ export default function Footer() {
 					{/* Logo và Mô tả */}
 					<div className="space-y-4">
 						<div className="space-x-2 flex items-center justify-center">
-							<Image
-								src={icon}
-								alt="Trường 1 Logo"
-								width={100}
-								height={50}
-								className="object-contain"
-							/>
+							<div className="relative flex items-center justify-center w-24 h-24 rounded-full border-[4px] border-solid border-[#6B65E8]">
+								<Image
+									src={logo}
+									alt="AllEd Logo"
+									className="aspect-square w-3/4"
+								/>
+							</div>
 							<Image
 								src={LogoPTNK}
 								alt="Trường 1 Logo"

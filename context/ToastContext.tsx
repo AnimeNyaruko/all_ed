@@ -5,13 +5,17 @@ import { toast, ToastOptions } from "react-toastify";
 type ToastType = "success" | "error" | "info" | "warning" | "loading";
 
 type ToastContextType = {
-  showToast: (message: string, type: ToastType) => void;
+  showToast: (
+    message: string,
+    type: ToastType,
+    options?: ToastOptions,
+  ) => void;
 };
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const toastConfig: ToastOptions = {
+  const defaultToastConfig: ToastOptions = {
     position: "top-center",
     autoClose: 5000,
     hideProgressBar: false,
@@ -22,7 +26,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     theme: "light",
   };
 
-  const showToast = (message: string, type: ToastType) => {
+  const showToast = (
+    message: string,
+    type: ToastType,
+    options?: ToastOptions,
+  ) => {
+    const toastConfig = { ...defaultToastConfig, ...options };
+
     switch (type) {
       case "success":
         toast.success(message, toastConfig);

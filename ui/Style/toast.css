@@ -17,6 +17,10 @@
   height: 4px;
 }
 
+.Toastify__progress-bar--white {
+	background: white !important;
+}
+
 /* Tùy chỉnh màu sắc cho từng loại toast */
 .Toastify__toast--success {
   background: linear-gradient(to right, #3b82f6, #8b5cf6);

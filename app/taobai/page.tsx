@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faClockRotateLeft,
@@ -11,6 +11,7 @@ import Header from "@/ui/Components/Header";
 import Footer from "@/ui/Components/Footer";
 import { handler } from "./(data_handler)/handler";
 import { useToast } from "@/context/ToastContext";
+import QuestionQuantitySelector from "./(components)/QuestionQuantitySelector";
 
 interface CardData {
 	id: number;
@@ -19,6 +20,13 @@ interface CardData {
 	description: string;
 	color: string;
 	level: number;
+}
+
+interface QuestionQuantities {
+	multipleChoice: number;
+	trueFalse: number;
+	shortAnswer: number;
+	essay: number;
 }
 
 const cardColors = [
@@ -41,7 +49,12 @@ export default function Page() {
 		},
 	]);
 	const [isDraggingSlider, setIsDraggingSlider] = useState(false);
-	const [quantity, setQuantity] = useState(1);
+	const [quantities, setQuantities] = useState<QuestionQuantities>({
+		multipleChoice: 0,
+		trueFalse: 0,
+		shortAnswer: 0,
+		essay: 0,
+	});
 	const { showToast } = useToast();
 
 	// Đảm bảo isDraggingSlider được reset khi người dùng thả chuột hoặc ngón tay bất cứ đâu
@@ -90,7 +103,7 @@ export default function Page() {
 	};
 
 	const addCard = () => {
-		if (cards.length < 5) {
+		if (cards.length < 3) {
 			const usedColors = cards.map((card) => card.color);
 			const availableColors = cardColors.filter(
 				(color) => !usedColors.includes(color),
@@ -145,6 +158,52 @@ export default function Page() {
 		);
 	};
 
+	const handleCheckboxChange = useCallback(
+		(type: keyof QuestionQuantities, isChecked: boolean) => {
+			setQuantities((prev) => ({
+				...prev,
+				[type]: isChecked ? 1 : 0,
+			}));
+		},
+		[],
+	);
+
+	const handleQuantityChange = useCallback(
+		(type: keyof QuestionQuantities, delta: number) => {
+			setQuantities((prev) => {
+				const currentQuantity = prev[type];
+				const newQuantity = currentQuantity + delta;
+				if (newQuantity >= 1 && newQuantity <= 5) {
+					return { ...prev, [type]: newQuantity };
+				}
+				return prev;
+			});
+		},
+		[],
+	);
+
+	const handleQuantityInputChange = useCallback(
+		(type: keyof QuestionQuantities, value: string) => {
+			const numValue = parseInt(value, 10);
+			if (isNaN(numValue)) {
+				// Allow clearing the input, but reset to 1 on blur
+				setQuantities((prev) => ({ ...prev, [type]: 1 }));
+			} else if (numValue >= 1 && numValue <= 5) {
+				setQuantities((prev) => ({ ...prev, [type]: numValue }));
+			}
+		},
+		[],
+	);
+
+	const handleQuantityInputBlur = useCallback(
+		(type: keyof QuestionQuantities, currentValue: string) => {
+			if (!currentValue || parseInt(currentValue, 10) < 1) {
+				setQuantities((prev) => ({ ...prev, [type]: 1 }));
+			}
+		},
+		[],
+	);
+
 	const [isLoading, setIsLoading] = useState(false);
 
 	return (
@@ -153,7 +212,43 @@ export default function Page() {
 			<form
 				onSubmit={async (e) => {
 					e.preventDefault();
+
+					const totalQuantity = Object.values(quantities).reduce(
+						(sum, q) => sum + q,
+						0,
+					);
+					if (totalQuantity === 0) {
+						showToast("Vui lòng chọn ít nhất một loại câu hỏi.", "error", {
+							style: {
+								backgroundColor: "#ef4444", // red-500
+								color: "white",
+							},
+							icon: (
+								<FontAwesomeIcon
+									icon={faCircleXmark}
+									className="text-white text-xl"
+								/>
+							),
+							progressClassName: "Toastify__progress-bar--white",
+							hideProgressBar: false,
+							closeButton: ({ closeToast }) => (
+								<button onClick={closeToast}>
+									<FontAwesomeIcon
+										icon={faCircleXmark}
+										className="text-white text-xl"
+									/>
+								</button>
+							),
+						});
+						return;
+					}
+
 					const formData = new FormData(e.currentTarget);
+					// Thêm dữ liệu số lượng vào formData
+					Object.entries(quantities).forEach(([key, value]) => {
+						formData.append(key, value.toString());
+					});
+
 					setIsLoading(true);
 					showToast("Đang tạo bài...", "loading");
 					const result = await handler(formData);
@@ -246,13 +341,13 @@ export default function Page() {
 											<option value="" className="text-gray-500">
 												Chọn lớp
 											</option>
-											{[...Array(12)].map((_, i) => (
+											{[10, 11, 12].map((grade) => (
 												<option
-													key={i + 1}
-													value={i + 1}
+													key={grade}
+													value={grade}
 													className="text-gray-800"
 												>
-													{i + 1}
+													{grade}
 												</option>
 											))}
 										</select>
@@ -356,65 +451,16 @@ export default function Page() {
 							</div>
 						))}
 
-						{/* Quantity Slider */}
-						<div className="my-5 p-2 bg-white rounded-lg border-blue-200 shadow-sm w-full border">
-							<div className="mb-1 flex items-center justify-between">
-								<div className="flex items-center">
-									<span className="text-sm font-medium text-gray-700 mr-2">
-										Số lượng bài tập tối đa:
-									</span>
-									<span className="text-sm font-medium text-blue-600">
-										{quantity}
-									</span>
-								</div>
-								<span className="text-sm font-medium text-gray-700">
-									{quantity}/8
-								</span>
-							</div>
-
-							<div className="relative">
-								<input
-									type="range"
-									min="1"
-									max="8"
-									step="1"
-									value={quantity}
-									name="quantity"
-									onChange={(e) => setQuantity(parseInt(e.target.value))}
-									onMouseDown={(e) => {
-										e.stopPropagation();
-										setIsDraggingSlider(true);
-									}}
-									onTouchStart={(e) => {
-										e.stopPropagation();
-										setIsDraggingSlider(true);
-									}}
-									onMouseUp={() => setIsDraggingSlider(false)}
-									onTouchEnd={() => setIsDraggingSlider(false)}
-									onMouseLeave={() => setIsDraggingSlider(false)}
-									className="h-1.5 bg-gray-200 rounded-lg accent-blue-500 w-full cursor-pointer appearance-none"
-									style={{
-										backgroundImage: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(quantity - 1) * 14.28}%, #e5e7eb ${(quantity - 1) * 14.28}%, #e5e7eb 100%)`,
-									}}
-								/>
-
-								<div className="mt-0.5 flex justify-between">
-									{[1, 2, 3, 4, 5, 6, 7, 8].map((mark) => (
-										<div key={mark} className="flex flex-col items-center">
-											<div
-												className={`w-1 h-2 rounded-full ${quantity >= mark ? "bg-blue-500" : "bg-gray-300"}`}
-											></div>
-											<span className="text-xs text-gray-500 mt-0.5">
-												{mark}
-											</span>
-										</div>
-									))}
-								</div>
-							</div>
-						</div>
+						<QuestionQuantitySelector
+							quantities={quantities}
+							onCheckboxChange={handleCheckboxChange}
+							onQuantityChange={handleQuantityChange}
+							onQuantityInputChange={handleQuantityInputChange}
+							onQuantityInputBlur={handleQuantityInputBlur}
+						/>
 
 						{/* Add Card Button - Chỉ hiện khi chưa đủ 5 thẻ */}
-						{cards.length < 5 && (
+						{cards.length < 3 && (
 							<button
 								onClick={addCard}
 								type="button"
