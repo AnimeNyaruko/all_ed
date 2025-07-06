@@ -10,6 +10,11 @@ import type {
 	QuestionStructure,
 } from "@/types";
 import { redirect } from "next/navigation";
+import {
+	AnswersState,
+	Answer,
+	Question,
+} from "../(data)/mock-questions";
 
 // Hàm helper để chuyển AnswerBlock[] thành chuỗi LaTeX
 function answerBlocksToLatex(blocks: AnswerBlock[] | undefined): string {
@@ -170,6 +175,93 @@ export async function submitAnswers(
 		};
 	}
 	redirect("/ketqua"); // Xóa redirect ở đây, client sẽ xử lý
+}
+
+export async function submitMixedAnswers(
+	timer: number,
+	deBai: string,
+	questions: Record<string, Question>, // Use the new Question type
+	answers: AnswersState,
+) {
+	const username = await getCookie("session");
+	const assignmentID = await getCookie("assignment_id");
+
+	if (!username) {
+		redirect("/");
+	}
+
+	if (!assignmentID) {
+		redirect("/lambai/selection");
+	}
+	try {
+		const formattedTime = formatTime(timer);
+		const cauHoiArray: string[] = [];
+		const cauTraLoiArray: string[] = [];
+
+		// Loop through the questions to maintain order
+		Object.keys(questions).forEach((questionKey) => {
+			const question = questions[questionKey];
+			const answer = answers[questionKey];
+
+			// 1. Add question content
+			cauHoiArray.push(question.content);
+
+			// 2. Format and add answer
+			let formattedAnswer: string;
+			if (answer === undefined || answer === null) {
+				formattedAnswer = ""; // Handle unanswered questions
+			} else if (Array.isArray(answer)) {
+				// Essay question (AnswerBlock[])
+				formattedAnswer = answerBlocksToLatex(answer as AnswerBlock[]);
+			} else if (typeof answer === 'boolean') {
+				// True/False question (dạng cũ, không nên xảy ra nữa nhưng để an toàn)
+				formattedAnswer = answer.toString();
+			} else if (typeof answer === 'object' && answer !== null) {
+				// True/False question with sub-questions (dạng mới)
+				formattedAnswer = JSON.stringify(answer);
+			} else {
+				// Multiple_choice or Short_answer (string)
+				formattedAnswer = answer as string;
+			}
+			cauTraLoiArray.push(formattedAnswer);
+		});
+
+		// Create the JSON payload with plain text/latex
+		const payload = {
+			time: formattedTime,
+			de_bai: deBai,
+			cau_hoi: cauHoiArray,
+			cau_tra_loi: cauTraLoiArray,
+			username,
+			assignmentID,
+		};
+
+		// Send data to the API as JSON
+		const apiUrl = `${process.env.NEXTAUTH_URL}/api/nopbai`;
+		const response = await fetch(apiUrl, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(payload),
+		});
+
+		if (!response.ok) {
+			const errorText = await response.text();
+			console.error("Nopbai API error:", response.status, errorText);
+			return {
+				status: "error",
+				message: `API Error: ${response.status} - ${errorText}`,
+			};
+		}
+
+	} catch (error) {
+		console.error("Error in submitMixedAnswers:", error);
+		return {
+			status: "error",
+		};
+	}
+	redirect("/ketqua");
 }
 
 export async function saveWorkProgress(

@@ -11,7 +11,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import AnswerArea from "./AnswerArea";
-import { submitAnswers, handler, saveWorkProgress } from "../(handler)/handler";
+import {
+	submitAnswers,
+	handler,
+	saveWorkProgress,
+} from "../(handler)/handler";
 import { useOrientationCheck } from "./OrientationCheck";
 import { RotationOverlay } from "./RotationOverlay";
 import { useVirtualKeyboardPadding } from "./hooks/useVirtualKeyboardPadding";
@@ -25,6 +29,7 @@ import TutorialModal from "./components/Tutorial";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { useToast } from "@/context/ToastContext";
+import { mockQuestions, AnswersState } from "../(data)/mock-questions";
 
 export default function Home() {
 	const [isBounded, setBounding] = useState<boolean>(false);
@@ -47,7 +52,8 @@ export default function Home() {
 		{ initialWidth: calculatedInitialLeftWidth },
 	);
 
-	const [answers, setAnswers] = useState<Record<string, AnswerBlock[]>>({});
+	// const [answers, setAnswers] = useState<Record<string, AnswerBlock[]>>({});
+	const [answers, setAnswers] = useState<AnswersState>({});
 	const [isTimerRunning, setIsTimerRunning] = useState(false);
 	const [isTimerPaused, setIsTimerPaused] = useState(false);
 	const [timer, setTimer] = useState(0);
@@ -57,8 +63,9 @@ export default function Home() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [taskContent, setTaskContent] = useState<{
 		de_bai: string;
-		[key: string]: string;
-	}>({ de_bai: "" });
+	// 	[key: string]: string;
+    // }>({ de_bai: "" });
+	}>({ de_bai: "Đây là đề bài chung cho tất cả các câu hỏi. Nội dung chi tiết của từng câu hỏi được hiển thị bên dưới." });
 	const answersRef = useRef(answers);
 	const [saveStatus, setSaveStatus] = useState<
 		"idle" | "saving" | "saved" | "error"
@@ -92,9 +99,8 @@ export default function Home() {
 	// Khởi tạo kích thước ban đầu, fetch dữ liệu và tải lại bài làm
 	useEffect(() => {
 		setIsClient(true);
+		setIsLoading(false);
 
-		// Update initialLeftWidth on the client after mount
-		// This ensures server and initial client render match, then client updates.
 		const clientCalculatedWidth = (() => {
 			const savedWidth = localStorage.getItem("leftPanelWidth");
 			if (savedWidth) {
@@ -262,7 +268,7 @@ export default function Home() {
 				timer,
 				taskContent.de_bai,
 				questions,
-				answersRef.current,
+				answersRef.current as Record<string, AnswerBlock[]>,
 			);
 
 			if (result.status === "success") {
@@ -304,12 +310,14 @@ export default function Home() {
 
 	// Debounced handler for answer changes from AnswerArea
 	const handleAnswersChange = useCallback(
-		(newAnswerData: Record<string, AnswerBlock[]>) => {
+		// (newAnswerData: Record<string, AnswerBlock[]>) => {
+		(newAnswerData: AnswersState) => {
 			setAnswers((prevAnswers) => {
 				const updatedAnswers = { ...prevAnswers, ...newAnswerData };
+				answersRef.current = updatedAnswers; // Cập nhật ref ngay lập tức
 				return updatedAnswers;
 			});
-			handleSaveProgress();
+			handleSaveProgress(); // Vẫn gọi lưu tiến độ
 		},
 		[handleSaveProgress],
 	);
@@ -630,7 +638,9 @@ export default function Home() {
 						<div className="bg-gray-50 shadow-inner relative overflow-hidden">
 							<div className="inset-0 p-6 absolute overflow-y-auto">
 								<AnswerArea
-									questions={questions ?? {}}
+									//questions={questions ?? {}}
+									// questions={questions ?? {}}
+									questions={mockQuestions}
 									onAnswersChange={handleAnswersChange}
 									initialAnswers={answers}
 								/>

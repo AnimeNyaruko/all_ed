@@ -5,6 +5,16 @@ import { EditorState, LexicalEditor } from "lexical";
 import { InitialConfigType } from "@lexical/react/LexicalComposer";
 import { useMathLiveManager } from "./editor/hooks/useMathLiveManager";
 import QuestionEditorInstance from "./editor/components/QuestionEditorInstance";
+import MultipleChoice from "./components/question_types/MultipleChoice";
+import TrueFalse from "./components/question_types/TrueFalse";
+import ShortAnswer from "./components/question_types/ShortAnswer";
+import Essay from "./components/question_types/Essay";
+import {
+	Question,
+	QuestionType,
+	AnswersState,
+	Answer,
+} from "../(data)/mock-questions";
 
 // Custom Node
 import { LatexNode, $isLatexNode } from "./editor/nodes/LatexNode";
@@ -12,9 +22,12 @@ import { lexicalStateToAnswerBlocks } from "./editor/utils/lexicalUtils";
 import type { AnswerBlock } from "@/types";
 
 interface AnswerAreaProps {
-	questions: Record<string, string>;
-	initialAnswers?: Record<string, AnswerBlock[]>;
-	onAnswersChange: (answers: Record<string, AnswerBlock[]>) => void; // Expect AnswerBlock array
+	// questions: Record<string, string>;
+    // initialAnswers?: Record<string, AnswerBlock[]>;
+    // onAnswersChange: (answers: Record<string, AnswerBlock[]>) => void; // Expect AnswerBlock array
+	questions: Question[]; // Updated to use the new Question interface
+	initialAnswers?: AnswersState; // Updated to use the new AnswersState type
+	onAnswersChange: (answers: AnswersState) => void;
 }
 
 // Wrap the component with React.memo
@@ -85,23 +98,29 @@ const AnswerArea = memo(
 			setIsClient(true);
 		}, []);
 
-		// Debounced handler using setTimeout
+		// Debounced handler using setTimeout for essay questions
 		const handleEditorChangeDebounced = useCallback(
 			(key: string, editorState: EditorState, editor: LexicalEditor) => {
-				editorRefMap.current[key] = editor; // Update editor ref immediately
+				editorRefMap.current[key] = editor;
 
-				// Clear previous timeout if exists
 				if (debounceTimeoutRef.current) {
 					clearTimeout(debounceTimeoutRef.current);
 				}
 
-				// Set new timeout
 				debounceTimeoutRef.current = setTimeout(() => {
 					const blocks = lexicalStateToAnswerBlocks(editorState);
 					onAnswersChange({ [key]: blocks });
-				}, 500); // 500ms delay
+				}, 500);
 			},
-			[onAnswersChange], // Dependency remains the same
+			[onAnswersChange],
+		);
+
+		// Handler for other question types
+		const handleSimpleAnswerChange = useCallback(
+			(questionId: string, answer: Answer) => {
+				onAnswersChange({ [questionId]: answer });
+			},
+			[onAnswersChange],
 		);
 
 		// Effect to clear timeout on unmount
@@ -120,48 +139,101 @@ const AnswerArea = memo(
 		return (
 			<div className="space-y-6">
 				{isClient &&
-					Object.entries(questions).map(([key, questionText]) => {
-						// Create Lexical config for each instance
-						const initialConfig: InitialConfigType = {
-							namespace: `QuestionEditor-${key}`,
-							theme: editorTheme,
-							onError: onError,
-							nodes: [LatexNode],
-							editorState: null, // Set initial state if needed, e.g., from initialAnswers
-						};
+					questions.map((question, index) => {
+						const { id, type, content, options } = question;
+						const questionNumber = index + 1;
 
-						return (
-							<div key={key}>
-								<QuestionEditorInstance
-									questionKey={key}
-									questionContent={questionText}
-									initialConfig={initialConfig}
-									// Pass initialContent specific to this key if available
-									initialContent={initialAnswers?.[key]}
-									// Pass down functions and state from mathLiveManager
-									triggerMathfieldFunc={mathLiveManager.triggerMathfield}
-									debouncedOnAnswersChange={handleEditorChangeDebounced}
-									isLatexInputVisible={mathLiveManager.isLatexInputVisible}
-									currentLatexValue={mathLiveManager.currentLatexValue}
-									editingNodeKey={mathLiveManager.editingNodeKey}
-									activeEditorKey={mathLiveManager.activeEditorKey}
-									activeMathLiveKey={mathLiveManager.activeMathLiveKey}
-									handleMathfieldInput={mathLiveManager.handleMathfieldInput}
-									handleMathfieldKeyDown={
-										mathLiveManager.handleMathfieldKeyDown
-									}
-									commitLatexToEditorFunc={mathLiveManager.commitLatexToEditor}
-									isCortexLoaded={isCortexLoaded} // Pass the state
-									editorRefMap={editorRefMap}
-								/>
-							</div>
-						);
+						switch (type) {
+							case "essay": {
+								// Create Lexical config for each instance
+								const initialConfig: InitialConfigType = {
+									namespace: `QuestionEditor-${id}`,
+									theme: editorTheme,
+									onError: onError,
+									nodes: [LatexNode],
+									editorState: null,
+								};
+								const initialEssayContent =
+									initialAnswers &&
+									Array.isArray(initialAnswers[id]) &&
+									(initialAnswers[id] as AnswerBlock[]).length > 0
+										? (initialAnswers[id] as AnswerBlock[])
+										: undefined;
+
+								return (
+									<Essay
+										key={id}
+										questionKey={id}
+										questionContent={content}
+										questionNumber={questionNumber}
+										initialConfig={initialConfig}
+										initialContent={initialEssayContent}
+										triggerMathfieldFunc={mathLiveManager.triggerMathfield}
+										debouncedOnAnswersChange={handleEditorChangeDebounced}
+										isLatexInputVisible={
+											mathLiveManager.isLatexInputVisible
+										}
+										currentLatexValue={mathLiveManager.currentLatexValue}
+										editingNodeKey={mathLiveManager.editingNodeKey}
+										activeEditorKey={mathLiveManager.activeEditorKey}
+										activeMathLiveKey={mathLiveManager.activeMathLiveKey}
+										handleMathfieldInput={
+											mathLiveManager.handleMathfieldInput
+										}
+										handleMathfieldKeyDown={
+											mathLiveManager.handleMathfieldKeyDown
+										}
+										commitLatexToEditorFunc={
+											mathLiveManager.commitLatexToEditor
+										}
+										isCortexLoaded={isCortexLoaded} // Pass the state
+										editorRefMap={editorRefMap}
+									/>
+								);
+							}
+							case "multiple_choice":
+								return (
+									<MultipleChoice
+										key={id}
+										question={{ ...question, options: question.options || [] }}
+										questionNumber={questionNumber}
+										onChange={handleSimpleAnswerChange}
+									/>
+								);
+							case "true_false":
+								return (
+									<TrueFalse
+										key={id}
+										question={{
+											...question,
+											sub_questions: question.sub_questions || [],
+										}}
+										questionNumber={questionNumber}
+										onChange={handleSimpleAnswerChange}
+									/>
+								);
+							case "short_answer":
+								return (
+									<ShortAnswer
+										key={id}
+										question={question}
+										questionNumber={questionNumber}
+										onChange={handleSimpleAnswerChange}
+									/>
+								);
+							default:
+								return (
+									<div key={id} className="p-4 text-red-500">
+										Loại câu hỏi không xác định: {type}
+									</div>
+								);
+						}
 					})}
 			</div>
 		);
 	},
 );
 
-AnswerArea.displayName = "AnswerArea"; // Add display name
+AnswerArea.displayName = "AnswerArea";
 
-export default AnswerArea; // Export the memoized component
+export default AnswerArea;

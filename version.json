@@ -29,8 +29,8 @@
 	},
 	{
 		"version": "beta 1.4",
-		"final_release_date": "Sat Jun 14 20:19:19 2025 +0700",
-		"final_git_commit_message": "refactor(survey): Extract form logic into useSurveyForm hook\n\n- Restructured the survey page by extracting all state management (formData, currentStep, errors) and handler functions (handleNext, handlePrev, handleSubmit) into a new custom hook `useSurveyForm`.\n- This simplifies the `SurveyPage` component, making it purely presentational and easier to maintain.\n- No functional changes were made.\n- Ran linting, no issues found.",
+		"final_release_date": "Sat Jul 5 22:02:29 2025 +0700",
+		"final_git_commit_message": "feat(taobai): Refactor and optimize quantity selection\n\n- Refactored the question quantity selection UI into a separate, memoized component `QuestionQuantitySelector` to improve code structure and maintainability.\n- Optimized the main page component by using `useCallback` for handler functions, preventing unnecessary re-renders.\n- This change enhances performance and simplifies the main component's logic.\n- Limited grade selection to grades 10-12.",
 		"pre_release_date": "2025-05-06 18:48:21 +0700",
 		"pre_git_commit_message": "Update: Cycle completed, Memory Bank updated. This commit marks the completion of an \"update mode\" cycle. Key activities: code scan (refactor, optimize, lint) - no changes implemented; ESLint passed. Memory Bank (activeContext.md, progress.md) updated. No functional code changes. Focus: codebase health and documentation alignment."
 	}

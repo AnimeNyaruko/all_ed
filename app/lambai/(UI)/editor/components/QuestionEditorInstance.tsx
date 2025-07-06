@@ -27,6 +27,7 @@ import type { AnswerBlock } from "@/types";
 interface QuestionEditorInstanceProps {
 	questionKey: string;
 	questionContent: string;
+	questionNumber: number;
 	initialConfig: InitialConfigType;
 	initialContent?: AnswerBlock[];
 	triggerMathfieldFunc: (
@@ -242,6 +243,7 @@ const QuestionEditorInstance = memo<QuestionEditorInstanceProps>(
 	({
 		questionKey,
 		questionContent,
+		questionNumber,
 		initialConfig,
 		initialContent,
 		triggerMathfieldFunc,
@@ -264,7 +266,7 @@ const QuestionEditorInstance = memo<QuestionEditorInstanceProps>(
 						remarkPlugins={[remarkMath]}
 						rehypePlugins={[rehypeKatex, rehypeRaw]}
 					>
-						{questionContent}
+						{`**Câu ${questionNumber}:** ${questionContent}`}
 					</ReactMarkdown>
 				</div>
 
